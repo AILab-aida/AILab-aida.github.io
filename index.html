@@ -374,7 +374,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/UIAutomator2的使用/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/基于分词标签的中文短文本相似度/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -388,7 +388,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/29/UIAutomator2的使用/" class="post-title-link" itemprop="url">UIAutomator2的使用</a>
+            <a href="/2019/09/29/基于分词标签的中文短文本相似度/" class="post-title-link" itemprop="url">基于分词标签的中文短文本相似度</a>
           
         </h1>
 
@@ -414,7 +414,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 13:27:18" itemprop="dateModified" datetime="2019-10-12T13:27:18+08:00">2019-10-12</time>
+                <time title="修改时间：2019-10-12 14:42:44" itemprop="dateModified" datetime="2019-10-12T14:42:44+08:00">2019-10-12</time>
               </span>
             
           
@@ -424,7 +424,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
 
                 
                 
@@ -443,11 +443,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>uiautomator2 是一个 python 库，用于 Android 的 UI 自动化测试，其底层基于 Google uiautomator，Google 提供的 uiautomator 库可以获取屏幕上任意一个 APP 的任意一个控件属性，并对其进行任意操作</p><p>python-uiautomator2 封装了谷歌自带的 uiautomator2 测试框架，提供便利的 python 接口。他允许测试人员直接在 PC 上编写 Python 的测试代码，操作手机应用，完成自动化，大大提高了自动化代码编写的效率。</p>
+          <h3 id="基于分词标签的中文短文本相似度"><a href="#基于分词标签的中文短文本相似度" class="headerlink" title="基于分词标签的中文短文本相似度"></a>基于分词标签的中文短文本相似度</h3><p>最近接触到了一些关于中文短文本相似度的算法，将它们总结在此：</p><ul>
+<li><strong>中文编辑距离</strong></li>
+<li><strong>基于词频的余弦相似度</strong></li>
+<li><strong>simhash</strong></li>
+</ul><hr><h4 id="1-0-在相似度算法之前的分词处理"><a href="#1-0-在相似度算法之前的分词处理" class="headerlink" title="1.0 在相似度算法之前的分词处理"></a>1.0 在相似度算法之前的分词处理</h4><p>在比较两个字符串 str1 和 str2 之前，我们需要对它们进行分词处理，分词后变成两组标签（我认为分词后的标签具有原子性，不可再分），基于标签，我们可以很容易地进行两组数据的相似度比较。<br>优点：标签的频率以及相对的位置关系确实一定程度可以表示出重要性和时序关系。<br>缺点：中文编辑距离（时序关系），余弦相似度（标签重要性）, 他们没有直接的连接。<br>本项目基于 jieba 分词。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/UIAutomator2的使用/#more" rel="contents">
+              <a class="btn" href="/2019/09/29/基于分词标签的中文短文本相似度/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -561,7 +565,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/2/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/UIAutomator2的使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -575,7 +579,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/29/2/" class="post-title-link" itemprop="url">2</a>
+            <a href="/2019/09/29/UIAutomator2的使用/" class="post-title-link" itemprop="url">UIAutomator2的使用</a>
           
         </h1>
 
@@ -590,11 +594,19 @@
                 
               
 
-              <time title="创建时间：2019-09-29 13:59:37 / 修改时间：14:27:54" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
+              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-10-12 13:27:18" itemprop="dateModified" datetime="2019-10-12T13:27:18+08:00">2019-10-12</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -603,7 +615,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
 
                 
                 
@@ -622,7 +634,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
+          <p>uiautomator2 是一个 python 库，用于 Android 的 UI 自动化测试，其底层基于 Google uiautomator，Google 提供的 uiautomator 库可以获取屏幕上任意一个 APP 的任意一个控件属性，并对其进行任意操作</p><p>python-uiautomator2 封装了谷歌自带的 uiautomator2 测试框架，提供便利的 python 接口。他允许测试人员直接在 PC 上编写 Python 的测试代码，操作手机应用，完成自动化，大大提高了自动化代码编写的效率。</p>
+          <!--noindex-->
           
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/09/29/UIAutomator2的使用/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
         
       
     </div>
@@ -716,7 +737,7 @@
             <a href="/tags/">
           
         
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">标签</span>
         </a>
       </div>
