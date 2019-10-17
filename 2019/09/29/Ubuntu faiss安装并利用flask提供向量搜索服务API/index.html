@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="前言 faiss 简介三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu faiss安装并利用flask提供向量搜索服务API">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="前言 faiss 简介三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/10574740-534d97e6c49741c7.jpg">
+<meta property="og:updated_time" content="2019-10-17T09:21:08.240Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ubuntu faiss安装并利用flask提供向量搜索服务API">
+<meta name="twitter:description" content="前言 faiss 简介三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/10574740-534d97e6c49741c7.jpg">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Ubuntu faiss安装并利用flask提供向量搜索服务API | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Ubuntu faiss安装并利用flask提供向量搜索服务API
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-10-17 17:21:08" itemprop="dateModified" datetime="2019-10-17T17:21:08+08:00">2019-10-17</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言-faiss-简介"><a href="#前言-faiss-简介" class="headerlink" title="前言 faiss 简介"></a><a href="#前言-faiss-简介"></a>前言 faiss 简介</h2><p>三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带有可选的通过 CUDA 提供的 GPU 支持，以及一个可选的 Python 接口。</p><a id="more"></a>
+<p>通过 Faiss 进行相似性搜索时，10 亿图像数据库上的一次查询仅耗时 17.7 微秒，速度较之前提升了 8.5 倍，且准确度也有所提升。</p>
+<p>Github : <a href="https://github.com/facebookresearch/faiss" target="_blank" rel="noopener">https://github.com/facebookresearch/faiss</a><br>Wiki : <a href="https://github.com/facebookresearch/faiss/wiki" target="_blank" rel="noopener">https://github.com/facebookresearch/faiss/wiki</a></p>
+<p>参照官方的 INSTALL.md 开始安装过程.</p>
+<h2 id="安装-Conda"><a href="#安装-Conda" class="headerlink" title="安装 Conda"></a><a href="#安装-conda"></a>安装 Conda</h2><blockquote>
+<p>安装 FAISS 最简单的方法是通过 anaconda。我们经常将稳定版本推送到 conda</p>
+</blockquote>
+<ol>
+<li><p>Conda 是什么<br>conda 是一个 Python 科学计算环境. Anaconda 是 Python 的科学计算工具包。根据对 Python2 和 Python3 的支持，分为 Anaconda2 和 Anaconda3。官网提供的是最新的版本</p>
+</li>
+<li><p>下载并安装 Conda<br>根据 <a href="https://conda.io/docs/user-guide/install/linux.html" target="_blank" rel="noopener">官方安装文档</a>, 首先下载 <strong>Anaconda</strong> , 之后通过以下命令开始安装, 并根据屏幕上的提示确认安装设置. 稍等一会即可安装完成.</p>
+</li>
+</ol>
+<ul>
+<li>特别注意, 在安装完相关计算环境之后, 会提示你是否将 anaconda 安装路径加入到环境变量. 请输入 <code>yes</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line">wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/Anaconda3-5.2.0-Linux-x86_64.sh</span><br><span class="line"></span><br><span class="line">$ bash Anaconda3-5.2.0-Linux-x86_64.sh</span><br><span class="line"></span><br><span class="line">Welcome to Anaconda2 5.2.0</span><br><span class="line"></span><br><span class="line">In order to continue the installation process, please review the license</span><br><span class="line">agreement.</span><br><span class="line">Please, press ENTER to continue</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line">===================================</span><br><span class="line">Anaconda End User License Agreement</span><br><span class="line">===================================</span><br><span class="line"></span><br><span class="line">Copyright 2015, Anaconda, Inc.</span><br><span class="line"></span><br><span class="line">All rights reserved under the 3-clause BSD License:</span><br><span class="line"></span><br><span class="line">Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</span><br><span class="line"></span><br><span class="line"> * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</span><br><span class="line"> * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</span><br><span class="line"> * Neither the name of Anaconda, Inc. (&quot;Anaconda, Inc.&quot;) nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</span><br><span class="line"></span><br><span class="line">THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PAR</span><br><span class="line">TICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ANACONDA, INC. BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBS</span><br><span class="line">TITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWI</span><br><span class="line">SE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span><br><span class="line"></span><br><span class="line">Notice of Third Party Software Licenses</span><br><span class="line">=======================================</span><br><span class="line"></span><br><span class="line">Anaconda Distribution contains open source software packages from third parties. These are available on an &quot;as is&quot; basis and subject to their individual license agreements. These licenses are available in Anac</span><br><span class="line">onda Distribution or at http://docs.anaconda.com/anaconda/pkg-docs. Any binary packages of these third party tools you obtain via Anaconda Distribution are subject to their individual licenses as well as the A</span><br><span class="line">naconda license. Anaconda, Inc. reserves the right to change which third party tools are provided in Anaconda Distribution.</span><br><span class="line"></span><br><span class="line">In particular, Anaconda Distribution contains re-distributable, run-time, shared-library files from the Intel(TM) Math Kernel Library (&quot;MKL binaries&quot;). You are specifically authorized to use the MKL binaries w</span><br><span class="line">ith your installation of Anaconda Distribution. You are also authorized to redistribute the MKL binaries with Anaconda Distribution or in the conda package that contains them. Use and redistribution of the MKL</span><br><span class="line">binaries are subject to the licensing terms located at https://software.intel.com/en-us/license/intel-simplified-software-license. If needed, instructions for removing the MKL binaries after installation of A</span><br><span class="line">naconda Distribution are available at http://www.anaconda.com.</span><br><span class="line"></span><br><span class="line">Anaconda Distribution also contains cuDNN software binaries from NVIDIA Corporation (&quot;cuDNN binaries&quot;). You are specifically authorized to use the cuDNN binaries with your installation of Anaconda Distribution</span><br><span class="line">. You are also authorized to redistribute the cuDNN binaries with an Anaconda Distribution package that contains them. If needed, instructions for removing the cuDNN binaries after installation of Anaconda Dis</span><br><span class="line">tribution are available at http://www.anaconda.com.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Anaconda Distribution also contains Visual Studio Code software binaries from Microsoft Corporation (&quot;VS Code&quot;). You are specifically authorized to use VS Code with your installation of Anaconda Distribution.</span><br><span class="line">Use of VS Code is subject to the licensing terms located at https://code.visualstudio.com/License.</span><br><span class="line"></span><br><span class="line">Cryptography Notice</span><br><span class="line">===================</span><br><span class="line"></span><br><span class="line">This distribution includes cryptographic software. The country in which you currently reside may have restrictions on the import, possession, use, and/or re-export to another country, of encryption software. B</span><br><span class="line">EFORE using any encryption software, please check your country&apos;s laws, regulations and policies concerning the import, possession, or use, and re-export of encryption software, to see if this is permitted. See</span><br><span class="line">the Wassenaar Arrangement http://www.wassenaar.org/ for more information.</span><br><span class="line"></span><br><span class="line">Anaconda, Inc. has self-classified this software as Export Commodity Control Number (ECCN) 5D992b, which includes mass market information security software using or performing cryptographic functions with asym</span><br><span class="line">metric algorithms. No license is required for export of this software to non-embargoed countries. In addition, the Intel(TM) Math Kernel Library contained in Anaconda, Inc.&apos;s software is classified by Intel(TM</span><br><span class="line">) as ECCN 5D992b with no license required for export to non-embargoed countries and Microsoft&apos;s Visual Studio Code software is classified by Microsoft as ECCN 5D992.c with no license required for export to non</span><br><span class="line">-embargoed countries.</span><br><span class="line"></span><br><span class="line">The following packages are included in this distribution that relate to cryptography:</span><br><span class="line"></span><br><span class="line">openssl</span><br><span class="line">   The OpenSSL Project is a collaborative effort to develop a robust, commercial-grade, full-featured, and Open Source toolkit implementing the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) pr</span><br><span class="line">otocols as well as a full-strength general purpose cryptography library.</span><br><span class="line"></span><br><span class="line">pycrypto</span><br><span class="line">   A collection of both secure hash functions (such as SHA256 and RIPEMD160), and various encryption algorithms (AES, DES, RSA, ElGamal, etc.).</span><br><span class="line"></span><br><span class="line">pyopenssl</span><br><span class="line">   A thin Python wrapper around (a subset of) the OpenSSL library.</span><br><span class="line"></span><br><span class="line">kerberos (krb5, non-Windows platforms)</span><br><span class="line">   A network authentication protocol designed to provide strong authentication for client/server applications by using secret-key cryptography.</span><br><span class="line"></span><br><span class="line">cryptography</span><br><span class="line">   A Python library which exposes cryptographic recipes and primitives.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Do you accept the license terms? [yes|no]</span><br><span class="line">[no] &gt;&gt;&gt;</span><br><span class="line">Please answer &apos;yes&apos; or &apos;no&apos;:&apos;</span><br><span class="line">&gt;&gt;&gt; yes</span><br><span class="line"></span><br><span class="line">Anaconda2 will now be installed into this location:</span><br><span class="line">/root/anaconda2</span><br><span class="line"></span><br><span class="line"> - Press ENTER to confirm the location</span><br><span class="line"> - Press CTRL-C to abort the installation</span><br><span class="line"> - Or specify a different location below</span><br><span class="line"></span><br><span class="line">[/root/anaconda2] &gt;&gt;&gt;</span><br><span class="line">PREFIX=/root/anaconda2</span><br><span class="line">installing: python-2.7.15-h1571d57_0 ...</span><br><span class="line">Python 2.7.15 :: Anaconda, Inc.</span><br><span class="line">installing: blas-1.0-mkl ...</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">installation finished.</span><br><span class="line">Do you wish the installer to prepend the Anaconda2 install location</span><br><span class="line">to PATH in your /root/.bashrc ? [yes|no]</span><br><span class="line">[no] &gt;&gt;&gt; yes</span><br><span class="line"></span><br><span class="line">Appending source /root/anaconda2/bin/activate to /root/.bashrc</span><br><span class="line">A backup will be made to: /root/.bashrc-anaconda2.bak</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">For this change to become active, you have to open a new terminal.</span><br><span class="line"></span><br><span class="line">Thank you for installing Anaconda2!</span><br><span class="line"></span><br><span class="line">===========================================================================</span><br><span class="line"></span><br><span class="line">Anaconda is partnered with Microsoft! Microsoft VSCode is a streamlined</span><br><span class="line">code editor with support for development operations like debugging, task</span><br><span class="line">running and version control.</span><br><span class="line"></span><br><span class="line">To install Visual Studio Code, you will need:</span><br><span class="line"> - Administrator Privileges</span><br><span class="line"> - Internet connectivity</span><br><span class="line"></span><br><span class="line">Visual Studio Code License: https://code.visualstudio.com/license</span><br><span class="line"></span><br><span class="line">Do you wish to proceed with the installation of Microsoft VSCode? [yes|no]</span><br><span class="line">&gt;&gt;&gt; no</span><br><span class="line">$</span><br></pre></td></tr></table></figure>
+<p>如果没输入就要配置环境，根据提示，在终端输入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/profile</span><br></pre></td></tr></table></figure>
+<p>打开 profile 文件。在最后添加语句<code>export PATH=export PATH=/root/anaconda3/bin:$PATH</code>，保存，退出。<br>最后<code>source /etc/profile</code>使配置生效.</p>
+<ol>
+<li>测试 Conda 是否安装成功<br>在终端中输入</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda list</span><br></pre></td></tr></table></figure>
+<p>若发现输出了 conda 所安装的库列表, 则代表 Conda 安装成功.</p>
+<p>再试一下 在 Python 中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Python 2.7.15 |Anaconda, Inc.| (default, May  1 2018, 23:32:55)</span><br><span class="line">[GCC 7.2.0] on linux2</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt; import scipy</span><br></pre></td></tr></table></figure>
+<p>开头提示信息出现 Anaconda 字样, 且 import 无报错, 则 Anaconda 安装过程完成.</p>
+<h2 id="安装-OpenBLAS"><a href="#安装-OpenBLAS" class="headerlink" title="安装 OpenBLAS"></a><a href="#安装-openblas"></a>安装 OpenBLAS</h2><p>BLAS 即是 Basic linear Algebra Subprograms，基本线性代数子程序，主要包括矩阵和矩阵，矩阵和向量，向量和向量操作，是科学和工程计算的基础数学库之一。</p>
+<p>OpenBLAS 的开源项目源于 GotoBLAS 项目，大致从 2011 年开始，当前的稳定版本是 0.2.14，主要开发人员才三个，贡献者多达 44 人；已经进入主流 Linux 发行版的源，并且成为 MIT 以及其他如 GNU，DL 等的主要依赖库。</p>
+<ol>
+<li>通过 conda 安装 openblas</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install openblas</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建软连接</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s $HOME/anaconda3/lib/libopenblas.so.0 /usr/lib/libopenblas.so.0</span><br></pre></td></tr></table></figure>
+<h2 id="安装-faiss"><a href="#安装-faiss" class="headerlink" title="安装 faiss"></a><a href="#安装-faiss"></a>安装 faiss</h2><p><em>源码编译安装方式可以参考 <a href="https://github.com/facebookresearch/faiss/blob/master/INSTALL.md#compile-from-source" target="_blank" rel="noopener">官方文档</a></em></p>
+<ol>
+<li>通过 Conda 安装 faiss<br>我这里只安装了 CPU 版本, gpu 版本需要先提前安装 CUDA. 参考下面的安装命令安装即可</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># CPU 版本</span><br><span class="line"># CPU version only</span><br><span class="line">conda install faiss-cpu -c pytorch</span><br><span class="line"></span><br><span class="line"># GPU 版本</span><br><span class="line"># Make sure you have CUDA installed before installing faiss-gpu,</span><br><span class="line"># otherwise it falls back to CPU version</span><br><span class="line">conda install faiss-gpu -c pytorch # [DEFAULT]For CUDA8.0, comes with cudatoolkit8.0</span><br><span class="line">conda install faiss-gpu cuda90 -c pytorch # For CUDA9.0</span><br><span class="line">conda install faiss-gpu cuda91 -c pytorch # For CUDA9.1</span><br><span class="line"># cuda90/cuda91 shown above is a feature, it doesn&apos;t install CUDA for you.</span><br></pre></td></tr></table></figure>
+<ol>
+<li>测试 faiss<br>在终端中打开 Python 解释器, 尝试 import faiss, 无报错则安装完成.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ python</span><br><span class="line">Python 2.7.15 |Anaconda, Inc.| (default, May  1 2018, 23:32:55)</span><br><span class="line">[GCC 7.2.0] on linux2</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt; import faiss</span><br></pre></td></tr></table></figure>
+<ol>
+<li>运行 Demo<br><a href="https://github.com/facebookresearch/faiss/blob/master/tutorial/python/1-Flat.py" target="_blank" rel="noopener">官方 Python Demo</a></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># Copyright (c) 2015-present, Facebook, Inc.</span><br><span class="line"># All rights reserved.</span><br><span class="line">#</span><br><span class="line"># This source code is licensed under the BSD+Patents license found in the</span><br><span class="line"># LICENSE file in the root directory of this source tree.</span><br><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">d = 64                           # dimension</span><br><span class="line">nb = 100000                      # database size</span><br><span class="line">nq = 10000                       # nb of queries</span><br><span class="line">np.random.seed(1234)             # make reproducible</span><br><span class="line">xb = np.random.random((nb, d)).astype(&apos;float32&apos;)</span><br><span class="line">xb[:, 0] += np.arange(nb) / 1000.</span><br><span class="line">xq = np.random.random((nq, d)).astype(&apos;float32&apos;)</span><br><span class="line">xq[:, 0] += np.arange(nq) / 1000.</span><br><span class="line"></span><br><span class="line">import faiss                   # make faiss available</span><br><span class="line">index = faiss.IndexFlatL2(d)   # build the index</span><br><span class="line">print(index.is_trained)</span><br><span class="line">index.add(xb)                  # add vectors to the index</span><br><span class="line">print(index.ntotal)</span><br><span class="line"></span><br><span class="line">k = 4                          # we want to see 4 nearest neighbors</span><br><span class="line">D, I = index.search(xb[:5], k) # sanity check</span><br><span class="line">print(I)</span><br><span class="line">print(D)</span><br><span class="line">D, I = index.search(xq, k)     # actual search</span><br><span class="line">print(I[:5])                   # neighbors of the 5 first queries</span><br><span class="line">print(I[-5:])                  # neighbors of the 5 last queries</span><br></pre></td></tr></table></figure>
+<h2 id="搭建向量搜索-API"><a href="#搭建向量搜索-API" class="headerlink" title="搭建向量搜索 API"></a><a href="#搭建向量搜索API"></a>搭建向量搜索 API</h2><h2 id="Faiss-是什么？"><a href="#Faiss-是什么？" class="headerlink" title="Faiss 是什么？"></a>Faiss 是什么？</h2><p>比如，Faiss 就可以类比为一个可以设置索引的数据库。<br>索引是干什么的？ 更快的读取，数据库是干什么的？增删改查。数据库里存的什么？通常来讲是许多记录，但对于 Faiss 来讲就是巨多的向量。<br>只是在 Faiss 中没有数据库存储介质这一层的概念，全部都是 Index。</p>
+<h2 id="Index-在-Faiss-中是什么角色？"><a href="#Index-在-Faiss-中是什么角色？" class="headerlink" title="Index 在 Faiss 中是什么角色？"></a>Index 在 Faiss 中是什么角色？</h2><p>还是类比数据库的索引，为了更快的查数据，我们可以学字典一样，以首字母建立索引，也可以像早期的谷歌一样，使用倒排索引（inverted index）。<br>不同的索引方式，有不同的优缺点，Faiss 已经全部实现好了。 如果只是为了使用，可以暂时忽略它们的实现原理，只需要了解各自特点以及自己的使用场景即可。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/10574740-534d97e6c49741c7.jpg" alt></p>
+<p>上图中主要表达了一个使用 faiss 来进行搜索的 API 接口的流程，不同于以往的跟数据互动的方式 (结构数据库，非结构数据库，图数据库等)，faiss 只是一个比较简陋的开源库，他并没有完整的提供一套解决方案。类比的话就好像 elasticsearch 和 solr 中的 lucene 包一样，而我要做的就是在此基础上二次开发，提供一套可用的解决方案。考虑到 faiss 是一个 C++ 的开源工具库，它只提供了 python 的接口，所以只能使用 python 来做这次接口开发。考察过后决定技术选型为 flask+uwsgi+faiss 来完成这个接口。</p>
+<h2 id="环境依赖"><a href="#环境依赖" class="headerlink" title="环境依赖"></a>环境依赖</h2><ul>
+<li>faiss 的库</li>
+<li>python3.6</li>
+<li>uwsgi</li>
+<li>pycharm</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>专门开一个标题来感谢一下这哥们 plippe <a href="https://github.com/plippe/faiss-web-service" target="_blank" rel="noopener">faiss-web-service</a>。他开源的这个 demo 满足了我百分 60 以上的需求，本次的开发基本就是在读懂他的代码以后才能这么胸有成竹。</p>
+<h4 id="python-的-API-如何开发"><a href="#python-的-API-如何开发" class="headerlink" title="python 的 API 如何开发"></a>python 的 API 如何开发</h4><p>用 flask 开发一个 web 接口，首先是主入口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">from flask import Flask</span><br><span class="line">from faiss_index import blueprint as FaissIndexBlueprint</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.config.from_pyfile(&apos;config.py&apos;)</span><br><span class="line"></span><br><span class="line">app.register_blueprint(FaissIndexBlueprint.blueprint)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &apos;__main__&apos;:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+<p>其次是在主入口中注册的模块 (Blueprint)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">from jsonschema import validate, ValidationError</span><br><span class="line">from flask import Blueprint, jsonify, request</span><br><span class="line">from werkzeug.exceptions import BadRequest</span><br><span class="line">from faiss_index import FaissIndex</span><br><span class="line">import json</span><br><span class="line"></span><br><span class="line">try:</span><br><span class="line">    import uwsgi</span><br><span class="line">except ImportError:</span><br><span class="line">    print(&apos;Failed to load python module uwsgi&apos;)</span><br><span class="line">    print(&apos;Periodic faiss index updates isn\&apos;t enabled&apos;)</span><br><span class="line"></span><br><span class="line">    uwsgi = None</span><br><span class="line"></span><br><span class="line">blueprint = Blueprint(&apos;faiss_index&apos;, __name__)</span><br><span class="line"></span><br><span class="line">@blueprint.route(&apos;/ping&apos;)</span><br><span class="line">def ping():</span><br><span class="line">    return &quot;pong&quot;</span><br></pre></td></tr></table></figure>
+<p>OK 直接运行 app.py 就可以用 flask 自带的 wsgi 服务器启动 app</p>
+<h4 id="搜索的参数"><a href="#搜索的参数" class="headerlink" title="搜索的参数"></a>搜索的参数</h4><p>API 调用方要提供的参数是一维向量，目的是搜索距离最近的 K 个向量，向量具体在程序中怎么表示呢？就是一维数组。比如 [1,2,3,4,5]，但是在拿到向量后不能马上进行搜索，要进行处理，如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vectors = [np.array(vectors, dtype=np.float32)]</span><br><span class="line">vectors = np.atleast_2d(vectors)</span><br></pre></td></tr></table></figure>
+<h4 id="部署的方式-Docker"><a href="#部署的方式-Docker" class="headerlink" title="部署的方式 - Docker"></a>部署的方式 - Docker</h4><p>相比其他 python web API 来说，faiss 搜索有一点特殊的地方，就是它最重要的依赖 faiss 本身。而 faiss 本身安装有两种方式</p>
+<ul>
+<li>通过下载源代码进行编译 非常麻烦</li>
+<li>通过 anconda 进行安装 一行代码完成<br>但是服务器上本身是可能有其他 python 环境在运行的。不可能专门的让我为了部署我的工程而去改动，可能还能通过 env 的方式解决？但是我不够熟悉 python，所以选择了我擅长的隔离方式 Docker。原理就是从 ubunt 的 image 开始构建，首先构建出一个 faiss 运行环境的 image，然后在第二个 image 上打包自己的 flask 程序。附上构建运行环境的 Dockerfile</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">ARG IMAGE</span><br><span class="line">FROM $&#123;IMAGE&#125;</span><br><span class="line"></span><br><span class="line">ARG FAISS_CPU_OR_GPU</span><br><span class="line">ARG FAISS_VERSION</span><br><span class="line"></span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get install -y curl bzip2  &amp;&amp; \</span><br><span class="line">    curl https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh &gt; /tmp/conda.sh &amp;&amp; \</span><br><span class="line">    bash /tmp/conda.sh -b -p /opt/conda &amp;&amp; \</span><br><span class="line">    /opt/conda/bin/conda update -n base conda &amp;&amp; \</span><br><span class="line">    /opt/conda/bin/conda install -y -c pytorch faiss-$&#123;FAISS_CPU_OR_GPU&#125;=$&#123;FAISS_VERSION&#125; &amp;&amp; \</span><br><span class="line">    apt-get remove -y --auto-remove curl bzip2 &amp;&amp; \</span><br><span class="line">    apt-get clean &amp;&amp; \</span><br><span class="line">    rm -fr /tmp/conda.sh</span><br><span class="line"></span><br><span class="line">ENV PATH=&quot;/opt/conda/bin:$&#123;PATH&#125;&quot;</span><br></pre></td></tr></table></figure>
+<p>以及我打包到 dockerhub 上的镜像 <a href="https://hub.docker.com/r/huangqq/faiss-docker/" target="_blank" rel="noopener">faiss-docker</a><br>可以在 docker 中搜索我的镜像 pull 下来使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker search huangqq</span><br><span class="line">docker pull huangqq/faiss-docker:1.2.1-cpu</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/" title="Ubuntu faiss安装并利用flask提供向量搜索服务API">https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/29/UIAutomator2的使用/" rel="next" title="UIAutomator2的使用">
+                  <i class="fa fa-chevron-left"></i> UIAutomator2的使用
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/08/flutter provider基础使用/" rel="prev" title="flutter provider基础使用">
+                  flutter provider基础使用 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言-faiss-简介"><span class="nav-number">1.</span> <span class="nav-text">前言 faiss 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-Conda"><span class="nav-number">2.</span> <span class="nav-text">安装 Conda</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-OpenBLAS"><span class="nav-number">3.</span> <span class="nav-text">安装 OpenBLAS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装-faiss"><span class="nav-number">4.</span> <span class="nav-text">安装 faiss</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搭建向量搜索-API"><span class="nav-number">5.</span> <span class="nav-text">搭建向量搜索 API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Faiss-是什么？"><span class="nav-number">6.</span> <span class="nav-text">Faiss 是什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Index-在-Faiss-中是什么角色？"><span class="nav-number">7.</span> <span class="nav-text">Index 在 Faiss 中是什么角色？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境依赖"><span class="nav-number">8.</span> <span class="nav-text">环境依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#python-的-API-如何开发"><span class="nav-number">9.0.1.</span> <span class="nav-text">python 的 API 如何开发</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#搜索的参数"><span class="nav-number">9.0.2.</span> <span class="nav-text">搜索的参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#部署的方式-Docker"><span class="nav-number">9.0.3.</span> <span class="nav-text">部署的方式 - Docker</span></a></li></ol></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '5babce71da16424107cab56d310219c1',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
