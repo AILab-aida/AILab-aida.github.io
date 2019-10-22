@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="简介本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。预训练辅助任务BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。 MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。 NSP：随机生成句子对，模型需要判断句子对是否连续（n">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BERT研究">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/18/BERT/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="简介本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。预训练辅助任务BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。 MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。 NSP：随机生成句子对，模型需要判断句子对是否连续（n">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-18T06:31:04.266Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BERT研究">
+<meta name="twitter:description" content="简介本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。预训练辅助任务BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。 MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。 NSP：随机生成句子对，模型需要判断句子对是否连续（n">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/18/BERT/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>BERT研究 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/BERT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">BERT研究
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:31:04" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。</p><h2 id="预训练辅助任务"><a href="#预训练辅助任务" class="headerlink" title="预训练辅助任务"></a>预训练辅助任务</h2><p>BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。</p><ul>
+<li>MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。</li>
+<li>NSP：随机生成句子对，模型需要判断句子对是否连续（next sentence）。</li>
+</ul><a id="more"></a>
+
+
+<p>在训练过程中，MLM 与 NSP 的 loss 是同时计算的，属于多任务学习。</p>
+<h2 id="MLM"><a href="#MLM" class="headerlink" title="MLM"></a>MLM</h2><p>在 BERT 之前，LM 通常是<strong>单向</strong>的，常见做法是分别训练正向与反向的 LM，然后再做一个 ensemble 得到上下文相关表征（context dependent representation）。这种做法会有信息缺失与标注偏差的问题 。MLM 的意义在于，可以使 BERT 作为<strong>单模型</strong>学习到上下文相关的表征，并能更充分地利用<strong>双向</strong>的信息。</p>
+<p>论文里强调了设计 MLM 任务需要注意的问题：</p>
+<blockquote>
+<p>The first is that we are creating a mismatch between pre-training and fine-tuning, since the [MASK] token is never seen during fine-tuning</p>
+</blockquote>
+<p>为了解决这个问题，MLM 采取以下策略 mask 15% 的输入（token）：</p>
+<ul>
+<li>80% 的概率，把输入替换为 <code>[MASK]</code>。</li>
+<li>10% 的概率，把输入替换为随机的 token。</li>
+<li>10% 的概率，维持输入不变。</li>
+</ul>
+<p>这篇博文 提供了一个解释：</p>
+<ul>
+<li>如果把 100% 的输入替换为 <code>[MASK]</code>：模型会偏向为 <code>[MASK]</code> 输入建模，而不会学习到 non-masked 输入的表征。</li>
+<li>如果把 90% 的输入替换为 <code>[MASK]</code>、10% 的输入替换为随机 token：模型会偏向认为 non-masked 输入是错的。</li>
+<li>如果把 90% 的输入替换为 <code>[MASK]</code>、维持 10% 的输入不变：模型会偏向直接复制 non-masked 输入的上下文无关表征。</li>
+<li>所以，为了使模型可以学习到相对有效的上下文相关表征，需要以 1:1 的比例使用两种策略处理 non-masked 输入。论文提及，随机替换的输入只占整体的 1.5%，似乎不会对最终效果有影响（模型有足够的容错余量）。</li>
+</ul>
+<h2 id="NSP"><a href="#NSP" class="headerlink" title="NSP"></a>NSP</h2><p>句子级别表征（sentence-level representation）对于某些下游任务是很有用的。NSP 使 BERT 可以从大规模语料中学习句子级别表征、句子关系的知识。NSP 的做法是：</p>
+<ol>
+<li>从语料中提取两个句子 <code>A</code> 与 <code>B</code> ，50% 的概率 <code>B</code> 是 <code>A</code> 的下一个句子，50% 的概率 <code>B</code> 是一个随机选取的句子，以此为标注训练分类器。</li>
+<li>将 <code>A</code> 与 <code>B</code> 打包成一个序列（sequence）：<code>[CLS] A [SEP] B [SEP]</code> 。</li>
+<li>生成区间标识（segment labels），标识序列中 <code>A</code> 与 <code>B</code> 的位置。<code>[CLS] A [SEP]</code> 的区域设为 <code>0</code>，<code>B [SEP]</code> 的区域设为 <code>1</code>：<code>0, 0..., 0, 1..., 1</code>。</li>
+<li>将序列与区间标识输入到模型，取 <code>[CLS]</code> 的表征训练 NSP 分类器。</li>
+</ol>
+<h2 id="预处理流程"><a href="#预处理流程" class="headerlink" title="预处理流程"></a>预处理流程</h2><p>官方实现 的 <em>Pre-training with BERT</em> 小节简述了预处理的执行方式。通过阅读源码，可以将预处理逻辑划分为以下阶段：</p>
+<ol>
+<li><p>数据准备</p>
+</li>
+<li><p>读取句子与 Tokenization</p>
+</li>
+<li><p>构建序列</p>
+</li>
+<li><p>Masking</p>
+</li>
+<li><p>构建 Instance 与导出</p>
+</li>
+</ol>
+<h3 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h3><ol>
+<li><p>准备一个或多个 txt 文本，满足以下格式（示例 ）：</p>
+<ol>
+<li>每一行，如果非空，存储一个句子。每个句子使用 whitespace 切词。</li>
+<li>使用空行表示文档结尾。空行的目的是禁止生成跨文档的序列。</li>
+</ol>
+</li>
+<li><p>准备 WordPiece 词典 。通常情况下，可以直接复用预训练模型的词典。</p>
+</li>
+</ol>
+<h3 id="读取句子与-Tokenization"><a href="#读取句子与-Tokenization" class="headerlink" title="读取句子与 Tokenization"></a>读取句子与 Tokenization</h3><p>实现见 <code>create_training_instances</code> 函数 。</p>
+<p>逻辑：</p>
+<ol>
+<li>读取一个文档的所有句子，whitespace 切分后再基于词典做 WordPiece 切分 。</li>
+<li>基于 (1) 构建嵌套 list <code>all_documents</code>，结构是 <code>[doc_num, sent_num, token_num]</code>。</li>
+<li>Shuffle <code>all_documents</code>。</li>
+</ol>
+<h3 id="构建序列"><a href="#构建序列" class="headerlink" title="构建序列"></a>构建序列</h3><p>“序列（Sequence）”是 BERT 论文定义的概念，包含一个句子对（sentence pair）。基于论文描述与代码逻辑，我认为使用 “句子集合对” 描述更加合适：</p>
+<blockquote>
+<p>To generate each training input sequence, we sample two spans of text from the corpus, <strong>which we refer to as “sentences” even though they are typically much longer than single sentences (but can be shorter also)</strong>. The first sentence receives the A embedding and the second receives the B embedding. 50% of the time B is the actual next sentence that follows A and 50% of the time it is a random sentence, which is done for the “next sentence prediction” task. They are sampled such that <strong>the combined length is ≤ 512 tokens</strong>.</p>
+</blockquote>
+<p>为了防止误解，后续我将使用 “<strong>句子集合 A</strong>” 与 “<strong>句子集合 B</strong>” 描述序列中这两个区域。</p>
+<p>逻辑：</p>
+<ol>
+<li><code>create_instances_from_document</code> 函数 包含了构建序列的所有逻辑。序列的构建是以文档为单位的，脚本仅会对每篇文档执行一次此函数，从中生成若干序列。</li>
+<li>序列长度 <code>target_seq_length</code> 由 <code>max_seq_length [default: 128]</code> 与 <code>short_seq_prob [default: 0.1]</code> 决定：<ol>
+<li>设 <code>max_num_tokens = max_seq_length - 3</code> （考虑特殊 token <code>[CLS]</code>, 2 * <code>[SEP]</code>）。</li>
+<li>以 <code>1 - short_seq_prob</code> 的概率，将序列长度设为 <code>max_num_tokens</code>。</li>
+<li>以 <code>short_seq_prob</code> 的概率，随机选取 <code>[2, max_num_tokens]</code> 为序列长度，目的是降低预训练与 fine-tuning 阶段序列长度不一致的问题 。</li>
+<li>需要注意：一是这个序列长度的生效区域是单个文档；二是为了加速收敛 ，训练初期可能会选取较小的序列长度（如 <code>128</code>），训练后期再选取较大的序列长度（如 <code>512</code>），这种场景需要生成多批训练数据。</li>
+</ol>
+</li>
+<li>基于（2）的序列长度，生成序列：<ol>
+<li>维护一个全局 index <code>i</code> 标识当前文档中尚未处理的句子 。</li>
+<li>从 <code>i</code> 开始收集若干句子加入 <code>current_chunk</code> ，直到 tokens 的数目大于等于序列长度，或已收集到最后一个句子。</li>
+<li>随机选取 <code>current_chunk</code> 的前 <code>[1, len(current_chunk) - 1]</code> 个句子作为<strong>句子集合 A</strong> 。</li>
+<li>选取 <strong>句子集合 B</strong> ：<ol>
+<li>以 50% 的概率，选取<strong>非连续</strong>（non-next sentence）的句子集合 B。选取方式：随机选择一个除当前文档以外的文档，然后从中选取若干连续的句子，使 A 与 B 的长度恰好超过 <code>target_seq_length</code>。</li>
+<li>以 50% 的概率，选取<strong>连续</strong>（non-next sentence）的句子集合 B。选取方式：直接选取 <code>current_chunk</code> 的剩余部分。</li>
+<li><code>is_random_next</code> 标记连续、非连续的随机结果，用于训练 NSP。</li>
+<li>特殊情况：<code>current_chunk</code> 仅包含一个句子，这种情况强制选取非连续句子集合。</li>
+</ol>
+</li>
+<li>使用 <code>truncate_seq_pair</code> 裁剪句子集合 A 与 B，保证最终序列长度小于等于 <code>max_num_tokens</code>。</li>
+<li>合并句子集合 A 与 B 构建序列 <code>[CLS] A [SEP] B [SEP]</code> ，同时生成区间标识（segment id）<code>0, 0..., 0, 1..., 1</code> 。</li>
+</ol>
+</li>
+</ol>
+<h3 id="Masking"><a href="#Masking" class="headerlink" title="Masking"></a>Masking</h3><p>在构建完序列之后，我们需要随机 mask 输入用于训练 MLM。</p>
+<p>逻辑：</p>
+<ol>
+<li><code>create_masked_lm_predictions</code> 函数 包含了 Masking 的所有逻辑。Masking 是以序列为单位的，每个序列只会被 masked 一次。</li>
+<li>Masking 的数目 <code>num_to_predict</code> 由 <code>masked_lm_prob [default: 0.15]</code> 与 <code>max_predictions_per_seq [default: 20]</code> 决定 ，即随机选取 <code>masked_lm_prob</code> 占比的输入 mask，如果输入超过 <code>max_predictions_per_seq</code> 则只 mask <code>max_predictions_per_seq</code> 个 tokens。</li>
+<li>对于每个需要 mask 的输入：<ol>
+<li>80% 的概率，把输入替换为 <code>[MASK]</code> 。</li>
+<li>10% 的概率，把输入替换为随机的 token 。</li>
+<li>10% 的概率，维持输入不变 。</li>
+</ol>
+</li>
+</ol>
+<h3 id="构建-Instance-与导出"><a href="#构建-Instance-与导出" class="headerlink" title="构建 Instance 与导出"></a>构建 Instance 与导出</h3><p>最后将上述处理结果打包，为每一个序列生成一个 Instance ，并导出到文件 。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/18/BERT/" title="BERT研究">https://ailab-aida.github.io/2019/10/18/BERT/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/18/ernie/" rel="next" title="ernie研究">
+                  <i class="fa fa-chevron-left"></i> ernie研究
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/18/推荐系统/" rel="prev" title="推荐系统">
+                  推荐系统 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预训练辅助任务"><span class="nav-number">2.</span> <span class="nav-text">预训练辅助任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MLM"><span class="nav-number">3.</span> <span class="nav-text">MLM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NSP"><span class="nav-number">4.</span> <span class="nav-text">NSP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预处理流程"><span class="nav-number">5.</span> <span class="nav-text">预处理流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据准备"><span class="nav-number">5.1.</span> <span class="nav-text">数据准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取句子与-Tokenization"><span class="nav-number">5.2.</span> <span class="nav-text">读取句子与 Tokenization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建序列"><span class="nav-number">5.3.</span> <span class="nav-text">构建序列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Masking"><span class="nav-number">5.4.</span> <span class="nav-text">Masking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建-Instance-与导出"><span class="nav-number">5.5.</span> <span class="nav-text">构建 Instance 与导出</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '0e90dc5261804d36a377eef7c104e5f8',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="一、背景用户可以通过视频更全面直观的展示商品，于此同时也出现了一些视频拷贝、抄袭等不好的现象。为了解决这个问题，我们采用了很多方案，其中一种方案是将商品视频转换成向量，尝试通过向量检索计算商品视频相似性，进而判断商品是否重复。视频去重本质是高维向量检索，基于当前商品规模及业务发展的预估，向量检索系统需支持检索亿级别平均时长为 20 秒，每秒向量维度是 1024 维的视频。如此庞大的量级给我们的技术">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="向量检索">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/22/向量检索/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="一、背景用户可以通过视频更全面直观的展示商品，于此同时也出现了一些视频拷贝、抄袭等不好的现象。为了解决这个问题，我们采用了很多方案，其中一种方案是将商品视频转换成向量，尝试通过向量检索计算商品视频相似性，进而判断商品是否重复。视频去重本质是高维向量检索，基于当前商品规模及业务发展的预估，向量检索系统需支持检索亿级别平均时长为 20 秒，每秒向量维度是 1024 维的视频。如此庞大的量级给我们的技术">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48f3a2fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://img-my.csdn.net/uploads/201207/20/1342750061_2586.jpg">
+<meta property="og:image" content="https://img-my.csdn.net/uploads/201207/20/1342750112_6860.jpg">
+<meta property="og:image" content="https://img-my.csdn.net/uploads/201207/20/1342750144_2774.jpg">
+<meta property="og:image" content="https://img-my.csdn.net/uploads/201207/20/1342750163_8398.jpg">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=a%28x1%2Cy1%29">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=b%28x2%2Cy2+%29">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=d+%3D+%5Csqrt%7B%28x1+-+x2%29%5E2+%2B+%28y1-y2%29%5E2%7D">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=d+%3D+%5Csqrt%7B%28x1+-+x2%29%5E2+%2B+%28y1-y2%29%5E2%2B%28z1-z2%29%5E2%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48e1da98?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48c476c7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48dbcd5e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fc97e002f?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://pic2.zhimg.com/v2-2a8cf3b980fd6f4ecafd424401819519_b.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-2a8cf3b980fd6f4ecafd424401819519_hd.jpg">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=cos%28%5Ctheta%29+%3D+%5Cfrac%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B1k%7D%7Dx_%7B2k%7D%7D%7B%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B1k%7D%7D%5E2%7D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B2k%7D%7D%5E2%7D%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fcb52636d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fce5264a0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fd48f2fe2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=sim%28x_1%2Cx_2%29+%3D+%5Cfrac%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B1k%7D+-+%5Cbar%7Bx_1%7D%29%7D%28x_%7B2k%7D+-+%5Cbar%7Bx_2%7D%29%7D%7B%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B1k%7D+-+%5Cbar%7Bx_1%7D%29%7D%5E2%7D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B2k%7D+-+%5Cbar%7Bx_2%7D%29%7D%5E2%7D%7D">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=%5Cbar%7Bx_2%7D">
+<meta property="og:image" content="https://pic2.zhimg.com/v2-f3abdee3ea4c913aa10041f6cd56ccdd_b.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-f3abdee3ea4c913aa10041f6cd56ccdd_hd.jpg">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fded9279b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fe37f75e5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230fe59fde97?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230feaae5179?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230ff74881f0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230ff8ec734a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230ffee17315?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b23100c8fe756?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b231010410989?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b231010fa897a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b231011303a88?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b23102b6b139a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b23102bcf77fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-10-22T02:55:36.389Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="向量检索">
+<meta name="twitter:description" content="一、背景用户可以通过视频更全面直观的展示商品，于此同时也出现了一些视频拷贝、抄袭等不好的现象。为了解决这个问题，我们采用了很多方案，其中一种方案是将商品视频转换成向量，尝试通过向量检索计算商品视频相似性，进而判断商品是否重复。视频去重本质是高维向量检索，基于当前商品规模及业务发展的预估，向量检索系统需支持检索亿级别平均时长为 20 秒，每秒向量维度是 1024 维的视频。如此庞大的量级给我们的技术">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48f3a2fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/22/向量检索/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>向量检索 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/22/向量检索/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">向量检索
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-22 10:25:36 / 修改时间：10:55:36" itemprop="dateCreated datePublished" datetime="2019-10-22T10:25:36+08:00">2019-10-22</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h1><p>用户可以通过视频更全面直观的展示商品，于此同时也出现了一些视频拷贝、抄袭等不好的现象。为了解决这个问题，我们采用了很多方案，其中一种方案是将商品视频转换成向量，尝试通过向量检索计算商品视频相似性，进而判断商品是否重复。</p><p>视频去重本质是高维向量检索，基于当前商品规模及业务发展的预估，向量检索系统需支持检索亿级别平均时长为 20 秒，每秒向量维度是 1024 维的视频。如此庞大的量级给我们的技术选型和实现带来了一定的挑战。</p><a id="more"></a>
+
+<h1 id="二、挑战"><a href="#二、挑战" class="headerlink" title="二、挑战"></a>二、挑战</h1><p>向量检索系统的挑战主要在几个方面：</p>
+<ul>
+<li><p>数据量大 商品的视频总帧数在亿级别；</p>
+</li>
+<li><p>单帧维度高 为保证向量召回的准确率，目前单帧向量维度是 1024 维；</p>
+</li>
+<li><p>高精度召回 为保证效果，向量召回的准确率在 95% 以上；</p>
+</li>
+<li><p>高性能 为保证用户体验，单帧单次召回耗时 100ms 左右，QPS 在 1000 以上。</p>
+</li>
+</ul>
+<p>高维向量检索需要解决在数据维度增加之后导致检索性能急剧下降的问题。高维向量数据的特点主要包括以下三个方面：</p>
+<ul>
+<li><p>稀疏性。随着维度增长，数据在空间分布的稀疏性增强；</p>
+</li>
+<li><p>空空间现象。对于服从正态分布的数据集，当维数大约增加到 10 时，只有不到 1％的数据点分布在中心附近；</p>
+</li>
+<li><p>维度效应。随着维数的增加，对索引的维护效率急剧下降，并且高维空间中数据点之间的距离接近于相等。</p>
+</li>
+</ul>
+<h1 id="三、实现方案"><a href="#三、实现方案" class="headerlink" title="三、实现方案"></a>三、实现方案</h1><p>基于上述的业务背景及挑战，我们从以下几个方面重新梳理了相关实现。</p>
+<h2 id="3-1-视频向量化"><a href="#3-1-视频向量化" class="headerlink" title="3.1 视频向量化"></a>3.1 视频向量化</h2><p>向量化是指将视频数据按照一定的算法转换为向量进行表示，转换算法决定了向量表达原始视频数据的准确性。向量化使得对视频数据的检索、去重、计算相似性等操作转化为对向量的求距离或求夹角操作。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48f3a2fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>视频向量化即在视频中抽取关键帧，对每帧视频进行特征提取，包含局部特征提取和全局特征提取。局部特征提取包含 “特征点检测”、“特征点描述”、“特征描述降维”。全局特征提取同样包含多个步骤，我们将这些步骤封装为自定义算子，利用 Tensorflow Lite 模型将自定义算子组合起来，这样就可以动态更新算子，达到算法实时更新的目的。</p>
+<p>将视频转化为向量之后，计算视频的相似性就相当于计算向量的相似性。计算向量相似性有几种方式，分别为计算海明距离、夹角余弦、欧式距离和向量内积等。</p>
+<h2 id="3-2-计算向量距离"><a href="#3-2-计算向量距离" class="headerlink" title="3.2 计算向量距离"></a>3.2 计算向量距离</h2><h3 id="3-2-0-欧式距离"><a href="#3-2-0-欧式距离" class="headerlink" title="3.2.0 欧式距离"></a>3.2.0 欧式距离</h3><p>欧式距离全称是欧几里距离，是最易于理解的一种距离计算方式，源自欧式空间中两点间的距离公式。它以经过人们一致评价的物品为坐标轴，然后将参与评价的人绘制到坐标系上，并计算他们彼此之间的直线距离。</p>
+<p><img src="https://img-my.csdn.net/uploads/201207/20/1342750061_2586.jpg" alt></p>
+<p><img src="https://img-my.csdn.net/uploads/201207/20/1342750112_6860.jpg" alt></p>
+<p>图中用户 A 和用户 B 分别对项目 X、Y 进行了评分。用户 A 对项目 X 的评分为 2，对项目 Y 的评分为 4，表示到坐标系中为坐标点 A(1.8, 4)；同样用户 B 对项目 X、Y 的评分表示为坐标点 B(4.5, 2.5)，因此他们之间的欧几里德距离（直线距离）为：sqrt((B.x - A.x)^2 + (A.y - B.y)^2)</p>
+<p><img src="https://img-my.csdn.net/uploads/201207/20/1342750144_2774.jpg" alt></p>
+<p>计算出来的欧几里德距离是一个大于 0 的数，为了使其更能体现用户之间的相似度，可以把它规约到 (0, 1] 之间，具体做法为：1 / (1 + d)。参见 Table2</p>
+<p><img src="https://img-my.csdn.net/uploads/201207/20/1342750163_8398.jpg" alt></p>
+<p>只要至少有一个共同评分项，就能用欧几里德距离计算相似度；如果没有共同评分项，那么欧几里德距离也就失去了作用。其实照常理理解，如果没有共同评分项，那么意味着这两个用户或物品根本不相似。</p>
+<h3 id="二维的公式"><a href="#二维的公式" class="headerlink" title="二维的公式"></a>二维的公式</h3><p>d = sqrt((x1-x2)^2+(y1-y2)^2)</p>
+<p>平面空间内的 <img src="https://www.zhihu.com/equation?tex=a%28x1%2Cy1%29" alt> 与 <img src="https://www.zhihu.com/equation?tex=b%28x2%2Cy2+%29" alt> 间的欧式距离：</p>
+<p><img src="https://www.zhihu.com/equation?tex=d+%3D+%5Csqrt%7B%28x1+-+x2%29%5E2+%2B+%28y1-y2%29%5E2%7D" alt></p>
+<h3 id="三维的公式"><a href="#三维的公式" class="headerlink" title="三维的公式"></a>三维的公式</h3><p>d=sqrt(x1-x2)^2+(y1-y2)^2+(z1-z2)^2)</p>
+<p>推广到 n 维空间，</p>
+<p><img src="https://www.zhihu.com/equation?tex=d+%3D+%5Csqrt%7B%28x1+-+x2%29%5E2+%2B+%28y1-y2%29%5E2%2B%28z1-z2%29%5E2%7D" alt></p>
+<h3 id="Python-代码简单实现："><a href="#Python-代码简单实现：" class="headerlink" title="Python 代码简单实现："></a>Python 代码简单实现：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def EuclideanDistance(x,y):</span><br><span class="line">	d = 0</span><br><span class="line">	for a,b in zip(x,y):</span><br><span class="line">		d += (a-b)**2</span><br><span class="line">	return d**0.5</span><br></pre></td></tr></table></figure>
+<h3 id="使用-numpy-简化："><a href="#使用-numpy-简化：" class="headerlink" title="使用 numpy 简化："></a>使用 numpy 简化：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">def EuclideanDistance(dataA,dataB):</span><br><span class="line">    # np.linalg.norm 用于范数计算，默认是二范数，相当于平方和开根号</span><br><span class="line">    return 1.0/(1.0 + np.linalg.norm(dataA - dataB))</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-1-海明距离"><a href="#3-2-1-海明距离" class="headerlink" title="3.2.1 海明距离"></a>3.2.1 海明距离</h3><p>严格来说，海明距离其实和向量没有太大关系，海明距离计算的是两个等长字符串对应位置字符不同的个数。换句话说，海明距离表示将一个字符串变换成另一个字符串所需要替换的字符个数。 对于向量来说，海明距离可以看作是将一个向量变换成另一个向量所需要替换的坐标个数。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48e1da98?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>0100→1001 海明距离是 3; 0110→1110 海明距离是 1</p>
+</blockquote>
+<h3 id="3-2-2-向量夹角余弦"><a href="#3-2-2-向量夹角余弦" class="headerlink" title="3.2.2 向量夹角余弦"></a>3.2.2 向量夹角余弦</h3><p>计算向量的 cos 夹角即在坐标系中，向量从原点出发，分别指向不同的方向，计算两个方向之间夹角。若两个向量之间夹角越小则向量越相似。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48c476c7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>在二维空间中，向量 A 的坐标是 [x1,y1]，向量 B 的坐标是 [x2,y2]。向量 A 和 B 之间夹角余弦公式为</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230f48dbcd5e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>同样夹角余弦公式对多维向量也成立，假设想 A 和 B 的坐标分别是 [A1,A2,…,An]、[B1,B2,…,Bn]，则 A 与 B 之间夹角 θ 余弦公式为：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fc97e002f?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>夹角 θ 余弦越接近 1 标示夹角越接近 0 度，即两个向量越相似，这就是通过计算向量夹角来确定向量相似性的方法。</p>
+<p>首先，样本数据的夹角余弦并不是真正几何意义上的夹角余弦，只不过是借了它的名字，实际是借用了它的概念变成了是代数意义上的 “夹角余弦”，用来衡量样本向量间的差异。</p>
+<p><img src="https://pic2.zhimg.com/v2-2a8cf3b980fd6f4ecafd424401819519_b.jpg" alt><img src="https://pic2.zhimg.com/80/v2-2a8cf3b980fd6f4ecafd424401819519_hd.jpg" alt> 几何意义上的夹角余弦</p>
+<p>夹角越小，余弦值越接近于 1，反之则趋于 - 1。我们假设有 x1 与 x2 两个向量：</p>
+<p><img src="https://www.zhihu.com/equation?tex=cos%28%5Ctheta%29+%3D+%5Cfrac%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B1k%7D%7Dx_%7B2k%7D%7D%7B%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B1k%7D%7D%5E2%7D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Bx_%7B2k%7D%7D%5E2%7D%7D" alt></p>
+<h3 id="Python-代码的简单按公式还原："><a href="#Python-代码的简单按公式还原：" class="headerlink" title="Python 代码的简单按公式还原："></a>Python 代码的简单按公式还原：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">def Cosine(x,y):</span><br><span class="line">    sum_xy = 0.0;</span><br><span class="line">    normX = 0.0;</span><br><span class="line">    normY = 0.0;</span><br><span class="line">    for a,b in zip(x,y):</span><br><span class="line">        sum_xy += a*b</span><br><span class="line">        normX += a**2</span><br><span class="line">        normY += b**2</span><br><span class="line">    if normX == 0.0 or normY == 0.0:</span><br><span class="line">        return None</span><br><span class="line">    else:</span><br><span class="line">        return sum_xy / ((normX*normY)**0.5)</span><br></pre></td></tr></table></figure>
+<h3 id="使用-numpy-简化夹角余弦"><a href="#使用-numpy-简化夹角余弦" class="headerlink" title="使用 numpy 简化夹角余弦"></a>使用 numpy 简化夹角余弦</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def Cosine(dataA,dataB):</span><br><span class="line">    sumData = dataA *dataB.T # 若列为向量则为 dataA.T * dataB</span><br><span class="line">    denom = np.linalg.norm(dataA) * np.linalg.norm(dataB)</span><br><span class="line">    # 归一化</span><br><span class="line">    return 0.5 + 0.5 * (sumData / denom)</span><br></pre></td></tr></table></figure>
+<p>我们引入一组特殊数据进行测试：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dataA = np.mat([1,2,3,3,2,1])</span><br><span class="line">dataB = np.mat([2,3,4,4,3,2])</span><br><span class="line">print(EuclideanDistance(dataA,dataB)) # 0.28</span><br><span class="line">print(Cosine(dataA,dataB)) # 0.99</span><br></pre></td></tr></table></figure>
+<p><strong>欧式距离和夹角余弦的区别：</strong></p>
+<p>对比以上的结果的 dataA 与 dataB 这两组数据，会发现 dataA 与 dataB 的欧式距离相似度比较小，而夹角余弦相似度比较大，即夹角余弦更能<strong>反映两者之间的变动趋势</strong>，两者有很高的<strong>变化趋势相似度</strong>，而欧式距离较大是因为<strong>两者数值有很大的区别</strong>，即两者拥有很高的<strong>数值差异</strong>。</p>
+<h3 id="3-2-3-向量欧式距离"><a href="#3-2-3-向量欧式距离" class="headerlink" title="3.2.3 向量欧式距离"></a>3.2.3 向量欧式距离</h3><p>向量欧式距离即向量顶点之间的距离，在 N 维空间中两点 x1 和 x2 之间的距离公式：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fcb52636d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>欧式距离越小表示向量的顶点之间越近，即向量之间更相似。</p>
+<h3 id="3-1-4-向量内积"><a href="#3-1-4-向量内积" class="headerlink" title="3.1.4 向量内积"></a>3.1.4 向量内积</h3><p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fce5264a0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>通过公式可以发现向量内积与向量夹角余弦的含义类似，内积与夹角余弦成正比，内积越大，夹角余弦越大，夹角越小。</p>
+<p>不同的距离计算公式反应的是向量不同维度的特征，需要根据向量生成算法选择距离计算公式。我们对上面几种公式进行了召回率测试，测试结果（计算公式与召回率关系）见下表。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fd48f2fe2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="3-1-5-皮尔逊相关系数"><a href="#3-1-5-皮尔逊相关系数" class="headerlink" title="3.1.5 皮尔逊相关系数"></a>3.1.5 皮尔逊相关系数</h3><p>假如之不先介绍夹角余弦的话，第一次接触你绝对会对皮尔逊相关系数一脸懵逼。那么现在，让我们再来理解一下皮尔逊相关系数的公式：</p>
+<p><img src="https://www.zhihu.com/equation?tex=sim%28x_1%2Cx_2%29+%3D+%5Cfrac%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B1k%7D+-+%5Cbar%7Bx_1%7D%29%7D%28x_%7B2k%7D+-+%5Cbar%7Bx_2%7D%29%7D%7B%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B1k%7D+-+%5Cbar%7Bx_1%7D%29%7D%5E2%7D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7B%28x_%7B2k%7D+-+%5Cbar%7Bx_2%7D%29%7D%5E2%7D%7D" alt></p>
+<ul>
+<li>这里减去的 <img src="https://www.zhihu.com/equation?tex=%5Cbar%7Bx_2%7D" alt> 每个 item 被打分的均值</li>
+</ul>
+<p>皮尔逊相关系数公式实际上就是在计算夹角余弦之前将两个向量<strong>减去各个样本的平均值</strong>，达到<strong>中心化</strong>的目的。从知友的回答可以明白，皮尔逊相关函数是<strong>余弦相似度在维度缺失上面的一种改进方法</strong>。</p>
+<p>1.Python 代码实现皮尔逊相关系数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">def Pearson(x,y):</span><br><span class="line">    sum_XY = 0.0</span><br><span class="line">    sum_X = 0.0</span><br><span class="line">    sum_Y = 0.0</span><br><span class="line">    normX = 0.0</span><br><span class="line">    normY = 0.0</span><br><span class="line">    count = 0</span><br><span class="line">    for a,b in zip(x,y):</span><br><span class="line">        count += 1</span><br><span class="line">        sum_XY += a * b</span><br><span class="line">        sum_X += a</span><br><span class="line">        sum_Y += b</span><br><span class="line">        normX += a**2</span><br><span class="line">        normY += b**2</span><br><span class="line">    if count == 0:</span><br><span class="line">        return 0</span><br><span class="line">    # denominator part</span><br><span class="line">    denominator = (normX - sum_X**2 / count)**0.5 * (normY - sum_Y**2 / count)**0.5</span><br><span class="line">    if denominator == 0:</span><br><span class="line">        return 0</span><br><span class="line">    return (sum_XY - (sum_X * sum_Y) / count) / denominator</span><br></pre></td></tr></table></figure>
+<ol>
+<li>numpy 简化实现皮尔逊相关系数</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def Pearson(dataA,dataB):</span><br><span class="line">    # 皮尔逊相关系数的取值范围(-1 ~ 1),0.5 + 0.5 * result 归一化(0 ~ 1)</span><br><span class="line">    return 0.5 + 0.5 * np.corrcoef(dataA,dataB,rowvar = 0)[0][1]</span><br></pre></td></tr></table></figure>
+<p><strong>用余弦相似度相同的方法实现皮尔逊：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 余弦相似度、修正余弦相似度、皮尔逊相关系数的关系</span><br><span class="line"># Pearson 减去的是每个item i 的被打分的均值</span><br><span class="line">def Pearson(dataA,dataB):</span><br><span class="line">    avgA = np.mean(dataA)</span><br><span class="line">    avgB = np.mean(dataB)</span><br><span class="line">    sumData = (dataA - avgA) * (dataB - avgB).T # 若列为向量则为 dataA.T * dataB</span><br><span class="line">    denom = np.linalg.norm(dataA - avgA) * np.linalg.norm(dataB - avgB)</span><br><span class="line">    # 归一化</span><br><span class="line">    return 0.5 + 0.5 * (sumData / denom)</span><br></pre></td></tr></table></figure>
+<h3 id="3-1-5-汉明距离"><a href="#3-1-5-汉明距离" class="headerlink" title="3.1.5 汉明距离"></a>3.1.5 汉明距离</h3><p>汉明距离表示的是两个字符串（相同长度）<strong>对应位不同的数量</strong>。比如有两个等长的字符串 str1 = “11111” 和 str2 = “10001” 那么它们之间的汉明距离就是 3（这样说就简单多了吧。哈哈）。汉明距离多用于图像像素的匹配（同图搜索）。</p>
+<p>1.Python 的矩阵汉明距离简单运用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def hammingDistance(dataA,dataB):</span><br><span class="line">    distanceArr = dataA - dataB</span><br><span class="line">    return np.sum(distanceArr == 0)# 若列为向量则为 shape[0]</span><br></pre></td></tr></table></figure>
+<h3 id="3-1-5-曼哈顿距离"><a href="#3-1-5-曼哈顿距离" class="headerlink" title="3.1.5 曼哈顿距离"></a>3.1.5 曼哈顿距离</h3><p>没错，你也是会曼哈顿计量法的人了，现在开始你和秦风只差一张刘昊然的脸了。想象你在曼哈顿要从一个十字路口开车到另外一个十字路口，那么驾驶的最近距离并不是直线距离，因为你不可能横穿房屋。所以，曼哈顿距离表示的就是你的实际驾驶距离，即两个点在标准坐标系上的绝对轴距总和。</p>
+<p><img src="https://pic2.zhimg.com/v2-f3abdee3ea4c913aa10041f6cd56ccdd_b.jpg" alt><img src="https://pic2.zhimg.com/80/v2-f3abdee3ea4c913aa10041f6cd56ccdd_hd.jpg" alt> 曼哈顿距离</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 曼哈顿距离(Manhattan Distance)</span><br><span class="line">def Manhattan(dataA,dataB):</span><br><span class="line">    return np.sum(np.abs(dataA - dataB))</span><br><span class="line">print(Manhattan(dataA,dataB))</span><br></pre></td></tr></table></figure>
+<h2 id="3-3-向量检索"><a href="#3-3-向量检索" class="headerlink" title="3.3 向量检索"></a>3.3 向量检索</h2><p>对于向量检索来说，通常有三类方法：基于树的方法、hash 方法、矢量量化方法，每种方法都有各自的适用范围。</p>
+<h3 id="3-3-1-基于树的方法"><a href="#3-3-1-基于树的方法" class="headerlink" title="3.3.1 基于树的方法"></a>3.3.1 基于树的方法</h3><p>KD 树是其下的经典算法。一般而言，在空间维度比较低时，KD 树的查找性能还是比较高效的；但当向量维度较高时，该方法会退化为暴力枚举，性能比较差，这时一般会采用下面的哈希方法或者矢量量化方法。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fded9279b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>一个三维 k-d 树。第一次划分（红色）把根节点（白色）划分成两个节点，然后它们分别再次被划分（绿色）为两个子节点。最后这四个子节点的每一个都被划分（蓝色）为两个子节点。因为没有更进一步的划分，最后得到的八个节点称为叶子节点。</p>
+</blockquote>
+<h3 id="3-3-2-hash-方法"><a href="#3-3-2-hash-方法" class="headerlink" title="3.3.2 hash 方法"></a>3.3.2 hash 方法</h3><p>LSH(Locality-Sensitive Hashing) 是 hash 方法的代表算法。它是用 hash 的方法把数据从原空间哈希到一个新的空间中，使得在原始空间的相似的数据，在新的空间中也相似的概率很大，而在原始空间的不相似的数据，在新的空间中相似的概率很小。</p>
+<p>对于小数据集和中规模的数据集 (几个 million - 几十个 million)，基于 LSH 的方法的效果和性能都很不错。这方面有 2 个开源工具 FALCONN 和 NMSLIB。</p>
+<h3 id="3-3-3-矢量量化方法"><a href="#3-3-3-矢量量化方法" class="headerlink" title="3.3.3 矢量量化方法"></a>3.3.3 矢量量化方法</h3><p>矢量量化方法，即 vector quantization。矢量量化常用于数据压缩，是将一个向量空间中的点用其中的一个有限子集来进行编码的过程。并用聚类后的中心点的标签替代该簇中其他点的标签，以此达到缩小子集大小，压缩数据的目的。</p>
+<p>所以矢量量化方法天生就适合做大数据集处理，在本次项目中我们也使用矢量量化方法处理闲鱼商品视频的超大数据集，缩小检索规模，在保持较高检索准确率的同时大幅度提高检索性能。</p>
+<p>在矢量量化编码中，关键是码本的建立和码字搜索算法。比如常见的层次聚类算法，就是一种矢量量化方法。而在相似搜索中，向量量化方法又以 PQ 方法最为典型。</p>
+<h4 id="3-3-3-1-层次聚类算法（HC）"><a href="#3-3-3-1-层次聚类算法（HC）" class="headerlink" title="3.3.3.1 层次聚类算法（HC）"></a>3.3.3.1 层次聚类算法（HC）</h4><p>层次聚类 (Hierarchical Clustering) 是聚类算法的一种，通过计算不同类别数据点间的相似度来创建一棵有层次的嵌套聚类树。在聚类树中，不同类别的原始数据点是树的最低层，树的顶层是一个聚类的根节点。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fe37f75e5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>在超大数据规模，同时要求高准确率情况下，可以通过多层聚类的方法，通过中心点来表示候选集，从而降低触达候选集的计算量。在保证结果的同时，大幅加快计算速度。</p>
+<h4 id="3-3-3-2-乘积量化算法（PQ）"><a href="#3-3-3-2-乘积量化算法（PQ）" class="headerlink" title="3.3.3.2 乘积量化算法（PQ）"></a>3.3.3.2 乘积量化算法（PQ）</h4><p>乘积量化即 Product Quantization，这里的乘积是指笛卡尔积（Cartesian product），意思是指把原来的向量空间分解为若干个低维向量空间的笛卡尔积，并对分解得到的低维向量空间分别做量化（quantization）。这样每个向量就能由多个低维空间的量化 code 组合表示。</p>
+<p>PQ 是一种量化（quantization）方法，本质上是数据的一种压缩表达方法，所以该方法除了可以用在相似搜索外，还可以用于模型压缩，特别是深度神经网络的模型压缩上。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230fe59fde97?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>PQ 算法可以理解为是对 vector quantization 做了一次分治，首先把原始的向量空间分解为 m 个低维向量空间的笛卡尔积，并对分解得到的低维向量空间分别做量化，那如何对低维向量空间做量化呢？恰巧又正是用 kmeans 算法。所以换句话描述就是，把原始 D 维向量（比如 D=128）分成 m 组（比如 m=4），每组就是</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230feaae5179?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>，各自用 kmeans 算法学习到一个码本，然后这些码本的笛卡尔积就是原始 D 维向量对应的码本。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230ff74881f0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>可以看到 m=1 或者 m=D 是 PQ 算法的 2 种极端情况，对 m=1，PQ 算法就回退到 vector quantization，对 m=D，PQ 算法相当于对原始向量的每一维都用 kmeans 算出码本。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230ff8ec734a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b230ffee17315?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b23100c8fe756?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt>图 2 是在这个默认配置下对 128 维的原始数据用 PQ 算法的示意图。</p>
+<p>根据上面的介绍，我们主要对矢量量化方法进行测试，对引擎支持的 HC 和 PQ 算法进行测试，测试向量规模：760w、维度：65、距离计算方法: 内积、向量类型：float，测试结果如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b231010410989?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>从测试结果来看，HC 算法的召回率和延时比 PQ 算法要好一些，但因为闲鱼视频是高维度的向量数据集，PQ 算法的表现更稳定，所以我们最终选用的是 PQ 算法实现向量检索。</p>
+<h2 id="3-4-项目架构"><a href="#3-4-项目架构" class="headerlink" title="3.4 项目架构"></a>3.4 项目架构</h2><p>上面说的是本次项目应用到的算法知识，这一章节主要阐述项目整体架构。</p>
+<h3 id="3-4-1-应用架构"><a href="#3-4-1-应用架构" class="headerlink" title="3.4.1 应用架构"></a>3.4.1 应用架构</h3><p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b231010fa897a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt>应用架构分为几个部分：</p>
+<ul>
+<li><p>客户端</p>
+</li>
+<li><p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b231011303a88?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>闲鱼客户端在 TensorFlow Lite 的基础上定制开发了算法容器，实现在端上将视频提取关键帧，对单帧视频进行视频特征计算；根据在端上计算的特征，在云上检索视频向量库，检索相似向量，最后计算出相似视频。</p>
+</li>
+<li><p>微服务集群</p>
+</li>
+<li><p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b23102b6b139a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>后端封装通用向量统一接入层，屏蔽底层对接不同向量检索引擎对上层的影响，并且预留扩展点，为后续接入图片向量和商品向量打下基础。后端接收到视频向量后调用底层向量检索引擎召回相似结果，并根据商品状态过滤、重新计算视频相似分；后端会将视频向量数据保存到日志中，由日志监听同步系统将向量数据同步到离线数据中心。</p>
+</li>
+<li><p>日志监听同步系统</p>
+<p>日志监听同步系统会实时监听指定日志文件变化，并根据指定格式解析日志数据，将解析后的数据同步到离线数据中心。</p>
+</li>
+<li><p>离线数据中心</p>
+<p>离线数据中心每 15 分钟生成一个实时增量视频向量数据的分区，每天会对昨日全量数据和当日增量数据做合并，再将合并后的当日全量数据回流到向量检索引擎，构建当日全量数据的索引。</p>
+</li>
+<li><p>向量检索引擎</p>
+</li>
+<li><p><img src="https://user-gold-cdn.xitu.io/2018/9/7/165b23102bcf77fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>我们本次使用的向量检索引擎是阿里内部自研的 BE，BE 是阿里推荐系统负责在线召回的引擎，向量召回是 BE 最新集成的召回策略，融合了搜索从离线到在线的全链路技术体系，并依托强大的管控系统，实现了从开发、上线到运维的全生命周期管理。</p>
+<p>BE 从逻辑上来说，主要负责从多种类型的索引表中召回数据并关联具体的业务信息进行过滤和粗排。其中 filter 和 sorter 是算法插件，可以灵活配置在检索流程的各个环节，具体的过滤和排序逻辑由算法同学根据业务场景进行编写，同时 BE 也内置了大量的通用组件。 BE 引擎维护向量数据索引，对外提供向量检索服务，并且会定时从离线数据中心同步向量数据构建索引。</p>
+<p>BE 引擎深度集成开源的 KNN 库–FAISS，改造定制使其支持向量索引的分布式构建和查询，实现多种基于量化的方法如粗量化、积量化以及粗量化 + 积量化的组合等方法，并且在线查询的延时、索引构建的性能都很优秀。</p>
+</li>
+</ul>
+<h2 id="3-5-上线效果"><a href="#3-5-上线效果" class="headerlink" title="3.5 上线效果"></a>3.5 上线效果</h2><p>通过向量检索方法进行视频去重，通过定制计算向量算法、适配向量内积计算方法和 PQ 算法优化等方式，上线之后，经过闲鱼线上超大商品视频数据集验证之后，整个系统 QPS 在 1000 以上，召回延时在毫秒级别，视频去重整体延时在 100 毫秒左右；视频召回率最终稳定在 95% 以上。</p>
+<h1 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h1><p>本文主要介绍闲鱼如何使用向量检索方法实现视频去重业务，描述了视频去重的业务背景、向量检索涉及的相关算法及视频去重的应用架构，希望给各位读者带来一些思考和启发。 项目一期首先实现了在闲鱼视频上的去重能力，我们会继续将去重、搜索能力应用到商品图片甚至是商品本身，后续会继续和大家分享，敬请期待。</p>
+<p>闲鱼技术团队是一只短小精悍的工程技术团队。我们不仅关注于业务问题的有效解决，同时我们在推动打破技术栈分工限制（android/iOS/Html5/Server 编程模型和语言的统一）、计算机视觉技术在移动终端上的前沿实践工作。作为闲鱼技术团队的软件工程师，您有机会去展示您所有的才能和勇气，在整个产品的演进和用户问题解决中证明技术发展是改变生活方式的动力。</p>
+<p>简历投递：guicai.gxy@alibaba-inc.com</p>
+<h1 id="五、参考资料"><a href="#五、参考资料" class="headerlink" title="五、参考资料"></a>五、参考资料</h1><ul>
+<li><p>PQ 算法</p>
+</li>
+<li><p>faiss</p>
+</li>
+<li><p>Large-scale video retrieval using image queries</p>
+</li>
+<li><p><a href="https://lear.inrialpes.fr/pubs/2011/JDS11/jegousearchingwith_quantization.pdf" target="_blank" rel="noopener">https://lear.inrialpes.fr/pubs/2011/JDS11/jegousearchingwith_quantization.pdf</a></p>
+</li>
+<li><p><a href="https://en.wikipedia.org/wiki/Hamming_distance" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Hamming_distance</a></p>
+</li>
+<li><p><a href="https://zh.wikipedia.org/wiki/K-d%E6%A0%91" target="_blank" rel="noopener">https://zh.wikipedia.org/wiki/K-d%E6%A0%91</a></p>
+</li>
+<li><p><a href="https://github.com/facebookresearch/faiss" target="_blank" rel="noopener">https://github.com/facebookresearch/faiss</a></p>
+</li>
+<li><p><a href="https://github.com/andrefaraujo/videosearch" target="_blank" rel="noopener">https://github.com/andrefaraujo/videosearch</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/22/向量检索/" title="向量检索">https://ailab-aida.github.io/2019/10/22/向量检索/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/22/faiss 三种基础索引/" rel="next" title="faiss 三种基础索引">
+                  <i class="fa fa-chevron-left"></i> faiss 三种基础索引
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/22/矩阵操作/" rel="prev" title="矩阵操作">
+                  矩阵操作 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、背景"><span class="nav-number">1.</span> <span class="nav-text">一、背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、挑战"><span class="nav-number">2.</span> <span class="nav-text">二、挑战</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、实现方案"><span class="nav-number">3.</span> <span class="nav-text">三、实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-视频向量化"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 视频向量化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-计算向量距离"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 计算向量距离</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-0-欧式距离"><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.0 欧式距离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二维的公式"><span class="nav-number">3.2.2.</span> <span class="nav-text">二维的公式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三维的公式"><span class="nav-number">3.2.3.</span> <span class="nav-text">三维的公式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python-代码简单实现："><span class="nav-number">3.2.4.</span> <span class="nav-text">Python 代码简单实现：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-numpy-简化："><span class="nav-number">3.2.5.</span> <span class="nav-text">使用 numpy 简化：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-海明距离"><span class="nav-number">3.2.6.</span> <span class="nav-text">3.2.1 海明距离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-2-向量夹角余弦"><span class="nav-number">3.2.7.</span> <span class="nav-text">3.2.2 向量夹角余弦</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python-代码的简单按公式还原："><span class="nav-number">3.2.8.</span> <span class="nav-text">Python 代码的简单按公式还原：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-numpy-简化夹角余弦"><span class="nav-number">3.2.9.</span> <span class="nav-text">使用 numpy 简化夹角余弦</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-3-向量欧式距离"><span class="nav-number">3.2.10.</span> <span class="nav-text">3.2.3 向量欧式距离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-4-向量内积"><span class="nav-number">3.2.11.</span> <span class="nav-text">3.1.4 向量内积</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-5-皮尔逊相关系数"><span class="nav-number">3.2.12.</span> <span class="nav-text">3.1.5 皮尔逊相关系数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-5-汉明距离"><span class="nav-number">3.2.13.</span> <span class="nav-text">3.1.5 汉明距离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-5-曼哈顿距离"><span class="nav-number">3.2.14.</span> <span class="nav-text">3.1.5 曼哈顿距离</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-向量检索"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 向量检索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-基于树的方法"><span class="nav-number">3.3.1.</span> <span class="nav-text">3.3.1 基于树的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-hash-方法"><span class="nav-number">3.3.2.</span> <span class="nav-text">3.3.2 hash 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-3-矢量量化方法"><span class="nav-number">3.3.3.</span> <span class="nav-text">3.3.3 矢量量化方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-3-1-层次聚类算法（HC）"><span class="nav-number">3.3.3.1.</span> <span class="nav-text">3.3.3.1 层次聚类算法（HC）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-3-2-乘积量化算法（PQ）"><span class="nav-number">3.3.3.2.</span> <span class="nav-text">3.3.3.2 乘积量化算法（PQ）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4-项目架构"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 项目架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-1-应用架构"><span class="nav-number">3.4.1.</span> <span class="nav-text">3.4.1 应用架构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-5-上线效果"><span class="nav-number">3.5.</span> <span class="nav-text">3.5 上线效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、总结"><span class="nav-number">4.</span> <span class="nav-text">四、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#五、参考资料"><span class="nav-number">5.</span> <span class="nav-text">五、参考资料</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '60e973c61f6c40025d0d1c9f37a9c096',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

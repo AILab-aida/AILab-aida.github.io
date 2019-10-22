@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="FTRL 是 Follow The Regularized Leader 的缩写，它是 Google 在 2010 — 2013 年三年时间内，从理论研究到实际工程化实现的在线优化算法框架。FTRL 在处理带 𝐿1L1L_1 正则化的逻辑回归类模型时，效果非常出色：能够得到性能较好的稀疏解。中文网络上，已有一些关于 FTRL 的介绍。比较详细和出名的是新浪微博的冯扬撰写的「在线最优化求解」。但在">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FTRL（Follow The Regularized Leader）">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="FTRL 是 Follow The Regularized Leader 的缩写，它是 Google 在 2010 — 2013 年三年时间内，从理论研究到实际工程化实现的在线优化算法框架。FTRL 在处理带 𝐿1L1L_1 正则化的逻辑回归类模型时，效果非常出色：能够得到性能较好的稀疏解。中文网络上，已有一些关于 FTRL 的介绍。比较详细和出名的是新浪微博的冯扬撰写的「在线最优化求解」。但在">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-18T09:30:36.054Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FTRL（Follow The Regularized Leader）">
+<meta name="twitter:description" content="FTRL 是 Follow The Regularized Leader 的缩写，它是 Google 在 2010 — 2013 年三年时间内，从理论研究到实际工程化实现的在线优化算法框架。FTRL 在处理带 𝐿1L1L_1 正则化的逻辑回归类模型时，效果非常出色：能够得到性能较好的稀疏解。中文网络上，已有一些关于 FTRL 的介绍。比较详细和出名的是新浪微博的冯扬撰写的「在线最优化求解」。但在">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>FTRL（Follow The Regularized Leader） | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">FTRL（Follow The Regularized Leader）
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 17:20:30 / 修改时间：17:30:36" itemprop="dateCreated datePublished" datetime="2019-10-18T17:20:30+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>FTRL 是 Follow The Regularized Leader 的缩写，它是 Google 在 2010 — 2013 年三年时间内，从理论研究到实际工程化实现的在线优化算法框架。FTRL 在处理带 𝐿1L1L_1 正则化的<a href="/2018/10/10/logistic-regression/">逻辑回归</a>类模型时，效果非常出色：能够得到性能较好的稀疏解。</p><p>中文网络上，已有一些关于 FTRL 的介绍。比较详细和出名的是新浪微博的冯扬撰写的「在线最优化求解」。但在我看来，已有的关于 FTRL 的介绍，都或多或少有些值得调整和改进的地方。这促成了这篇文章。</p><a id="more"></a>
+
+<p>这篇文章讲 FTRL 的理论部分，大致会按照这样的路径来阐述：</p>
+<ul>
+<li>我们想要解决什么问题？</li>
+<li>FTRL 的前辈们是怎么尝试解决问题的？</li>
+<li>前辈们之间是什么关系？又留下了哪些尚未解决的问题？FTRL 是如何解决这些遗留问题的？</li>
+</ul>
+<p>而后，在下一篇工程部分的文章中，我们会讨论一下 FTRL 的工程实现有哪些值得谈一谈的问题。</p>
+<h2 id="我们面临的问题"><a href="#我们面临的问题" class="headerlink" title="我们面临的问题"></a><a href="#我们面临的问题" title="我们面临的问题"></a>我们面临的问题</h2><p>传统的运用机器学习解决实际问题的步骤如下：</p>
+<ul>
+<li>数据融合，获取数据样本的标签。</li>
+<li>特征工程及其 ETL，获取每个样本的特征。</li>
+<li>样本处理，处理正负样本比例、无效或作弊样本等问题，输出用于训练、验证、测试的样本集。</li>
+<li>构建模型，根据业务特点和数据特点，选取恰当的模型；比如 LR、FM、GBDT、DNN 等。</li>
+<li>训练模型，在训练集上训练模型，在验证集上调参。</li>
+<li>模型评估，在测试机上评估模型。</li>
+<li>在线预测，将有效模型上线，进行在线预测。</li>
+</ul>
+<p>这样的流程能够解决很多问题，但存在至少两方面的瓶颈：</p>
+<ol>
+<li>整套流程在样本维度是「批量」的，在特征高维数据大量的情况下，这导致模型更新周期较长。在工程能力强的团队手上，模型的更新周期最好能做到小时级别；在工程能力差的团队手上，这个周期可能是天级甚至是周级别的。</li>
+<li>模型的复杂度和线上预测性能之间难以权衡：模型复杂度低，线上预测效果差；模型复杂度高，线上预测效果好，但需要的存储、时间资源也随之升高，无法保证 RT 和 QPS。</li>
+</ol>
+<p>为了解决这里的问题 (1)，在线学习（Online Learning）逐渐兴起；为了解决问题 (2)，人们从各种正则、剪枝开始，尝试用各种手段，在保证模型精度的前提下，尽可能获得稀疏的模型。</p>
+<h3 id="在线学习的兴起"><a href="#在线学习的兴起" class="headerlink" title="在线学习的兴起"></a><a href="#在线学习的兴起" title="在线学习的兴起"></a>在线学习的兴起</h3><p>我曾经在多个场合谈到，机器学习模型的三要素是：</p>
+<ul>
+<li>模型结构；</li>
+<li>优化目标；</li>
+<li>求解方法。</li>
+</ul>
+<p>在这里，模型结构通常会需要根据实际问题的特点进行调整。例如，对于具有稠密特征样本的分类问题，GBDT 类的树模型往往效果良好。又例如，对于具有高维稀疏特征的大规模样本，<a href="/2018/10/10/logistic-regression/">逻辑回归</a>和<a href="https://liam.page/2019/03/25/Factorization-Machine/" target="_blank" rel="noopener">因子分解机</a>（及其<a href="https://liam.page/2019/06/28/variants-of-FM/" target="_blank" rel="noopener">变体</a>）就会是不错的选择。</p>
+<p>优化目标往往会以目标函数这一数学形式来表达。目标函数中的损失函数，则是用来描述「模型对经验数据拟合程度好坏」的方法。目标函数（或损失函数）的选择，通常也是和实际问题的特点相关的。例如对于回归问题和分类问题，通常就会选择不同的损失函数。</p>
+<blockquote>
+<p>对于样本集合 D\mathcal{D} 中编号为 𝑖ii 的样本 {𝑥⃗ 𝑖,𝑦𝑖}{x→i,yi}{\vec x_i, y_i} 来说，在确定好模型结构 ℎ(⋅;𝜔⃗ )h(⋅;ω→)h(\cdot; \vec\omega) 的基础上，损失函数记为</p>
+<p>ℓ(ℎ(𝑥⃗ 𝑖;𝜔⃗ ),𝑦𝑖).ℓ(h(x→i;ω→),yi).\ell\bigl(h(\vec x_i; \vec\omega), y_i\bigr).</p>
+</blockquote>
+<p>求解方法则是解决如何在有限的时间内，求得一个既简单（模型复杂度低，不易过拟合）性能又好（对经验数据拟合程度较高）的模型。在模型结构确定的基础上，机器学习模型的学习，往往会化归为带参数目标函数的最优化求解问题。如何解决这些最优化问题，或者说，采用何种求解方法，往往要根据问题特点、模型结构、目标函数等等各种因素的不同，综合考虑。</p>
+<h4 id="批量"><a href="#批量" class="headerlink" title="批量"></a><a href="#批量" title="批量"></a>批量</h4><p>在机器学习兴起的早期，由于数据规模较小，计算性能较低与求解复杂度较高的矛盾尚不明显，人们很自然地选择与直觉相符合的批量求解方式来优化模型。具体来说，人们通常会随机给定模型参数 𝜔⃗ ω→\vec\omega 的初值 𝜔⃗ 0ω→0\vec\omega_0，通过迭代，不断更新来调整 𝜔⃗ ω→\vec\omega 的取值，使得目标函数在样本集合 D\mathcal{D} 上的加和取得或接近最小值：</p>
+<!-- 𝐿(𝜔⃗ ∣)𝜔⃗ ∗=∑{𝑥⃗ 𝑖,𝑦𝑖}∈ℓ(ℎ(𝑥⃗ 𝑖;𝜔⃗ ),𝑦𝑖)=argmin𝜔⃗ 𝐿(𝜔⃗ ∣)L(ω→∣D)=∑{x→i,yi}∈Dℓ(h(x→i;ω→),yi)ω→∗=argminω→⁡L(ω→∣D) \begin{aligned} L(\vec\omega\mid \mathcal{D}) &{} = \sum_{\{\vec x_i, y_i\} \in \mathcal{D}}\ell\bigl(h(\vec x_i; \vec\omega), y_i\bigr) \\ \vec\omega^{*} &{} = \mathop{\arg\,\min}_{\vec\omega} L(\vec\omega\mid \mathcal{D}) \end{aligned} -->
+<p>对于这种解法，典型的方式是梯度下降（Gradient Descend）和牛顿法、拟牛顿法等。以梯度下降法为例，其 𝑡tt 轮迭代的更新如下所示：</p>
+<p>𝜔⃗ (𝑡+1)←𝜔⃗ (𝑡)−𝜂(𝑡)⋅∇𝜔⃗ (𝑡)𝐿(𝜔⃗ (𝑡)∣).ω→(t+1)←ω→(t)−η(t)⋅∇ω→(t)L(ω→(t)∣D). \vec\omega^{(t + 1)} \gets \vec\omega^{(t)} - \eta^{(t)}\cdot\nabla_{\vec\omega^{(t)}}L(\vec\omega^{(t)}\mid \mathcal{D}).</p>
+<p>在这种做法当中，每一次迭代，都需要扫描整个样本集合 D\mathcal{D} 以计算全局损失 𝐿LL，而后才能更新参数 𝜔⃗ ω→\vec\omega。对于数据规模较小的情况，这样做的好处是能够准确计算每一次迭代时的梯度，避免「跑偏」。但对于随着数据规模的增大，每一次计算全局梯度的代价变得过高，完成训练的时间就会变得很长。为了解决这个问题，人们引入了随机（小批量）的解法。</p>
+<h4 id="随机小批量"><a href="#随机小批量" class="headerlink" title="随机小批量"></a><a href="#随机小批量" title="随机小批量"></a>随机小批量</h4><p>我在<a href="/2019/06/18/OCD-needs-stochastic-gradient-descent/">强迫症患者也需要随机梯度下降</a>一文中介绍了随机（小批量）梯度下降（Stochastic Gradient Descend）的方法和它的好处。按照本文的记号约定，随机梯度下降第 𝑡tt 轮迭代的更新如下所示：</p>
+<p>𝜔⃗ (𝑡+1)←𝜔⃗ (𝑡)−𝜂(𝑡)⋅∇𝜔⃗ (𝑡)𝐿(𝜔⃗ (𝑡)∣(𝑡)).ω→(t+1)←ω→(t)−η(t)⋅∇ω→(t)L(ω→(t)∣D(t)). \vec\omega^{(t + 1)} \gets \vec\omega^{(t)} - \eta^{(t)}\cdot\nabla_{\vec\omega^{(t)}}L(\vec\omega^{(t)}\mid \mathcal{D}^{(t)}).</p>
+<p>这里描述的是随机小批量梯度下降。其中 (𝑡)D(t)\mathcal{D}^{(t)} 是当前轮次的迭代从全部样本集 D\mathcal{D} 中随机选取的子集。当子集 (𝑡)D(t)\mathcal{D}^{(t)} 当中只有 1 个元素时，算法退化为纯粹的随机梯度下降。</p>
+<p>在这种做法当中，每一次迭代，无需扫描整个样本集合 D\mathcal{D} 以计算全局损失 𝐿LL。取而代之的是，计算一个随机选取的小集合 (𝑡)D(t)\mathcal{D}^{(t)} 中的局部损失，即可更新参数 𝜔⃗ ω→\vec\omega。对于数据规模较大的情况，这样的做法节省了每次迭代的计算量，虽然代价是需要迭代更多轮次，但是总体来说极大地降低了整体的训练时间；与此同时，如<a href="/2019/06/18/OCD-needs-stochastic-gradient-descent/">强迫症患者也需要随机梯度下降</a>一文中介绍的那样，随机梯度下降还能带来其它一些好处。</p>
+<h4 id="在线学习"><a href="#在线学习" class="headerlink" title="在线学习"></a><a href="#在线学习" title="在线学习"></a>在线学习</h4><p>随机（小批量）的优化方法解决了一部分问题，但做到极限，模型的更新周期也只能缩短到小时级。因此，在线学习逐渐走上了舞台。</p>
+<p>和前辈们相比，在线学习最大的特点（或者说需求）有两个：</p>
+<ul>
+<li>每次只处理少数几个样本，甚至每次只处理一个样本；</li>
+<li>处理过的样本对于优化过程来说会被「丢弃」，再也看不到了，因此在线学习需要一种「不吃后悔药」的优化方法。</li>
+</ul>
+<p>回过头来看随机（小批量）梯度下降，我们发现它恰好能满足在线学习的这两方面需求。对于第一个需求来说，这是显然的。对于第二个需求来说，在线接收的样本某种意义上就可以理解为是一种随机，只要这些随机送到优化器的样本的梯度在统计期望上与总体样本是一致的（而这是在线学习的基本假设），那就适用随机（小批量）梯度下降。</p>
+<p>事情看起来很美妙，只需要把随机（小批量）梯度下降整合进在线学习的工程框架当中就可以了。但是事情没有那么美妙，因为这依然无法解决我们面临的第二个问题——对模型稀疏性的追求。</p>
+<h3 id="对模型稀疏性的追求"><a href="#对模型稀疏性的追求" class="headerlink" title="对模型稀疏性的追求"></a><a href="#对模型稀疏性的追求" title="对模型稀疏性的追求"></a>对模型稀疏性的追求</h3><h4 id="模型稀疏的好处"><a href="#模型稀疏的好处" class="headerlink" title="模型稀疏的好处"></a><a href="#模型稀疏的好处" title="模型稀疏的好处"></a>模型稀疏的好处</h4><p>模型稀疏的好处有几个方面。</p>
+<p>一是能解决之前提到的「模型复杂度低，线上预测效果差；模型复杂度高，线上预测效果好，但需要的存储、时间资源也随之升高，无法保证 RT 和 QPS」之问题。这是比较显然的。稀疏的模型会大大减少预测时的内存和复杂度。以 LR 为例，若已知输入向量的维度是 𝑑dd 而 LR 中不为 0 的参数的数量是 𝑤ww，若 𝑑≫𝑤d≫wd \gg w，那么绝大多数特征甚至不需要去采集。这样一来，从特征采集到预测运算整个步骤都能省下很多内存和计算复杂度。</p>
+<p>二是模型的稀疏与 𝐿1L1L_1 正则化不谋而合（见<a href="/2017/03/30/L1-and-L2-regularizer/">谈谈 L1 与 L2 - 正则项</a>一文），这意味着运用 𝐿1L1L_1 正则化一方面可以使得模型变得稀疏，另一方面还能够降低模型过拟合的风险。</p>
+<p>三是稀疏性较好的模型，相对来说可解释性更好。这对于我们来说，特别是在实际应用当中，是很有好处的。以那个经典的例子来解释，假设你现在需要训练一个模型，解释人的某些特征和罹患某种疾病之间的关系。如果模型稀疏，那么意味着，罹患某种疾病只与少数一些特征有关。这种模型，对于医生来说，是很友好的。因为当医生拿到一个人的指标数据（特征），他就能根据模型，很容易地告诉来访的就医者说：「你的 XX 指标比较高，而 YY 指标比较低，这是罹患 ZZ 疾病的高危因素。因此你需要在日常生活中注意某些方面，同时定期进行身体检查。」</p>
+<h4 id="在批量梯度下降中，追求模型稀疏性"><a href="#在批量梯度下降中，追求模型稀疏性" class="headerlink" title="在批量梯度下降中，追求模型稀疏性"></a><a href="#在批量梯度下降中，追求模型稀疏性" title="在批量梯度下降中，追求模型稀疏性"></a>在批量梯度下降中，追求模型稀疏性</h4><p>我们从最基本的批量梯度下降开始，逐步探寻如何解得一个稀疏的模型。</p>
+<p>如<a href="/2017/03/30/L1-and-L2-regularizer/">谈谈 L1 与 L2 - 正则项</a>一文所说的那样，我们只需将 𝐿1L1L_1 范数引入模型求解过程中的目标函数，即可获得相对稀疏的模型。注意，由于我们的终极目标是「稀疏」，这意味着要有尽可能多的权重项为 0。这样看起来，使用 𝐿0L0L_0 范数可能更好（向量 𝑥⃗ x→\vec x 的 𝐿0L0L_0 范数 ‖𝑥⃗ ‖0‖x→‖0\lVert \vec x\rVert_0 是向量 𝑥⃗ x→\vec x 各维度中不为 0 的维度的数量）。但由于 𝐿0L0L_0 范数是非凸的，在求解优化上比较困难，故而采用 𝐿0L0L_0 范数的最紧凸放松，即 𝐿1L1L_1 范数作为替代。</p>
+<p>这样一来，模型优化时需要最小化的目标函数变更为如下形式：</p>
+<p>Obj(𝜔⃗ ∣)=𝐿(𝜔⃗ ∣)+𝜆1‖𝜔⃗ ‖1𝑛,𝜆1&gt;0.Obj(ω→∣D)=L(ω→∣D)+λ1‖ω→‖1n,λ1&gt;0. \text{Obj}(\vec\omega\mid \mathcal{D}) = L(\vec\omega\mid \mathcal{D}) + \lambda_1\frac{\lVert \vec\omega\rVert_1}{n}, \quad\lambda_1 &gt; 0.</p>
+<p>这里，等式右边的第一项表示模型在训练集 D\mathcal{D} 上经验损失，第二项则表示模型的 𝐿1L1L_1 正则项。其中 ‖𝜔⃗ ‖1‖ω→‖1\lVert \vec\omega\rVert_1 表示向量 𝜔⃗ ω→\vec\omega 的 𝐿1L1L_1 范数，𝑛nn 表示向量 𝜔⃗ ω→\vec\omega 的维度。</p>
+<p>那么为什么加入 𝐿1L1L_1 正则项，有助于产出稀疏解呢？</p>
+<p>我们假设对于某个 𝑖∈{1,2,…,𝑛}i∈{1,2,…,n}i \in {1, 2, \ldots, n} 来说，𝜔𝑖=0ωi=0\omega_i = 0。然后，在接下来的迭代中，𝜔𝑖ωi\omega_i 被更新为 𝜔𝑖←0−𝜂∂Obj∂𝜔𝑖ωi←0−η∂Obj∂ωi\omega_i \gets 0 - \eta\frac{\partial \text{Obj}}{\partial \omega_i} 而其它参数保持不变。这意味着，对于 𝐿1L1L_1 正则项来说，在这一轮迭代中增加了 ΔΩ=𝜂𝜆1𝑛∣∣∣∂Obj∂𝜔𝑖∣∣∣ΔΩ=ηλ1n|∂Obj∂ωi|\Delta\Omega = \eta\frac{\lambda_1}{n}\Bigl\lvert \frac{\partial \text{Obj}}{\partial \omega_i}\Bigr\rvert；对于损失函数来说，在这一轮迭代中大约下降了 Δ𝐿=𝜂∣∣∣∂Obj∂𝜔𝑖∣∣∣∣∣∣∂𝐿∂𝜔𝑖∣∣∣ΔL=η|∂Obj∂ωi||∂L∂ωi|\Delta L = \eta\Bigl\lvert \frac{\partial \text{Obj}}{\partial \omega_i}\Bigr\rvert\Bigl\lvert \frac{\partial L}{\partial \omega_i}\Bigr\rvert。而如果 Δ𝐿&lt;ΔΩΔL&lt;ΔΩ\Delta L &lt; \Delta\Omega，即 ∣∣∣∂Obj∂𝜔𝑖∣∣∣&lt;𝜆1𝑛|∂Obj∂ωi|&lt;λ1n\Bigl\lvert \frac{\partial \text{Obj}}{\partial \omega_i}\Bigr\rvert &lt; \frac{\lambda_1}{n}，那么目标函数整体是变大了（而不是变小了）。因此，对于这种情况，优化器会拒绝更新 𝜔𝑖ωi\omega_i，也就是拒绝将 𝜔𝑖ωi\omega_i 更新为非 0 值。由此就得到了相对稀疏的模型。</p>
+<h4 id="𝐿1L1L-1-正则在-SGD-中"><a href="#𝐿1L1L-1-正则在-SGD-中" class="headerlink" title="𝐿1L1L_1 正则在 SGD 中"></a><a href="#L-1-正则在-SGD-中" title="$L_1$ 正则在 SGD 中"></a>𝐿1L1L_1 正则在 SGD 中</h4><p>注意，在批量梯度下降中，𝐿1L1L_1 正则项能有效的原因在于下式的成立：</p>
+<p>∣∣∣∂Obj∂𝜔𝑖∣∣∣&lt;𝜆1𝑛.|∂Obj∂ωi|&lt;λ1n.\biggl\lvert \frac{\partial \text{Obj}}{\partial \omega_i}\biggr\rvert &lt; \frac{\lambda_1}{n}.</p>
+<p>但是，SGD 的假设（随机梯度的期望等于全局梯度）并不能保证在全局梯度满足上式的情况下，随机梯度总能使上式成立。这意味着，在 SGD 的场景中，使用 𝐿1L1L_1 正则化有助于提升模型的稀疏性，但并不能很好地保证有在批量梯度下降中的那种稀疏化效果。</p>
+<p>那么问题就来了：按之前的说法，在线学习中，我们必然要依赖类似 SGD 的算法；但 𝐿1L1L_1 正则化并不能在 SGD 中确保模型是足够稀疏的。于是，<strong>我们迫切需要找到一种能够满足在线学习的需要，同时又能保证模型稀疏性的优化方法</strong>。</p>
+<h2 id="FTRL-的前辈们"><a href="#FTRL-的前辈们" class="headerlink" title="FTRL 的前辈们"></a><a href="#FTRL-的前辈们" title="FTRL 的前辈们"></a>FTRL 的前辈们</h2><p>前面提到，加入 𝐿1L1L_1 正则项，是获得稀疏模型的主要手段；但由于 SGD 的原因，𝐿1L1L_1 正则项又很难发挥作用。因此，我们需要新的手段——或者在 𝐿1L1L_1 正则化的基础上改进，或者有全新的手段——来解决模型稀疏化的问题。完全创新总是比较困难的。事实上，目前也没有发现完全独立于 𝐿1L1L_1 范数同时又十分有效的稀疏化方法。因此，人们的目光还是更多地会聚焦在，如何基于 𝐿1L1L_1 正则项进行改进之上。</p>
+<p>一个粗暴有简单的想法是：基于 𝐿1L1L_1 正则项，对模型参数进行截断。具体是这样做的，以 𝑘kk 轮迭代为一组：</p>
+<ul>
+<li>按带 𝐿1L1L_1 正则项的 SGD 的方法训练 𝑘−1k−1k - 1 轮</li>
+<li>在第 𝑘kk 轮迭代中，先按通常的 SGD 进行更新，得到 𝜔⃗ (𝑘′)ω→(k′)\vec\omega^{(k’)}，然后对所有参数进行考察 al，以超参数 𝜃θ\theta 进行截断置零：</li>
+</ul>
+<p>𝜔(𝑘)𝑖←{0𝜔(𝑘′)𝑖if ∣∣∣𝜔(𝑘′)𝑖∣∣∣&lt;𝜃,otherwise.ωi(k)←{0if |ωi(k′)|&lt;θ,ωi(k′)otherwise.\omega<em>i^{(k)} \gets \begin{cases} 0 &amp; \text{if $\Bigl\lvert\omega</em>{i}^{(k’)}\Bigr\rvert &lt; \theta$,} \ \omega_{i}^{(k’)} &amp; \text{otherwise.} \end{cases}</p>
+<p>显然，这种做法太过粗暴，存在很多问题；但它是所有类似方法的祖师爷，反映的是「不等式约束下的凸优化」的思路。在这种思路下，求到的梯度 𝑔(𝑡)=∂Obj∂𝜔𝑖g(t)=∂Obj∂ωig^{(t)} = \frac{\partial \text{Obj}}{\partial \omega_i} 被视作是次梯度（subgradient）。根据次梯度更新的结果，可能落在不等式约束的范围之外。此时，就要取该梯度在不等式约束范围内的投影作为真正的迭代结果。</p>
+<p>简单截断法采取的投影方式，是直接截断。接下来，我们看看 FTRL 的其他前辈们是怎么做的。</p>
+<h3 id="Truncated-Gradient"><a href="#Truncated-Gradient" class="headerlink" title="Truncated Gradient"></a><a href="#Truncated-Gradient" title="Truncated Gradient"></a>Truncated Gradient</h3><p>既然简单地截断过于粗暴，那么我们就让截断温和一点。这就是 09 年提出的截断梯度法。</p>
+<ul>
+<li>按带 𝐿1L1L_1 正则项的 SGD 的方法训练 𝑘−1k−1k - 1 轮</li>
+<li>在第 𝑘kk 轮迭代中，先按通常的 SGD 进行更新，得到 𝜔⃗ (𝑘′)ω→(k′)\vec\omega^{(k’)}，然后对所有参数进行考察，以超参数 𝜃θ\theta 和 𝛼α\alpha 进行截断：</li>
+</ul>
+<p>𝜔(𝑘)𝑖←⎧⎩⎨⎪⎪⎪⎪0𝜔(𝑘′)𝑖−𝛼sgn(𝜔(𝑘′)𝑖)𝜔(𝑘′)𝑖if ∣∣∣𝜔(𝑘′)𝑖∣∣∣⩽𝛼,if 𝛼&lt;∣∣∣𝜔(𝑘′)𝑖∣∣∣⩽𝜃,otherwise.ωi(k)←{0if |ωi(k′)|⩽α,ωi(k′)−αsgn(ωi(k′))if α&lt;|ωi(k′)|⩽θ,ωi(k′)otherwise.\omega<em>i^{(k)} \gets \begin{cases} 0&amp; \text{if $\Bigl\lvert\omega</em>{i}^{(k’)}\Bigr\rvert \leqslant \alpha$,} \ \omega<em>{i}^{(k’)} - \alpha\,\text{sgn}\Bigl(\omega</em>{i}^{(k’)}\Bigr) &amp; \text{if $\alpha &lt; \Bigl\lvert\omega<em>{i}^{(k’)}\Bigr\rvert \leqslant \theta$,} \ \omega</em>{i}^{(k’)} &amp; \text{otherwise.} \end{cases}</p>
+<p>这里 𝛼α\alpha 通常取学习率 𝜂(𝑘)η(k)\eta^{(k)} 的倍数，例如 𝛼(𝑘)=𝜂(𝑘)𝜆α(k)=η(k)λ\alpha^{(k)} = \eta^{(k)}\lambda。截断梯度法采用的投影方式，是以分段函数的方式，对参数进行截断。</p>
+<p>显然，𝛼α\alpha 或 𝜃θ\theta 越大，模型越容易求得稀疏解。当 𝛼=𝜃α=θ\alpha = \theta，TG 退化为简单截断法；当 𝜃=∞θ=∞\theta = \infty 且 𝑘=1k=1k = 1，在截断区域之外，TG 继续退化为 SGD-𝐿1L1L_1，此时 𝜔𝑖ωi\omega_i 的更新是：</p>
+<p>𝜔(𝑡+1)𝑖←𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖−𝜂(𝑡)𝜆sgn(𝜔(𝑡)𝑖).ωi(t+1)←ωi(t)−η(t)gi(t)−η(t)λsgn(ωi(t)).\omega<em>{i}^{(t + 1)} \gets \omega</em>{i}^{(t)} - \eta^{(t)}g<em>{i}^{(t)} - \eta^{(t)}\lambda\,\text{sgn}\Bigl(\omega</em>{i}^{(t)}\Bigr).</p>
+<h3 id="FOBOS-Forward-Backward-Splitting"><a href="#FOBOS-Forward-Backward-Splitting" class="headerlink" title="FOBOS (Forward-Backward Splitting)"></a><a href="#FOBOS-Forward-Backward-Splitting" title="FOBOS (Forward-Backward Splitting)"></a>FOBOS (Forward-Backward Splitting)</h3><p>FOBOS 最开始的名字叫做 Forward Looking Subgradients，简写叫做 FOLOS；后来改名叫做 Forward-Backward Splitting，按说应该简写成 FOBAS。但作者为了减少可能的困扰，就只修改了一个字母，变成了 FOBOS。</p>
+<blockquote>
+<p>吐槽：但实际上，变得更加困惑了好不好……</p>
+</blockquote>
+<p>FOBOS 可以看做是 TG 的改进。</p>
+<p>首先，FOBOS 将 𝑘kk 设置为 1。如此一来，每一轮迭代都一样了：先根据次梯度做梯度下降，再做一步投影操作。</p>
+<p>其次，FOBOS 将投影操作改进如下：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {12‖‖‖𝜔⃗ −𝜔⃗ 𝑡′‖‖‖2+𝜂(𝑡′)Ω(𝜔⃗ )}.ω→(t+1)←argminω→⁡{12‖ω→−ω→t′‖2+η(t′)Ω(ω→)}.\vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}_{\vec\omega}\biggl{\frac{1}{2}\Bigl\lVert\vec\omega - \vec\omega^{t’}\Bigr\rVert^{2} + \eta^{(t’)}\Omega(\vec\omega)\biggr}.</p>
+<p>这里，优化符号中的第一项保证了投影之后的结果距离梯度下降的结果不太远，第二项是正则项，用于产生稀疏性。我们将它转换为无约束优化的形式：</p>
+<p>𝜔⃗ (𝑡+1)←=argmin𝜔⃗ {12‖‖‖𝜔⃗ −𝜔⃗ (𝑡)+𝜂(𝑡)∇Obj(𝜔⃗ (𝑡))‖‖‖2+𝜂(𝑡′)Ω(𝜔⃗ )},𝜔⃗ (𝑡)−𝜂(𝑡)∇Obj(𝜔⃗ (𝑡))−𝜂(𝑡′)∇Ω(𝜔⃗ (𝑡+1)).ω→(t+1)←argminω→⁡{12‖ω→−ω→(t)+η(t)∇Obj(ω→(t))‖2+η(t′)Ω(ω→)},=ω→(t)−η(t)∇Obj(ω→(t))−η(t′)∇Ω(ω→(t+1)). \begin{aligned} \vec\omega^{(t + 1)} \gets{}&amp; \mathop{\arg\,\min}_{\vec\omega}\biggl{\frac{1}{2}\Bigl\lVert\vec\omega - \vec\omega^{(t)} + \eta^{(t)}\nabla\text{Obj}(\vec\omega^{(t)})\Bigr\rVert^{2} + \eta^{(t’)}\Omega(\vec\omega)\biggr}, \ ={}&amp; \vec\omega^{(t)} - \eta^{(t)}\nabla\text{Obj}(\vec\omega^{(t)}) - \eta^{(t’)}\nabla\Omega(\vec\omega^{(t + 1)}). \end{aligned}</p>
+<p>可见，更新结果不仅与上一轮迭代的结果有关（梯度下降），还与迭代之后的状态有关（正则约束），这就是所谓的 Forward-Backword Splitting。</p>
+<p>当 Ω(⋅)=𝜂(𝑡′)𝜆‖⋅‖1=𝜆̃ ‖⋅‖1Ω(⋅)=η(t′)λ‖⋅‖1=λ~‖⋅‖1\Omega(\cdot) = \eta^{(t’)}\lambda\lVert\cdot\rVert_1 = \tilde\lambda\lVert\cdot\rVert_1 时，我们将向量形式再化简到具体某一维度的更新：</p>
+<p>𝜔(𝑡+1)𝑖←=sgn(𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖)⋅max{0,∣∣𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖∣∣−𝜆̃ },{0𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖−𝜆̃ sgn(𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖)if |𝜔(𝑡′)𝑖|&lt;𝜆̃ ,otherwise.ωi(t+1)←sgn(ωi(t)−η(t)gi(t))⋅max{0,|ωi(t)−η(t)gi(t)|−λ~},={0if |ωi(t′)|&lt;λ~,ωi(t)−η(t)gi(t)−λ~sgn(ωi(t)−η(t)gi(t))otherwise. \begin{aligned} \omega<em>{i}^{(t + 1)} \gets{}&amp; \text{sgn}\bigl(\omega</em>{i}^{(t)} - \eta^{(t)}g<em>{i}^{(t)}\bigr)\cdot\max\Bigl{0, \bigl\lvert \omega</em>{i}^{(t)} - \eta^{(t)}g<em>{i}^{(t)} \bigr\rvert - \tilde\lambda\Bigr}, \ ={}&amp; \begin{cases} 0 &amp; \text{if $\lvert\omega</em>{i}^{(t’)}\rvert &lt; \tilde\lambda$,} \ \omega<em>{i}^{(t)} - \eta^{(t)}g</em>{i}^{(t)} - \tilde\lambda\,\text{sgn}\Bigl(\omega<em>{i}^{(t)} - \eta^{(t)}g</em>{i}^{(t)}\Bigr) &amp; \text{otherwise.} \end{cases} \end{aligned}</p>
+<p>不难发现，它与 TG 的形式非常接近。当 TG 中的 𝜃=∞θ=∞\theta = \infty, 𝛼=𝜆̃ α=λ~\alpha = \tilde\lambda, 𝑘=1k=1k = 1 时，TG 与 FOBOS 的唯一差别就在于惩罚项上。TG 是惩罚在迭代前的项上，FOBOS 是惩罚在经过次梯度迭代后的项上。</p>
+<h3 id="RDA-Regularized-Dual-Averaging"><a href="#RDA-Regularized-Dual-Averaging" class="headerlink" title="RDA (Regularized Dual Averaging)"></a><a href="#RDA-Regularized-Dual-Averaging" title="RDA (Regularized Dual Averaging)"></a>RDA (Regularized Dual Averaging)</h3><p>RDA 是微软 10 年发表的研究成果，其权重更新策略如下：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {1𝑡∑𝑟=1𝑡⟨∇Obj(𝜔⃗ (𝑟)),𝜔⃗ ⟩+Ω(𝜔⃗ )+𝛽(𝑡)𝑡ℎ(𝜔⃗ )}.ω→(t+1)←argminω→⁡{1t∑r=1t⟨∇Obj(ω→(r)),ω→⟩+Ω(ω→)+β(t)th(ω→)}.\vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\frac{1}{t}\sum</em>{r = 1}^{t}\Bigl\langle \nabla\text{Obj}\bigl(\vec\omega^{(r)}\bigr), \vec\omega\Bigr\rangle + \Omega(\vec\omega) + \frac{\beta^{(t)}}{t}h(\vec\omega)\biggr}.</p>
+<p>这里，</p>
+<ul>
+<li>⟨∇Obj(𝜔⃗ (𝑟)),𝜔⃗ ⟩⟨∇Obj(ω→(r)),ω→⟩\Bigl\langle \nabla\text{Obj}\bigl(\vec\omega^{(r)}\bigr), \vec\omega\Bigr\rangle 表示梯度 ∇Obj(𝜔⃗ (𝑟))∇Obj(ω→(r))\nabla\text{Obj}\bigl(\vec\omega^{(r)}\bigr) 对参数 𝜔⃗ ω→\vec\omega 的积分中值，即：第 𝑟rr 轮迭代中的梯度对参数 𝜔⃗ ω→\vec\omega 产生的变动在所有样本上产生的平均影响。</li>
+<li>1𝑡∑𝑡𝑟=1⟨∇Obj(𝜔⃗ (𝑟)),𝜔⃗ ⟩1t∑r=1t⟨∇Obj(ω→(r)),ω→⟩\frac{1}{t}\sum_{r = 1}^{t}\Bigl\langle \nabla\text{Obj}\bigl(\vec\omega^{(r)}\bigr), \vec\omega\Bigr\rangle 则是前 𝑟rr 轮迭代上述平均影响的平均值（Dual Average）。</li>
+<li>Ω(𝜔⃗ )Ω(ω→)\Omega(\vec\omega) 是正则项。</li>
+<li><p>𝛽(𝑡)𝑡ℎ(𝜔⃗ )β(t)th(ω→)\frac{\beta^{(t)}}{t}h(\vec\omega) 是额外的正则项。</p>
+<ul>
+<li>{𝛽(𝑡)∣𝑡⩾1}{β(t)∣t⩾1}\bigl{\beta^{(t)}\mid t \geqslant 1\bigr} 是一个非负的非降序列。</li>
+<li>ℎ(𝜔⃗ )h(ω→)h(\vec\omega) 是一个严格的凸函数。</li>
+</ul>
+</li>
+</ul>
+<p>除开正则项的变化，和 FOBOS 及之前的截断方法比较，RDA 最大的差别在于丢弃了梯度下降的那一项，换成了梯度的二次平均值。接下来，我们取</p>
+<ul>
+<li>Ω(𝜔⃗ )=𝜆‖𝜔⃗ ‖1Ω(ω→)=λ‖ω→‖1\Omega(\vec\omega) = \lambda\lVert\vec\omega\rVert_1，其中 𝜆&gt;0λ&gt;0\lambda &gt; 0；</li>
+<li>ℎ(𝜔⃗ )=12‖𝜔⃗ ‖22h(ω→)=12‖ω→‖22h(\vec\omega) = \frac{1}{2}\lVert\vec\omega\rVert_2^2；</li>
+<li>𝛽(𝑡)=𝛾𝑡√β(t)=γt\beta^{(t)} = \gamma\sqrt{t}，其中 𝛾&gt;0γ&gt;0\gamma &gt; 0。</li>
+</ul>
+<p>记 𝑔(1:𝑡)𝑖=1𝑡∑𝑡𝑟=1𝑔(𝑟)𝑖gi(1:t)=1t∑r=1tgi(r)g<em>i^{(1:t)} = \frac{1}{t}\sum</em>{r = 1}^{t} g_i^{(r)}，于是得到第 𝑖ii 维权重的更新：</p>
+<p>𝜔(𝑡+1)𝑖←⎧⎩⎨⎪⎪0−𝑡√𝛾(𝑔(1:𝑡)𝑖−𝜆sgn(𝑔(1:𝑡)𝑖))if ∣∣𝑔(1:𝑡)𝑖∣∣&lt;𝜆,otherwise.ωi(t+1)←{0if |gi(1:t)|&lt;λ,−tγ(gi(1:t)−λsgn(gi(1:t)))otherwise. \omega_{i}^{(t + 1)} \gets \begin{cases} 0&amp; \text{if $\bigl\lvert g_i^{(1:t)}\bigr\rvert &lt; \lambda$,} \ -\frac{\sqrt{t}}{\gamma}\Bigl(g_i^{(1:t)} - \lambda\,\text{sgn}\bigl(g_i^{(1:t)}\bigr)\Bigr) &amp; \text{otherwise.} \end{cases}</p>
+<p>可见，当某一维度参数的二次平均梯度小于阈值 𝜆λ\lambda 时，这一维度被截断，产生稀疏性。</p>
+<h2 id="FTRL-Follow-The-Regularized-Leader"><a href="#FTRL-Follow-The-Regularized-Leader" class="headerlink" title="FTRL (Follow The Regularized Leader)"></a><a href="#FTRL-Follow-The-Regularized-Leader" title="FTRL (Follow The Regularized Leader)"></a>FTRL (Follow The Regularized Leader)</h2><p>接下来介绍 FTRL。</p>
+<h3 id="FOBOS-和-RDA-的区别"><a href="#FOBOS-和-RDA-的区别" class="headerlink" title="FOBOS 和 RDA 的区别"></a><a href="#FOBOS-和-RDA-的区别" title="FOBOS 和 RDA 的区别"></a>FOBOS 和 RDA 的区别</h3><p>为便于比较，这里把 FOBOS 和 RDA 在单一维度上的更新策略再次抄录如下。</p>
+<p>𝜔(𝑡+1)𝑖←{0𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖−𝜆̃ sgn(𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖)if |𝜔(𝑡′)𝑖|&lt;𝜆̃ ,otherwise.(FOBOS)(FOBOS)ωi(t+1)←{0if |ωi(t′)|&lt;λ~,ωi(t)−η(t)gi(t)−λ~sgn(ωi(t)−η(t)gi(t))otherwise.\begin{equation} \omega<em>{i}^{(t + 1)} \gets \begin{cases} 0 &amp; \text{if $\lvert\omega</em>{i}^{(t’)}\rvert &lt; \tilde\lambda$,} \ \omega<em>{i}^{(t)} - \eta^{(t)}g</em>{i}^{(t)} - \tilde\lambda\,\text{sgn}\Bigl(\omega<em>{i}^{(t)} - \eta^{(t)}g</em>{i}^{(t)}\Bigr) &amp; \text{otherwise.} \end{cases} \tag{FOBOS}\label{eq:FOBOS} \end{equation}𝜔(𝑡+1)𝑖←⎧⎩⎨⎪⎪0−𝑡√𝛾(𝑔(1:𝑡)𝑖−𝜆sgn(𝑔(1:𝑡)𝑖))if ∣∣𝑔(1:𝑡)𝑖∣∣&lt;𝜆,otherwise.(RDA)(RDA)ωi(t+1)←{0if |gi(1:t)|&lt;λ,−tγ(gi(1:t)−λsgn(gi(1:t)))otherwise.\begin{equation} \omega_{i}^{(t + 1)} \gets \begin{cases} 0&amp; \text{if $\bigl\lvert g_i^{(1:t)}\bigr\rvert &lt; \lambda$,} \ -\frac{\sqrt{t}}{\gamma}\Bigl(g_i^{(1:t)} - \lambda\,\text{sgn}\bigl(g_i^{(1:t)}\bigr)\Bigr) &amp; \text{otherwise.} \end{cases} \tag{RDA}\label{eq:RDA} \end{equation}</p>
+<p>首先我们看 FOBOS 和 RDA 的截断部分的差异。</p>
+<p>FOBOS 的截断判断取的是单次梯度下降的结果，而 RDA 的截断判断取的是往期所有梯度的二次平均。考虑到我们面临的是「在线学习」，样本在局部抖动的几率比较大。因此 FOBOS 的做法容易因为某些异常、离群样本的出现而错误地截断；RDA 的做法则稳妥许多，参考了过去所有样本的梯度结果。</p>
+<p>FOBOS 的截断阈值是 𝜆̃ =𝜂(𝑡′)𝜆λ~=η(t′)λ\tilde\lambda = \eta^{(t’)}\lambda。考虑到学习率 𝜂(𝑡′)η(t′)\eta^{(t’)} 往往会随着 𝑡tt 的增加而减小。故而 FOBOS 的截断阈值是不断减小的；与之相对，RDA 的截断阈值是固定的 𝜆λ\lambda。这说明，随着训练的进程，FOBOS 对截断的要求越放越松，因而 RDA 相对更容易得到稀疏解。</p>
+<p>接下来我们看 FOBOS 和 RDA 截断之外部分的差异。</p>
+<p>FOBOS 的取值主体是 𝜔(𝑡)𝑖−𝜂(𝑡)𝑔(𝑡)𝑖ωi(t)−η(t)gi(t)\omega<em>{i}^{(t)} - \eta^{(t)}g</em>{i}^{(t)}，即梯度下降的结果，在此基础上做微调——向 0 的方向微调 𝜆̃ λ~\tilde\lambda 步长。按「下山」的比喻，FOBOS 的取值，是在梯度反方向上下山，每次做一定的微调。RDA 的取值，主体是往期所有梯度的二次平均的缩放（−𝑡√𝛾−tγ-\frac{\sqrt{t}}{\gamma}），在此基础上做微调——向 0 的方向微调 𝜆λ\lambda。按同样的比喻，RDA 的取值，是在山顶上试探很多步，平均之后只走出一小步。从感性的认知来说，FOBOS 的准确度显然会更高一些。</p>
+<p>这也就是说，FOBOS 的精度较高，但解的稀疏性相对较差；RDA 的解的稀疏性好，但精度较差。于是，很自然地，我们会问：<strong>是否有办法，将二者的优点合在一起呢</strong>？</p>
+<h3 id="统一-FOBOS-和-RDA-的形式"><a href="#统一-FOBOS-和-RDA-的形式" class="headerlink" title="统一 FOBOS 和 RDA 的形式"></a><a href="#统一-FOBOS-和-RDA-的形式" title="统一 FOBOS 和 RDA 的形式"></a>统一 FOBOS 和 RDA 的形式</h3><p>想要取长补短，就要想办法将 FOBOS 和 RDA 的形式统一起来。这样才方便拆墙补墙。</p>
+<p>首先看 FOBOS 的无约束优化形式：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {12‖‖‖𝜔⃗ −𝜔⃗ (𝑡)+𝜂(𝑡)𝑔⃗ (𝑡)‖‖‖2+𝜂(𝑡)𝜆‖𝜔⃗ ‖1}.ω→(t+1)←argminω→⁡{12‖ω→−ω→(t)+η(t)g→(t)‖2+η(t)λ‖ω→‖1}. \vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}_{\vec\omega}\biggl{\frac{1}{2}\Bigl\lVert\vec\omega - \vec\omega^{(t)} + \eta^{(t)}\vec g^{(t)}\Bigr\rVert^{2} + \eta^{(t)}\lambda\lVert\vec\omega\rVert_1\biggr}.</p>
+<p>注意，这里 𝑔⃗ (𝑡)=∇Obj(𝜔⃗ (𝑡))g→(t)=∇Obj(ω→(t))\vec g^{(t)} = \nabla\text{Obj}(\vec\omega^{(t)})，并且令 𝜂(𝑡′)=𝜂(𝑡)=𝛾𝑡√η(t′)=η(t)=γt\eta^{(t’)} = \eta^{(t)} = \frac{\gamma}{\sqrt{t}}。我们将之按维度拆开：</p>
+<p>==min𝜔𝑖∈ℝ{12‖‖‖𝜔𝑖−𝜔(𝑡)𝑖+𝜂(𝑡)𝑔(𝑡)𝑖‖‖‖2+𝜂(𝑡)𝜆|𝜔𝑖|}min𝜔𝑖∈ℝ{𝜔𝑖𝑔(𝑡)𝑖+𝜆|𝜔𝑖|+12𝜂(𝑡)(𝜔𝑖−𝜔(𝑡)𝑖)22+[𝜂(𝑡)2(𝑔(𝑡)𝑖)22+𝜔(𝑡)𝑖𝑔(𝑡)𝑖]}min𝜔𝑖∈ℝ{𝜔𝑖𝑔(𝑡)𝑖+𝜆|𝜔𝑖|+12𝜂(𝑡)(𝜔𝑖−𝜔(𝑡)𝑖)22}.minωi∈R{12‖ωi−ωi(t)+η(t)gi(t)‖2+η(t)λ|ωi|}=minωi∈R{ωigi(t)+λ|ωi|+12η(t)(ωi−ωi(t))22+[η(t)2(gi(t))22+ωi(t)gi(t)]}=minωi∈R{ωigi(t)+λ|ωi|+12η(t)(ωi−ωi(t))22}. \begin{aligned} &amp; \min<em>{\omega_i\in\mathbb{R}}\biggl{\frac{1}{2}\Bigl\lVert\omega_i - \omega_i^{(t)} + \eta^{(t)}g_i^{(t)}\Bigr\rVert^{2} + \eta^{(t)}\lambda\lvert\omega_i\rvert\biggr} \ ={}&amp; \min</em>{\omega<em>i\in\mathbb{R}}\biggl{\omega_ig_i^{(t)} + \lambda\lvert\omega_i\rvert + \frac{1}{2\eta^{(t)}}\bigl(\omega_i - \omega_i^{(t)}\bigr)_2^2 + \biggl[ \frac{\eta^{(t)}}{2}\bigl(g_i^{(t)}\bigr)_2^2 + \omega_i^{(t)}g_i^{(t)} \biggr]\biggr} \ ={}&amp; \min</em>{\omega_i\in\mathbb{R}}\biggl{\omega_ig_i^{(t)} + \lambda\lvert\omega_i\rvert + \frac{1}{2\eta^{(t)}}\bigl(\omega_i - \omega_i^{(t)}\bigr)_2^2\biggr}. \end{aligned}</p>
+<p>再合并起来有，</p>
+<p>𝜔⃗ (𝑡+1)←=argmin𝜔⃗ {𝑔⃗ (𝑡)⋅𝜔⃗ +𝜆‖𝜔⃗ ‖1+12𝜂(𝑡)‖‖𝜔⃗ −𝜔⃗ (𝑡)‖‖22}argmin𝜔⃗ {𝑔⃗ (𝑡)⋅𝜔⃗ +𝜆‖𝜔⃗ ‖1+12𝜎(1:𝑡)‖‖𝜔⃗ −𝜔⃗ (𝑡)‖‖22}.ω→(t+1)←argminω→⁡{g→(t)⋅ω→+λ‖ω→‖1+12η(t)‖ω→−ω→(t)‖22}=argminω→⁡{g→(t)⋅ω→+λ‖ω→‖1+12σ(1:t)‖ω→−ω→(t)‖22}. \begin{aligned} \vec\omega^{(t + 1)} \gets&amp;{} \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\vec g^{(t)}\cdot\vec\omega + \lambda\lVert\vec\omega\rVert_1 + \frac{1}{2\eta^{(t)}}\bigl\lVert\vec\omega - \vec\omega^{(t)}\bigr\rVert_2^2\biggr} \ =&amp;{} \mathop{\arg\,\min}</em>{\vec\omega}\biggl{\vec g^{(t)}\cdot\vec\omega + \lambda\lVert\vec\omega\rVert_1 + \frac{1}{2}\sigma^{(1:t)}\bigl\lVert\vec\omega - \vec\omega^{(t)}\bigr\rVert_2^2\biggr}. \end{aligned}</p>
+<p>其中 𝜎(𝑡)=1𝜂(𝑡)−1𝜂(𝑡−1)σ(t)=1η(t)−1η(t−1)\sigma^{(t)} = \frac{1}{\eta^{(t)}} - \frac{1}{\eta^{(t - 1)}}，以及 𝜎(1:𝑡)=∑𝑡𝑟=1𝜎(𝑟)=1𝜂(𝑡)σ(1:t)=∑r=1tσ(r)=1η(t)\sigma^{(1:t)} = \sum_{r = 1}^{t}\sigma^{(r)} = \frac{1}{\eta^{(t)}}（注意与 𝑔⃗ (1:𝑡)g→(1:t)\vec g^{(1:t)} 不同，𝜎(1:𝑡)σ(1:t)\sigma^{(1:t)} 在求和符号外没有 1𝑡1t\frac{1}{t}）。类似地，对于 RDA 有：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {𝐺⃗ (1:𝑡)⋅𝜔⃗ +𝑡𝜆‖𝜔⃗ ‖1+12𝜎(1:𝑡)‖‖𝜔⃗ −0⃗ ‖‖22}.ω→(t+1)←argminω→⁡{G→(1:t)⋅ω→+tλ‖ω→‖1+12σ(1:t)‖ω→−0→‖22}. \vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}_{\vec\omega}\biggl{\vec G^{(1:t)}\cdot\vec\omega + t\lambda\lVert\vec\omega\rVert_1 + \frac{1}{2}\sigma^{(1:t)}\bigl\lVert\vec\omega - \vec 0\bigr\rVert_2^2\biggr}.</p>
+<p>这里 𝐺⃗ (𝑡)=𝑔⃗ (𝑡)G→(t)=g→(t)\vec G^{(t)} = \vec g^{(t)}，而 𝐺⃗ (1:𝑡)=∑𝑡𝑟=1𝐺⃗ (𝑡)=𝑡⋅𝑔⃗ (1:𝑡)G→(1:t)=∑r=1tG→(t)=t⋅g→(1:t)\vec G^{(1:t)} = \sum_{r = 1}^{t}\vec G^{(t)} = t\cdot\vec g^{(1:t)}。</p>
+<h3 id="拆墙补墙得到-FTRL"><a href="#拆墙补墙得到-FTRL" class="headerlink" title="拆墙补墙得到 FTRL"></a><a href="#拆墙补墙得到-FTRL" title="拆墙补墙得到 FTRL"></a>拆墙补墙得到 FTRL</h3><p>统一了 FOBOS 和 RDA 的形式之后，我们就可以将它们各自的优点拿出来了。</p>
+<p>对于 FOBOS，它的优点体现在 12𝜎(1:𝑡)‖‖𝜔⃗ −𝜔⃗ (𝑡)‖‖2212σ(1:t)‖ω→−ω→(t)‖22 \frac{1}{2}\sigma^{(1:t)}\bigl\lVert\vec\omega - \vec\omega^{(t)}\bigr\rVert_2^2 这一项上；对于 RDA，它的优点体现在 𝐺⃗ (1:𝑡)⋅𝜔⃗ G→(1:t)⋅ω→\vec G^{(1:t)}\cdot\vec\omega 这一项上。于是，我们将这两项组合起来，得到的就是标准的 FTRL 了（11 年的论文中的原始版本）：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {𝐺⃗ (1:𝑡)⋅𝜔⃗ +𝜆‖𝜔⃗ ‖1+12∑𝑟=1𝑡𝜎(𝑟)‖‖𝜔⃗ −𝜔⃗ (𝑟)‖‖22}.ω→(t+1)←argminω→⁡{G→(1:t)⋅ω→+λ‖ω→‖1+12∑r=1tσ(r)‖ω→−ω→(r)‖22}. \vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\vec G^{(1:t)}\cdot\vec\omega + \lambda\lVert\vec\omega\rVert_1 + \frac{1}{2}\sum</em>{r = 1}^{t}\sigma^{(r)}\bigl\lVert\vec\omega - \vec\omega^{(r)}\bigr\rVert_2^2\biggr}.</p>
+<p>注意这里式中第 3 项与 FOBOS 的第三项稍有区别。我们还可以为它加上 𝐿2L2L_2 正则项，变成：</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {𝐺⃗ (1:𝑡)⋅𝜔⃗ +𝜆1‖𝜔⃗ ‖1+12𝜆2‖𝜔⃗ ‖22+12∑𝑟=1𝑡𝜎(𝑟)‖‖𝜔⃗ −𝜔⃗ (𝑟)‖‖22}.(FTRL)(FTRL)ω→(t+1)←argminω→⁡{G→(1:t)⋅ω→+λ1‖ω→‖1+12λ2‖ω→‖22+12∑r=1tσ(r)‖ω→−ω→(r)‖22}.\begin{equation} \vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\vec G^{(1:t)}\cdot\vec\omega + \lambda_1\lVert\vec\omega\rVert_1 + \frac{1}{2}\lambda_2\lVert\vec\omega\rVert_2^2 + \frac{1}{2}\sum</em>{r = 1}^{t}\sigma^{(r)}\bigl\lVert\vec\omega - \vec\omega^{(r)}\bigr\rVert_2^2\biggr}. \tag{FTRL}\label{eq:FTRL} \end{equation}</p>
+<h3 id="FTRL-更新公式的推导"><a href="#FTRL-更新公式的推导" class="headerlink" title="FTRL 更新公式的推导"></a><a href="#FTRL-更新公式的推导" title="FTRL 更新公式的推导"></a>FTRL 更新公式的推导</h3><p>我们将 <a href="#mjx-eqn-eq%3AFTRL">FTRL</a>FTRL\ref{eq:FTRL} 展开，得到</p>
+<p>𝜔⃗ (𝑡+1)←==argmin𝜔⃗ {𝐺⃗ (1:𝑡)⋅𝜔⃗ +𝜆1‖𝜔⃗ ‖1+12𝜆2‖𝜔⃗ ‖22+12∑𝑟=1𝑡𝜎(𝑟)‖‖𝜔⃗ −𝜔⃗ (𝑟)‖‖22}argmin𝜔⃗ {𝑧⃗ (1:𝑡)𝜔⃗ +𝜆1‖𝜔⃗ ‖1+12(𝜆2+∑𝑟=1𝑡𝜎(𝑟))‖𝜔⃗ ‖22+12∑𝑟=1𝑡𝜎(𝑟)‖𝜔⃗ (𝑟)‖22}argmin𝜔⃗ {𝑧⃗ (1:𝑡)𝜔⃗ +𝜆1‖𝜔⃗ ‖1+12(𝜆2+∑𝑟=1𝑡𝜎(𝑟))‖𝜔⃗ ‖22}.ω→(t+1)←argminω→⁡{G→(1:t)⋅ω→+λ1‖ω→‖1+12λ2‖ω→‖22+12∑r=1tσ(r)‖ω→−ω→(r)‖22}=argminω→⁡{z→(1:t)ω→+λ1‖ω→‖1+12(λ2+∑r=1tσ(r))‖ω→‖22+12∑r=1tσ(r)‖ω→(r)‖22}=argminω→⁡{z→(1:t)ω→+λ1‖ω→‖1+12(λ2+∑r=1tσ(r))‖ω→‖22}. \begin{aligned} \vec\omega^{(t + 1)} \gets{}&amp; \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\vec G^{(1:t)}\cdot\vec\omega + \lambda_1\lVert\vec\omega\rVert_1 + \frac{1}{2}\lambda_2\lVert\vec\omega\rVert_2^2 + \frac{1}{2}\sum</em>{r = 1}^{t}\sigma^{(r)}\bigl\lVert\vec\omega - \vec\omega^{(r)}\bigr\rVert<em>2^2\biggr} \ ={}&amp; \mathop{\arg\,\min}</em>{\vec\omega}\biggl{\vec z^{(1:t)}\vec\omega + \lambda<em>1\lVert\vec\omega\rVert_1 + \frac{1}{2}\Bigl(\lambda_2 + \sum</em>{r = 1}^{t}\sigma^{(r)}\Bigr)\lVert\vec\omega\rVert<em>2^2 + \frac{1}{2}\sum</em>{r = 1}^{t}\sigma^{(r)}\lVert\vec\omega^{(r)}\rVert<em>2^2\biggr} \ ={}&amp; \mathop{\arg\,\min}</em>{\vec\omega}\biggl{\vec z^{(1:t)}\vec\omega + \lambda<em>1\lVert\vec\omega\rVert_1 + \frac{1}{2}\Bigl(\lambda_2 + \sum</em>{r = 1}^{t}\sigma^{(r)}\Bigr)\lVert\vec\omega\rVert_2^2\biggr}. \end{aligned}</p>
+<p>其中 𝑧⃗ (𝑡)=𝑔⃗ (𝑡)−𝜎(𝑡)⋅𝜔⃗ (𝑡)z→(t)=g→(t)−σ(t)⋅ω→(t)\vec z^{(t)} = \vec g^{(t)} - \sigma^{(t)}\cdot\vec\omega^{(t)}，而 𝑧⃗ (1:𝑡)=∑𝑡𝑟=1𝑧⃗ (𝑟)z→(1:t)=∑r=1tz→(r)\vec z^{(1:t)} = \sum_{r = 1}^{t}\vec z^{(r)}。我们将之按维度拆开，有</p>
+<p>min𝜔𝑖∈ℝ{𝑧(𝑡)𝑖𝜔𝑖+𝜆1|𝜔𝑖|+12(𝜆2+𝜎(1:𝑡))𝜔2𝑖}.(1)(1)minωi∈R{zi(t)ωi+λ1|ωi|+12(λ2+σ(1:t))ωi2}.\begin{equation} \min<em>{\omega</em>{i}\in\mathbb{R}}\biggl{z<em>i^{(t)}\omega</em>{i} + \lambda<em>1\lvert\omega_i\rvert + \frac{1}{2}\Bigl(\lambda_2 + \sigma^{(1:t)}\Bigr)\omega</em>{i}^{2}\biggr}. \label{eq:ftrl-one-dim} \end{equation}</p>
+<p>式 <a href="#mjx-eqn-eq%3Aftrl-one-dim">1</a>1\ref{eq:ftrl-one-dim} 是一个无约束的非平滑参数优化问题，其中第二项 𝜆1|𝜔𝑖|λ1|ωi|\lambda<em>1\lvert\omega_i\rvert 在 𝜔𝑖=0ωi=0\omega_i = 0 处不可导。假设 𝜔∗𝑖ωi∗\omega_i^</em> 是使式 <a href="#mjx-eqn-eq%3Aftrl-one-dim">1</a>1\ref{eq:ftrl-one-dim} 得到最优解的 𝜔𝑖ωi\omega<em>i 的取值；定义 𝜉∈∂|𝜔∗𝑖|ξ∈∂|ωi∗|\xi\in\partial\lvert\omega_i^</em>\rvert 是 |𝜔𝑖||ωi|\lvert\omega_i\rvert 在 𝜔∗𝑖ωi∗\omega_i^* 处的次导数，于是有</p>
+<p>∂|𝜔∗𝑖|=⎧⎩⎨⎪⎪1−1&lt;𝜉<1−1if 𝜔∗𝑖>0,if 𝜔∗𝑖=0,if 𝜔∗𝑖<0.(2)(2)∂|ωi∗|={1if ωi∗>0,−1&lt;ξ<1if 1 ωi∗="0,−1if" ωi∗<0.\begin{equation} \partial\lvert\omega*i^*\rvert="\begin{cases}" & \text{if \$\omega*i^*> 0$}, \ {-1 &lt; \xi &lt; 1} &amp; \text{if $\omega<em>i^</em> = 0$}, \ -1 &amp; \text{if $\omega<em>i^</em> &lt; 0$}. \end{cases} \label{eq:ftrl-subgradient} \end{equation}</1if></0.(2)(2)∂|ωi∗|={1if></1−1if></p>
+<p>根据式 <a href="#mjx-eqn-eq%3Aftrl-subgradient">2</a>2\ref{eq:ftrl-subgradient} 定义的次导数，对式 <a href="#mjx-eqn-eq%3Aftrl-one-dim">1</a>1\ref{eq:ftrl-one-dim} 待优化的部分求导，令其为零，得到方程：</p>
+<p>𝑧(𝑡)𝑖+𝜆1⋅𝜉+(𝜆2+𝜎(1:𝑡))𝜔∗𝑖=0.(3)(3)zi(t)+λ1⋅ξ+(λ2+σ(1:t))ωi∗=0.\begin{equation} z<em>i^{(t)} + \lambda_1\cdot\xi + \bigl(\lambda_2 + \sigma^{(1:t)}\bigr)\omega</em>{i}^* = 0. \label{eq:ftrl-equation} \end{equation}</p>
+<p>式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 中，𝜆1&gt;0λ1&gt;0\lambda_1 &gt; 0 且 (𝜆2+𝜎(1:𝑡))&gt;0(λ2+σ(1:t))&gt;0\bigl(\lambda_2 + \sigma^{(1:t)}\bigr) &gt; 0。对 𝑧(𝑡)𝑖zi(t)z_i^{(t)} 的取值进行分类讨论：</p>
+<ul>
+<li><p>当 ∣∣𝑧(𝑡)𝑖∣∣&lt;𝜆1|zi(t)|&lt;λ1\bigl\lvert z_i^{(t)}\bigr\rvert &lt; \lambda_1 时，有 𝜔∗𝑖=0ωi∗=0\omega_i^{*} = 0。因为若不然：</p>
+<ul>
+<li>当 𝜔∗𝑖&lt;0ωi∗&lt;0\omega<em>i^{\</em>} &lt; 0，有 𝜉=−1ξ=−1\xi = -1。式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 左边有 𝑧(𝑡)𝑖−𝜆1+(𝜆2+𝜎(1:𝑡))𝜔∗𝑖&lt;𝑧(𝑡)𝑖−𝜆1&lt;0zi(t)−λ1+(λ2+σ(1:t))ωi∗&lt;zi(t)−λ1&lt;0z_i^{(t)} - \lambda_1 + \bigl(\lambda_2 + \sigma^{(1:t)}\bigr)\omega<em>{i}^\</em> &lt; z_i^{(t)} - \lambda_1 &lt; 0，与式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 矛盾。</li>
+<li>当 𝜔∗𝑖&gt;0ωi∗&gt;0\omega<em>i^{\</em>} &gt; 0，有 𝜉=1ξ=1\xi = 1。式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 左边有 𝑧(𝑡)𝑖+𝜆1+(𝜆2+𝜎(1:𝑡))𝜔∗𝑖&gt;𝑧(𝑡)𝑖+𝜆1&gt;0zi(t)+λ1+(λ2+σ(1:t))ωi∗&gt;zi(t)+λ1&gt;0z_i^{(t)} + \lambda_1 + \bigl(\lambda_2 + \sigma^{(1:t)}\bigr)\omega<em>{i}^\</em> &gt; z_i^{(t)} + \lambda_1 &gt; 0，与式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 矛盾。</li>
+</ul>
+</li>
+<li><p>当 𝑧(𝑡)𝑖&gt;𝜆1zi(t)&gt;λ1z_i^{(t)} &gt; \lambda_1 时，有 𝜔∗𝑖=−1𝜆2+𝜎(1:𝑡)(𝑧(𝑡)𝑖−𝜆1)&lt;0ωi∗=−1λ2+σ(1:t)(zi(t)−λ1)&lt;0\omega_i^{*} = -\frac{1}{\lambda_2 + \sigma^{(1:t)}}\bigl(z_i^{(t)} - \lambda_1\bigr) &lt; 0。因为若不然：</p>
+<ul>
+<li>当 𝜔∗𝑖=0ωi∗=0\omega_i^{*} = 0，由式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 知 𝜉=−𝑧(𝑡)𝑖𝜆1&lt;−1ξ=−zi(t)λ1&lt;−1\xi = -\frac{z_i^{(t)}}{\lambda_1} &lt; -1，与式 <a href="#mjx-eqn-eq%3Aftrl-subgradient">2</a>2\ref{eq:ftrl-subgradient} 矛盾。</li>
+<li>当 𝜔∗𝑖&gt;0ωi∗&gt;0\omega_i^{*} &gt; 0，与 ∣∣𝑧(𝑡)𝑖∣∣&lt;𝜆1|zi(t)|&lt;λ1\bigl\lvert z_i^{(t)}\bigr\rvert &lt; \lambda_1 的情况类似，与式 <a href="#mjx-eqn-eq%3Aftrl-equation">3</a>3\ref{eq:ftrl-equation} 矛盾。</li>
+</ul>
+</li>
+<li><p>当 𝑧(𝑡)𝑖&lt;−𝜆1zi(t)&lt;−λ1z_i^{(t)} &lt; -\lambda_1，类似分析，有 𝜔∗𝑖=−1𝜆2+𝜎(1:𝑡)(𝑧(𝑡)𝑖+𝜆1)&gt;0ωi∗=−1λ2+σ(1:t)(zi(t)+λ1)&gt;0\omega_i^{*} = -\frac{1}{\lambda_2 + \sigma^{(1:t)}}\bigl(z_i^{(t)} + \lambda_1\bigr) &gt; 0。</p>
+</li>
+</ul>
+<p>如此一来，我们得到 FTRL 的更新公式：</p>
+<p>𝜔(𝑡+1)𝑖={0−1𝜆2+𝜎(1:𝑡)(𝑧(𝑡)𝑖−sgn(𝑧(𝑡)𝑖)𝜆1)if |𝑧(𝑡)𝑖|&lt;𝜆1,otherwise.(4)(4)ωi(t+1)={0if |zi(t)|&lt;λ1,−1λ2+σ(1:t)(zi(t)−sgn(zi(t))λ1)otherwise.\begin{equation} \omega_i^{(t + 1)} = \begin{cases} 0 &amp; \text{if $\lvert z_i^{(t)}\rvert &lt; \lambda_1$}, \ -\frac{1}{\lambda_2 + \sigma^{(1:t)}}\bigl(z_i^{(t)} - \text{sgn}(z_i^{(t)})\lambda_1\bigr) &amp; \text{otherwise}. \end{cases} \label{eq:ftrl-updates} \end{equation}</p>
+<p>从式 <a href="#mjx-eqn-eq%3Aftrl-updates">4</a>4\ref{eq:ftrl-updates} 来看，加入 𝐿2L2L_2 正则，没有影响模型的稀疏性，而只是使得参数的取值趋向零。</p>
+<h3 id="FTRL-为什么是有效的"><a href="#FTRL-为什么是有效的" class="headerlink" title="FTRL 为什么是有效的"></a><a href="#FTRL-为什么是有效的" title="FTRL 为什么是有效的"></a>FTRL 为什么是有效的</h3><p>我们引出 FTRL 是按「稀疏性」的路径，从 FOBOS 和 RDA 拆借出来的。从上面的推导，我们能看出 FTRL 能够较好地获得稀疏解。但是，我们仍未能说明，FTRL 能够获得较好的稀疏解。（大家来找茬，笑）这一小节里，我们来说明 FTRL 是有效的。</p>
+<p>首先回顾一下 SGD 的更新公式：</p>
+<p>𝜔⃗ (𝑡+1)𝑖←𝜔⃗ (𝑡)𝑖−𝜂(𝑡)𝑔⃗ (𝑡).(5)(5)ω→i(t+1)←ω→i(t)−η(t)g→(t).\begin{equation} \vec\omega_i^{(t + 1)} \gets \vec\omega_i^{(t)} - \eta^{(t)}\vec g^{(t)}. \label{eq:sgd} \end{equation}</p>
+<p>我们丢掉式 <a href="#mjx-eqn-eq%3AFTRL">FTRL</a>FTRL\ref{eq:FTRL} 中有关 𝐿1L1L_1 和 𝐿2L2L_2 正则相关的部分，有</p>
+<p>𝜔⃗ (𝑡+1)←argmin𝜔⃗ {𝐺⃗ (1:𝑡)⋅𝜔⃗ +12∑𝑟=1𝑡𝜎(𝑟)‖‖𝜔⃗ −𝜔⃗ (𝑟)‖‖22}.(6)(6)ω→(t+1)←argminω→⁡{G→(1:t)⋅ω→+12∑r=1tσ(r)‖ω→−ω→(r)‖22}.\begin{equation} \vec\omega^{(t + 1)} \gets \mathop{\arg\,\min}<em>{\vec\omega}\biggl{\vec G^{(1:t)}\cdot\vec\omega + \frac{1}{2}\sum</em>{r = 1}^{t}\sigma^{(r)}\bigl\lVert\vec\omega - \vec\omega^{(r)}\bigr\rVert_2^2\biggr}. \label{eq:ftrl-pure} \end{equation}</p>
+<p>记式 <a href="#mjx-eqn-eq%3Aftrl-pure">6</a>6\ref{eq:ftrl-pure} 中待优化的部分为 𝑓(𝜔⃗ )f(ω→)f(\vec\omega)。对其求导，有：</p>
+<p>∂𝑓(𝜔⃗ )∂𝜔⃗ =𝐺⃗ (1:𝑡)+∑𝑟=1𝑡𝜎(𝑟)(𝜔⃗ −𝜔⃗ (𝑟)).(7)(7)∂f(ω→)∂ω→=G→(1:t)+∑r=1tσ(r)(ω→−ω→(r)).\begin{equation} \frac{\partial f(\vec\omega)}{\partial\vec\omega} = \vec G^{(1:t)} + \sum_{r = 1}^{t}\sigma^{(r)}\bigl(\vec\omega - \vec\omega^{(r)}\bigr). \label{eq:ftrl-pure-gradient} \end{equation}</p>
+<p>当式 <a href="#mjx-eqn-eq%3Aftrl-pure-gradient">7</a>7\ref{eq:ftrl-pure-gradient} 为 0 时的 𝜔⃗ ω→\vec\omega，式 <a href="#mjx-eqn-eq%3Aftrl-pure">6</a>6\ref{eq:ftrl-pure} 取得极值。此即有</p>
+<p>𝐺⃗ (1:𝑡)+∑𝑟=1𝑡𝜎(𝑟)(𝜔⃗ (𝑡+1)−𝜔⃗ (𝑟))=𝜎(1:𝑡)𝜔⃗ (𝑡+1)=0∑𝑟=1𝑡𝜎(𝑟)𝜔⃗ (𝑟)−𝐺⃗ (1:𝑡)(8)(8)G→(1:t)+∑r=1tσ(r)(ω→(t+1)−ω→(r))=0σ(1:t)ω→(t+1)=∑r=1tσ(r)ω→(r)−G→(1:t)\begin{equation} \begin{aligned} \vec G^{(1:t)} + \sum<em>{r = 1}^{t}\sigma^{(r)}\bigl(\vec\omega^{(t + 1)} - \vec\omega^{(r)}\bigr) ={}&amp; 0 \ \sigma^{(1:t)} \vec\omega^{(t + 1)} ={}&amp; \sum</em>{r = 1}^{t}\sigma^{(r)} \vec\omega^{(r)} - \vec G^{(1:t)} \end{aligned} \label{eq:ftrl-pure-gradient-equation} \end{equation}</p>
+<p>在式 <a href="#mjx-eqn-eq%3Aftrl-pure-gradient-equation">8</a>8\ref{eq:ftrl-pure-gradient-equation} 中，以 𝑡−1t−1t - 1 替换 𝑡tt，得到</p>
+<p>𝜎(1:𝑡−1)𝜔⃗ (𝑡)=∑𝑟=1𝑡−1𝜎(𝑟)𝜔⃗ (𝑟)−𝐺⃗ (1:𝑡−1)(9)(9)σ(1:t−1)ω→(t)=∑r=1t−1σ(r)ω→(r)−G→(1:t−1)\begin{equation} \sigma^{(1:t - 1)} \vec\omega^{(t)} = \sum_{r = 1}^{t - 1}\sigma^{(r)} \vec\omega^{(r)} - \vec G^{(1:t - 1)} \label{eq:ftrl-pure-gradient-equation-minus} \end{equation}</p>
+<p>用式 <a href="#mjx-eqn-eq%3Aftrl-pure-gradient-equation">8</a>8\ref{eq:ftrl-pure-gradient-equation} 减去式 <a href="#mjx-eqn-eq%3Aftrl-pure-gradient-equation-minus">9</a>9\ref{eq:ftrl-pure-gradient-equation-minus} 得到</p>
+<p>𝜎(1:𝑡)𝜔⃗ (𝑡+1)−𝜎(1:𝑡−1)𝜔⃗ (𝑡)=𝜎(1:𝑡)𝜔⃗ (𝑡+1)=𝜎(𝑡)𝜔⃗ (𝑡)−𝑔⃗ (𝑡)𝜎(1:𝑡)𝜔⃗ (𝑡)−𝑔⃗ (𝑡)(10)(10)σ(1:t)ω→(t+1)−σ(1:t−1)ω→(t)=σ(t)ω→(t)−g→(t)σ(1:t)ω→(t+1)=σ(1:t)ω→(t)−g→(t)\begin{equation} \begin{aligned} \sigma^{(1:t)} \vec\omega^{(t + 1)} - \sigma^{(1:t - 1)} \vec\omega^{(t)} ={}&amp; \sigma^{(t)}\vec\omega^{(t)} - \vec g^{(t)} \ \sigma^{(1:t)} \vec\omega^{(t + 1)} ={}&amp; \sigma^{(1:t)} \vec\omega^{(t)} - \vec g^{(t)} \end{aligned} \label{eq:ftrl-sgd-equiv} \end{equation}</p>
+<p>考虑 𝜎(1:𝑡)=1𝜂(𝑡)σ(1:t)=1η(t)\sigma^{(1:t)} = \frac{1}{\eta^{(t)}}，化简式 <a href="#mjx-eqn-eq%3Aftrl-sgd-equiv">10</a>10\ref{eq:ftrl-sgd-equiv} 即得到式 <a href="#mjx-eqn-eq%3Asgd">5</a>5\ref{eq:sgd}。这也就是说，FTRL 去掉 𝐿1L1L_1 和 𝐿2L2L_2 部分后，和 SGD 是等价的。这说明 FTRL 能够较好地获得稀疏解并且能够获得较好的稀疏解。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/" title="FTRL（Follow The Regularized Leader）">https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/18/各类优化方法总结/" rel="next" title="各类优化方法总结">
+                  <i class="fa fa-chevron-left"></i> 各类优化方法总结
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/18/me/" rel="prev" title="">
+                   <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#我们面临的问题"><span class="nav-number">1.</span> <span class="nav-text">我们面临的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#在线学习的兴起"><span class="nav-number">1.1.</span> <span class="nav-text">在线学习的兴起</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#批量"><span class="nav-number">1.1.1.</span> <span class="nav-text">批量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#随机小批量"><span class="nav-number">1.1.2.</span> <span class="nav-text">随机小批量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在线学习"><span class="nav-number">1.1.3.</span> <span class="nav-text">在线学习</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对模型稀疏性的追求"><span class="nav-number">1.2.</span> <span class="nav-text">对模型稀疏性的追求</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#模型稀疏的好处"><span class="nav-number">1.2.1.</span> <span class="nav-text">模型稀疏的好处</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在批量梯度下降中，追求模型稀疏性"><span class="nav-number">1.2.2.</span> <span class="nav-text">在批量梯度下降中，追求模型稀疏性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#𝐿1L1L-1-正则在-SGD-中"><span class="nav-number">1.2.3.</span> <span class="nav-text">𝐿1L1L_1 正则在 SGD 中</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FTRL-的前辈们"><span class="nav-number">2.</span> <span class="nav-text">FTRL 的前辈们</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Truncated-Gradient"><span class="nav-number">2.1.</span> <span class="nav-text">Truncated Gradient</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FOBOS-Forward-Backward-Splitting"><span class="nav-number">2.2.</span> <span class="nav-text">FOBOS (Forward-Backward Splitting)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDA-Regularized-Dual-Averaging"><span class="nav-number">2.3.</span> <span class="nav-text">RDA (Regularized Dual Averaging)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FTRL-Follow-The-Regularized-Leader"><span class="nav-number">3.</span> <span class="nav-text">FTRL (Follow The Regularized Leader)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FOBOS-和-RDA-的区别"><span class="nav-number">3.1.</span> <span class="nav-text">FOBOS 和 RDA 的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#统一-FOBOS-和-RDA-的形式"><span class="nav-number">3.2.</span> <span class="nav-text">统一 FOBOS 和 RDA 的形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拆墙补墙得到-FTRL"><span class="nav-number">3.3.</span> <span class="nav-text">拆墙补墙得到 FTRL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FTRL-更新公式的推导"><span class="nav-number">3.4.</span> <span class="nav-text">FTRL 更新公式的推导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FTRL-为什么是有效的"><span class="nav-number">3.5.</span> <span class="nav-text">FTRL 为什么是有效的</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '97468baeb6c7a04c8fbc1c44d587b321',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

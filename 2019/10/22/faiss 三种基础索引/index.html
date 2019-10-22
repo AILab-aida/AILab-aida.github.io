@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="前言不同的索引方式是 faiss 的核心内容, 他们以不同的方式构建, 基于不同的算法与数据结构. 选择合适的 index 来处理数据是使用 faiss 最基础的一步. 官方 wiki 上也有帮助你如何选择不同的 index, 参见 Guidelines to choose an index这次来学习 faiss 三个最基础的 index. 分别是 IndexFlatL2, IndexIVFFla">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="faiss 三种基础索引">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/22/faiss 三种基础索引/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="前言不同的索引方式是 faiss 的核心内容, 他们以不同的方式构建, 基于不同的算法与数据结构. 选择合适的 index 来处理数据是使用 faiss 最基础的一步. 官方 wiki 上也有帮助你如何选择不同的 index, 参见 Guidelines to choose an index这次来学习 faiss 三个最基础的 index. 分别是 IndexFlatL2, IndexIVFFla">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-22T02:21:20.291Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="faiss 三种基础索引">
+<meta name="twitter:description" content="前言不同的索引方式是 faiss 的核心内容, 他们以不同的方式构建, 基于不同的算法与数据结构. 选择合适的 index 来处理数据是使用 faiss 最基础的一步. 官方 wiki 上也有帮助你如何选择不同的 index, 参见 Guidelines to choose an index这次来学习 faiss 三个最基础的 index. 分别是 IndexFlatL2, IndexIVFFla">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/22/faiss 三种基础索引/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>faiss 三种基础索引 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/22/faiss 三种基础索引/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">faiss 三种基础索引
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-22 10:02:18 / 修改时间：10:21:20" itemprop="dateCreated datePublished" datetime="2019-10-22T10:02:18+08:00">2019-10-22</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a><a href="#前言"></a>前言</h2><p>不同的索引方式是 faiss 的核心内容, 他们以不同的方式构建, 基于不同的算法与数据结构. 选择合适的 index 来处理数据是使用 faiss 最基础的一步. 官方 wiki 上也有帮助你如何选择不同的 index, 参见 <a href="https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index" target="_blank" rel="noopener">Guidelines to choose an index</a><br>这次来学习 faiss 三个最基础的 index. 分别是 <code>IndexFlatL2</code>, <code>IndexIVFFlat</code>, <code>IndexIVFPQ</code></p><a id="more"></a>
+<h2 id="IndexFlatL2-最基础的-Index"><a href="#IndexFlatL2-最基础的-Index" class="headerlink" title="IndexFlatL2 - 最基础的 Index"></a><a href="#indexflatl2-最基础的index"></a>IndexFlatL2 - 最基础的 Index</h2><ol>
+<li>生成测试数据<br>Faiss 处理固定维数 d 的向量集合，向量维度 d 通常为几十到几百。这些集合可以存储在矩阵中。我们假设行主存储，即。向量编号 i 的第 j 个分量存储在矩阵的第 i 行第 j 列中。Faiss 只使用 32 位浮点矩阵。</li>
+</ol>
+<p>我们需要两个矩阵：</p>
+<ul>
+<li>xb 对于数据库，它包含所有必须编入索引的向量，并且我们将搜索它。它的大小是 nb-by-d</li>
+<li>xq 对于查询向量，我们需要找到最近的邻居。它的大小是 nq-by-d。如果我们只有一个查询向量，则 nq = 1。<br>在下面的例子中，我们将使用在 d = 64 维度中形成均匀分布的矢量。为了测试也为了有趣, 我们在索引所依赖的第一维上做了一点小改变.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">d = 3</span><br><span class="line">nb = 100000</span><br><span class="line">nq = 10000</span><br><span class="line">np.random.seed(1234)</span><br><span class="line">xb = np.random.random((nb, d)).astype(&apos;float32&apos;)</span><br><span class="line">xb[:, 0] += np.arange(nb) / 1000.</span><br><span class="line">xq = np.random.random((nq, d)).astype(&apos;float32&apos;)</span><br><span class="line">xq[:, 0] += np.arange(nq) / 1000.</span><br></pre></td></tr></table></figure>
+<ol>
+<li>构建索引并添加向量</li>
+</ol>
+<p>Faiss 围绕 Index 物体构建。它们继承了一组向量库，并可以选择对它们进行预处理以提高搜索效率。Faiss 有很多类型的索引，我们将使用最简单的版本：IndexFlatL2，它只是对向量执行强力的 L2 距离搜索 (暴力搜索, brute-force)。</p>
+<p>当索引被构建时, 他们都需要知道其所对应数据集向量的维度，也就是在我们的示例代码中的<code>d</code>. 然后，大多数索引还需要训练来分析向量集的分布。但是对于 IndexFlatL2 来说, 我们可以跳过这个操作。</p>
+<p>当建立和训练完索引时，可以对索引执行两个操作：<strong>add</strong> 和 <strong>search</strong>。</p>
+<p>将元素添加到索引。我们还可以输出索引的两个状态变量：</p>
+<ul>
+<li><code>is_trained</code> 表示索引是否需要训练的布尔值，</li>
+<li><code>ntotal</code> 索引中向量的数量。</li>
+</ul>
+<p>一部分索引也可以存储对应于每个向量的整形 ID（但 IndexFlatL2 不行）。如果没有提供 ID，add 则使用向量序号作为 id，即。第一个向量是 0，第二个是 1 这样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import faiss</span><br><span class="line">index = faiss.IndexFlatL2(d)</span><br><span class="line">print(index.is_trained)</span><br><span class="line">index.add(xb)</span><br><span class="line">print(index.ntotal)</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在索引中搜索<br>可以在索引上执行的基本搜索操作是 “k 临近搜索” 搜索，即。对于每个查询矢量，k 在向量集中查找其和他最近的向量。<br>为了测试正确性，我们可以首先搜索几个已经存储的向量，来看一下它最近的邻居是否是这个向量本身。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">k = 4</span><br><span class="line">D, I = index.search(xb[:5], k)</span><br><span class="line">print(I)</span><br><span class="line">print(D)</span><br><span class="line">D, I = index.search(xq, k)</span><br><span class="line">print(I[:5])</span><br><span class="line">print(I[-5:])</span><br></pre></td></tr></table></figure>
+<ol>
+<li>结果<br>如果运行正常, 输出应该如图所示</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">True</span><br><span class="line">100000</span><br><span class="line">[[  0  30 110  20]</span><br><span class="line"> [  1 689 422 328]</span><br><span class="line"> [  2 290 179 242]</span><br><span class="line"> [  3 767  25   9]</span><br><span class="line"> [  4 428 136  71]]</span><br><span class="line">[[0.0000000e+00 1.1153221e-02 1.3206482e-02 1.4572144e-02]</span><br><span class="line"> [2.3841858e-07 2.8479099e-03 7.1740150e-03 9.6693039e-03]</span><br><span class="line"> [2.3841858e-07 7.0106983e-03 1.1301994e-02 1.7502308e-02]</span><br><span class="line"> [0.0000000e+00 2.8505325e-03 6.8078041e-03 1.2776375e-02]</span><br><span class="line"> [0.0000000e+00 3.4937859e-03 6.5484047e-03 8.7761879e-03]]</span><br><span class="line">[[209 230  16  49]</span><br><span class="line"> [473 219 291  27]</span><br><span class="line"> [227 241 452 425]</span><br><span class="line"> [351 307 161 287]</span><br><span class="line"> [255 635 331  60]]</span><br><span class="line">[[ 9782 10012  9661  9455]</span><br><span class="line"> [10236 10708  9918  9854]</span><br><span class="line"> [10716 10304 10381 10287]</span><br><span class="line"> [ 9414  9294  9890  9530]</span><br><span class="line"> [10306 10073  9710 10009]]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Ture 和 100000 表示索引是否经过训练及索引中的向量数</li>
+<li>中间一组结果是测试的结果 可以看到, 距离此向量最近的确实是他本身</li>
+<li>后面一组结果是搜索的结果</li>
+</ul>
+<p>值得一提的是, IndexFlatL2 索引的结果是精确的, 可以用来作为其他索引测试中准确性程度的参考.</p>
+<p>IndexFlatL2 完整代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">d = 3</span><br><span class="line">nb = 100000</span><br><span class="line">nq = 10000</span><br><span class="line">np.random.seed(1234)</span><br><span class="line">xb = np.random.random((nb, d)).astype(&apos;float32&apos;)</span><br><span class="line">xb[:, 0] += np.arange(nb) / 1000.</span><br><span class="line">xq = np.random.random((nq, d)).astype(&apos;float32&apos;)</span><br><span class="line">xq[:, 0] += np.arange(nq) / 1000.</span><br><span class="line"></span><br><span class="line">import faiss</span><br><span class="line">index = faiss.IndexFlatL2(d)</span><br><span class="line">print(index.is_trained)</span><br><span class="line">index.add(xb)</span><br><span class="line">print(index.ntotal)</span><br><span class="line"></span><br><span class="line">k = 4</span><br><span class="line">D, I = index.search(xb[:5], k)</span><br><span class="line">print(I)</span><br><span class="line">print(D)</span><br><span class="line">D, I = index.search(xq, k)</span><br><span class="line">print(I[:5])</span><br><span class="line">print(I[-5:])</span><br></pre></td></tr></table></figure>
+<p>最后官方说在 2016 年的机器上这个 Demo 跑了大约 3.3 秒, 我自己测了一下跑了 1s 不到.</p>
+<h2 id="更快的搜索-IndexIVFFlat"><a href="#更快的搜索-IndexIVFFlat" class="headerlink" title="更快的搜索 - IndexIVFFlat"></a><a href="#更快的搜索-indexivfflat"></a>更快的搜索 - IndexIVFFlat</h2><ol>
+<li>这太慢了，我怎么能让它更快？<br>为了加快搜索速度，可以将数据集分割成几部分。<strong>我们在 d 维空间中定义 Voronoi 单元格，并且每个数据库矢量都落入其中一个单元格中。在搜索时，只有查询 x 所在单元中包含的数据库向量 y 与少数几个相邻查询向量进行比较。</strong>(划分搜索空间)</li>
+</ol>
+<p>这是通过 IndexIVFFlat 索引完成的。这种类型的索引<strong>需要一个训练的过程</strong>，可以在与数据库向量具有相同分布的任何向量集合上执行。在这种情况下，我们只测试数据进行搜索。</p>
+<p>这 IndexIVFFlat 还需要另一个索引，即量化器 (quantizer)，它将矢量分配给 Voronoi 单元。每个单元由一个质心定义，找到一个矢量所在的 Voronoi 单元包括在质心集中找到该矢量的最近邻居。这是另一个索引的任务，通常是索引 IndexFlatL2。</p>
+<p>搜索方法有两个参数：</p>
+<ul>
+<li>nlist 划分单元的数量</li>
+<li>nprobe 执行搜索访问的单元格数 (不包括 nlist)</li>
+</ul>
+<ol>
+<li>结果<br>当<code>nprobe</code> = 1 时，结果看起来像</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[[ 9900 10500  9831 10808]</span><br><span class="line"> [11055 10812 11321 10260]</span><br><span class="line"> [11353 10164 10719 11013]</span><br><span class="line"> [10571 10203 10793 10952]</span><br><span class="line"> [ 9582 10304  9622  9229]]</span><br></pre></td></tr></table></figure>
+<p>结果和上面的 L2 强力搜索类似，但是不同。这是因为一些结果可能不在完全相同的 Voronoi 单元格。因此，访问更多的单元格可能是有用的 (提高精度)。</p>
+<p>将 <code>nprobe</code> 增加到 10 的确如此：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[[ 9900 10500  9309  9831]</span><br><span class="line"> [11055 10895 10812 11321]</span><br><span class="line"> [11353 11103 10164  9787]</span><br><span class="line"> [10571 10664 10632  9638]</span><br><span class="line"> [ 9628  9554 10036  9582]]</span><br></pre></td></tr></table></figure>
+<p>这是精确的结果。请注意，在这种情况下获得完美结果仅仅是数据分布的人为因素，因为它在 x 轴上具有强大的组件，这使得它更易于处理。<code>nprobe</code> 参数始终是<strong>调整结果速度和准确度之间折中的一种方式</strong> 。设置 nprobe = nlist 将给出与蛮力搜索（但会更慢）相同的结果。</p>
+<p>IndexIVFFlat Demo 完整代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"># encoding:utf-8</span><br><span class="line"></span><br><span class="line"># Copyright (c) 2015-present, Facebook, Inc.</span><br><span class="line"># All rights reserved.</span><br><span class="line">#</span><br><span class="line"># This source code is licensed under the BSD+Patents license found in the</span><br><span class="line"># LICENSE file in the root directory of this source tree.</span><br><span class="line"></span><br><span class="line"># author    : Facebook</span><br><span class="line"># translate : h-j-13</span><br><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line">d = 64                              # 向量维度</span><br><span class="line">nb = 100000                         # 向量集大小</span><br><span class="line">nq = 10000                          # 查询次数</span><br><span class="line">np.random.seed(1234)                # 随机种子,使结果可复现</span><br><span class="line">xb = np.random.random((nb, d)).astype(&apos;float32&apos;)</span><br><span class="line">xb[:, 0] += np.arange(nb) / 1000.</span><br><span class="line">xq = np.random.random((nq, d)).astype(&apos;float32&apos;)</span><br><span class="line">xq[:, 0] += np.arange(nq) / 1000.</span><br><span class="line"></span><br><span class="line">import faiss</span><br><span class="line"></span><br><span class="line">nlist = 100</span><br><span class="line">k = 4</span><br><span class="line">quantizer = faiss.IndexFlatL2(d)  # the other index</span><br><span class="line">index = faiss.IndexIVFFlat(quantizer, d, nlist, faiss.METRIC_L2)</span><br><span class="line"># here we specify METRIC_L2, by default it performs inner-product search</span><br><span class="line"></span><br><span class="line">assert not index.is_trained</span><br><span class="line">index.train(xb)</span><br><span class="line">assert index.is_trained</span><br><span class="line"></span><br><span class="line">index.add(xb)                  # 添加索引可能会有一点慢</span><br><span class="line">D, I = index.search(xq, k)     # 搜索</span><br><span class="line">print(I[-5:])                  # 最初五次查询的结果</span><br><span class="line">index.nprobe = 10              # 默认 nprobe 是1 ,可以设置的大一些试试</span><br><span class="line">D, I = index.search(xq, k)</span><br><span class="line">print(I[-5:])                  # 最后五次查询的结果</span><br></pre></td></tr></table></figure>
+<h2 id="更低的内存占用-IndexIVFPQ"><a href="#更低的内存占用-IndexIVFPQ" class="headerlink" title="更低的内存占用 - IndexIVFPQ"></a><a href="#更低的内存占用-indexivfpq"></a>更低的内存占用 - IndexIVFPQ</h2><ol>
+<li>有损存储<br>我们看到的索引<code>IndexFlatL2</code>和<code>IndexIVFFlat</code>都存储完整的向量。 为了扩展到非常大的数据集，Faiss 提供了基于产品量化器的有损压缩来压缩存储的向量的变体。压缩的方法基于<strong>乘积量化 (<a href="https://hal.archives-ouvertes.fr/file/index/docid/514462/filename/paper_hal.pdf" target="_blank" rel="noopener">Product Quantizer</a>)</strong>。<br>在这种情况下，<strong>由于矢量没有精确存储，搜索方法返回的距离也是近似值</strong>。</li>
+</ol>
+<p>IndexIVFFlat 完整代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">d = 64</span><br><span class="line">nb = 100000</span><br><span class="line">nq = 10000</span><br><span class="line">np.random.seed(1234)</span><br><span class="line">xb = np.random.random((nb, d)).astype(&apos;float32&apos;)</span><br><span class="line">xb[:, 0] += np.arange(nb) / 1000.</span><br><span class="line">xq = np.random.random((nq, d)).astype(&apos;float32&apos;)</span><br><span class="line">xq[:, 0] += np.arange(nq) / 1000.</span><br><span class="line"></span><br><span class="line">import faiss</span><br><span class="line"></span><br><span class="line">nlist = 100</span><br><span class="line">m = 8</span><br><span class="line">k = 4</span><br><span class="line">quantizer = faiss.IndexFlatL2(d)</span><br><span class="line">index = faiss.IndexIVFPQ(quantizer, d, nlist, m, 8)</span><br><span class="line"></span><br><span class="line">index.train(xb)</span><br><span class="line">index.add(xb)</span><br><span class="line">D, I = index.search(xb[:5], k)</span><br><span class="line">print(I)</span><br><span class="line">print(D)</span><br><span class="line">index.nprobe = 10</span><br><span class="line">D, I = index.search(xq, k)</span><br><span class="line">print(I[-5:])</span><br></pre></td></tr></table></figure>
+<ol>
+<li>结果</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[[   0  608  220  228]</span><br><span class="line"> [   1 1063  277  617]</span><br><span class="line"> [   2   46  114  304]</span><br><span class="line"> [   3  791  527  316]</span><br><span class="line"> [   4  159  288  393]]</span><br><span class="line"></span><br><span class="line">[[ 1.40704751  6.19361687  6.34912491  6.35771513]</span><br><span class="line"> [ 1.49901485  5.66632462  5.94188499  6.29570007]</span><br><span class="line"> [ 1.63260388  6.04126883  6.18447495  6.26815748]</span><br><span class="line"> [ 1.5356375   6.33165455  6.64519501  6.86594009]</span><br><span class="line"> [ 1.46203303  6.5022912   6.62621975  6.63154221]]</span><br></pre></td></tr></table></figure>
+<p>我们可以观察到最近的邻居被正确地找到（它是矢量 ID 本身），但是向量自身的估计距离不是 0，尽管它远远低于与其他邻居的距离。这是由于有损压缩。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[[ 9432  9649  9900 10287]</span><br><span class="line"> [10229 10403  9829  9740]</span><br><span class="line"> [10847 10824  9787 10089]</span><br><span class="line"> [11268 10935 10260 10571]</span><br><span class="line"> [ 9582 10304  9616  9850]]</span><br></pre></td></tr></table></figure>
+<p>另外搜索真实查询时，虽然结果大多是错误的 (与刚才的 IVFFlat 进行比较)，但是它们在正确的空间区域，而对于真实数据，情况更好，因为：</p>
+<ul>
+<li>统一数据很难进行索引，因为没有规律性可以被利用来聚集或降低维度</li>
+<li>对于自然数据，语义最近邻居往往比不相关的结果更接近。</li>
+</ul>
+<ol>
+<li>简化指标结构<br>由于构建索引可能会变得复杂，因此有一个工厂函数用于接受一个字符串来构造响应的索引。上面的索引可以通过以下简写获得：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">index = faiss.index_factory（d，“ IVF100，PQ8 ”）</span><br></pre></td></tr></table></figure>
+<p>更换 PQ4 用 Flat 得到的 IndexFlat。当预处理（PCA）应用于输入向量时，工厂特别有用。例如，预处理的工厂字符串通过 PCA 投影将矢量减少到 32 维为：“PCA32,IVF100,Flat”。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><a href="#总结"></a>总结</h2><p>1，支持两种相似性计算方法：L2 距离（即欧式距离）和点乘（归一化的向量点乘即 cosine 相似度）；</p>
+<p>2，按照是否编码压缩数据可以分为两类算法，使用压缩的算法可以在单台机器上处理十亿级别的向量规模；</p>
+<p>3，并非线程安全的——不支持并行添加向量或搜索与添加的并行；仅在 CPU 模式下支持并行搜索；</p>
+<p>4，只有继承了 IndexIVF 的算法才支持向量的 remove() 操作，但由于是连续存储，remove 的时间复杂度是 O(n)，建议另外维护一个列表记录被删除的或尚存的向量；</p>
+<p>5，faiss 针对批量搜索做了优化；</p>
+<p>6，IndexPQ, IndexIVFFlat, IndexIVFPQ, IndexIVFPQR  需要训练；</p>
+<p>7，不支持重新训练，建议新建一个索引；</p>
+<p>8，只接受 32-bit 浮点类型的输入数据；</p>
+<p>9，使用  index = faiss.index_factory(dim, “PCA32,IVF100,PQ8”) 这种形式创建索引更灵活，此处类型参数可解释为：使用 PCA 降维将原始向量降至 32 维，使用 IVF 建立索引，子 list（即 bucket 分桶）个数为 100，使用 Product Quantizer (乘积量化) 将每个向量压缩编码成 8 字节；等价于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">num_list = 64</span><br><span class="line">dim = 64</span><br><span class="line">bytes_per_vector = 8</span><br><span class="line">bits_per_sub_vector = 8</span><br><span class="line"></span><br><span class="line">quantizer = faiss.IndexFlatL2(dim)</span><br><span class="line">index = faiss.IndexIVFPQ(quantizer, dim, num_list, bytes_per_vector, bits_per_sub_vector)</span><br></pre></td></tr></table></figure>
+<p>10，索引类型的选择</p>
+<ul>
+<li>如果需要精确的搜索结果，不要降维、不要量化，使用 Flat，同时，使用 Flat 意味着数据不会被压缩，将占用同等大小的内存；</li>
+<li>如果内存很紧张，可以使用 PCA 降维、PQ  量化编码，来减少内存占用，最终占用的内存大小约等于 &lt;降维后的向量维度&gt; <em> &lt;量化后的每个向量的字节数&gt; </em> &lt;向量个数&gt;； 如果量化编码后的字节数大于 64，推荐使用 SQx  替换 PQx，准确度相同但速度会更快；为了便于量化编码，可以使用 OPQx_y 先对向量做线性变换，y 必须是编码后字节数 x 的倍数，但最好小于维度 dim 和 4*x；</li>
+</ul>
+<ul>
+<li>如果总向量个数 N 小于 1 百万，推荐使用  IVFx ，x 的选值介于  4<em>sqrt(N)  和  16</em>sqrt(N) 之间，训练数据的大小至少要是 x 的 30 倍；如果总向量个数 N 大于 1 百万、小于 1 千万，推荐使用 IMI2x10，实际内部聚类个数是 2 ^ (2 * 10)，将需要 64 * 2 ^ 10 个向量参与训练；如果总向量个数 N 大于 1 千万、小于 1 亿，推荐使用 IMI2x12；如果总向量个数 N 大于 1 亿、小于 10 亿，推荐使用 IMI2x14；IMI 方法不支持 GPU；</li>
+<li>IndexIVF 天生支持  add_with_ids 方法，对于不支持  add_with_ids 方法的类型，可以使用 IndexIDMap 辅助</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index = faiss.IndexFlatL2(xb.shape[1])</span><br><span class="line">ids = np.arange(xb.shape[0])</span><br><span class="line">index.add_with_ids(xb, ids)  # this will crash, because IndexFlatL2 does not support add_with_ids</span><br><span class="line">index2 = faiss.IndexIDMap(index)</span><br><span class="line">index2.add_with_ids(xb, ids) # works, the vectors are stored in the underlying index</span><br></pre></td></tr></table></figure>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a><a href="#参考文献"></a>参考文献</h2><p><a href="https://github.com/facebookresearch/faiss/wiki/Getting-started" target="_blank" rel="noopener">faiss wiki - Getting started</a><br><a href="https://blog.csdn.net/sparkexpert/article/details/68922307" target="_blank" rel="noopener">facebook Faiss 的基本使用示例 (逐步深入)</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/22/faiss 三种基础索引/" title="faiss 三种基础索引">https://ailab-aida.github.io/2019/10/22/faiss 三种基础索引/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/21/ERNIE 2.0/" rel="next" title="ERNIE 2.0">
+                  <i class="fa fa-chevron-left"></i> ERNIE 2.0
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/22/向量检索/" rel="prev" title="向量检索">
+                  向量检索 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IndexFlatL2-最基础的-Index"><span class="nav-number">2.</span> <span class="nav-text">IndexFlatL2 - 最基础的 Index</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更快的搜索-IndexIVFFlat"><span class="nav-number">3.</span> <span class="nav-text">更快的搜索 - IndexIVFFlat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更低的内存占用-IndexIVFPQ"><span class="nav-number">4.</span> <span class="nav-text">更低的内存占用 - IndexIVFPQ</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文献"><span class="nav-number">6.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '5c786eca836acedddc4cc093b8c09c3a',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

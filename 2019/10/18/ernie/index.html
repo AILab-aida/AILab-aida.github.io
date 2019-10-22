@@ -57,19 +57,19 @@
   };
 </script>
 
-  <meta name="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-<meta name="keywords" content="深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)">
-<meta property="og:type" content="website">
-<meta property="og:title" content="分类">
-<meta property="og:url" content="https://ailab-aida.github.io/categories/index.html">
+  <meta name="description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ernie研究">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/18/ernie/index.html">
 <meta property="og:site_name" content="AILab-aida">
-<meta property="og:description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+<meta property="og:description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-10-12T03:26:11.533Z">
+<meta property="og:updated_time" content="2019-10-18T06:35:40.298Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="分类">
-<meta name="twitter:description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-  <link rel="canonical" href="https://ailab-aida.github.io/categories/">
+<meta name="twitter:title" content="ernie研究">
+<meta name="twitter:description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/18/ernie/">
 
 
 <script id="page-configurations">
@@ -77,13 +77,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false,
-    isPage: true,
+    isPost: true,
+    isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>分类 | AILab-aida</title>
+  <title>ernie研究 | AILab-aida</title>
   
 
 
@@ -265,77 +265,195 @@
         <div class="content-wrap">
             
 
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-  
-
           <div id="content" class="content">
             
 
   <div id="posts" class="posts-expand">
-    
-    
-    
-    <div class="post-block page">
-      <header class="post-header">
-
-<h1 class="post-title" itemprop="name headline">分类
-
-</h1>
-
-<div class="post-meta">
+      <article itemscope itemtype="http://schema.org/Article">
   
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/ernie/">
 
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">ernie研究
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:35:40" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文假定读者已经阅读过 BERT 与 ERNIE 的论文。</p><h2 id="ERNIE-掩蔽策略"><a href="#ERNIE-掩蔽策略" class="headerlink" title="ERNIE 掩蔽策略"></a>ERNIE 掩蔽策略</h2><p>ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略：</p><blockquote>
+<p>我们将一个短语或一个实体作为一个单元，通常由多个单词组成。<strong>在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽</strong>。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。</p>
+</blockquote><a id="more"></a>
+
+
+<p>简单概括，ERNIE 会<strong>利用分词的信息</strong>，在词的粒度（短语级别）做掩蔽，通过这种策略可以使模型隐式地学习到词粒度的知识。与之相对的，BERT 的基本掩蔽策略是基于基础语言单元粒度的（basic language unit，在中文里对应输入的每一个字）：</p>
+<blockquote>
+<p>它将句子视为<strong>基本语言单位</strong>的序列，对于<strong>英语</strong>，基本语言单位为<strong>单词</strong>，对于<strong>中文</strong>，基本语言单位为<strong>汉字</strong>。</p>
+<p>…</p>
+<p><strong>词组</strong>是一小部分单词或字符，一起充当概念单元……并使用一些依赖于语言的<strong>细分工具</strong>来获取其他语言（例如<strong>中文）</strong>的词/短语信息。</p>
+</blockquote>
+<h2 id="原始解析"><a href="#原始解析" class="headerlink" title="原始解析"></a>原始解析</h2><p>通过简单的转换逻辑，可以直接把 ERNIE 与 BERT 在模型结构上没有明显的区别。可以将其发布到 ERNIE 与 BERT 在模型结构上没有明显的区别。</p>
+<p>主要的差异在 MLM 的数据预先逻辑部分：</p>
+<ul>
+<li>BERT 的数据预处理的输入是若干个 txt 文本，输出是带 NSP，MLM 标注的序列数据集，详见<a href="https://huntzhan.github.io/posts/nlp/bert-pretrain-data/" target="_blank" rel="noopener">BERT 系列：数据重新编码解析</a>一文。</li>
+<li>ERNIE 的数据初步分为两个阶段：<ul>
+<li>训练前的数据准备：建立序列与标记分词边界信息。</li>
+<li>训练过程中的数据准备：在每个纪元，基于分词边界信息动态构建 MLM 标注。</li>
+</ul>
+</li>
+</ul>
+<h3 id="构建序列与标记分词边界信息"><a href="#构建序列与标记分词边界信息" class="headerlink" title="构建序列与标记分词边界信息"></a>构建序列与标记分词边界信息</h3><p>这一步的输出是一个 txt 文件：</p>
+<blockquote>
+<p>每个样本由 5 个’ <code>;</code>‘的分隔词组成，数据格式：<code>token_ids; sentence_type_ids; position_ids; seg_labels; next_sentence_label</code>；其中<code>seg_labels</code>表示分词边界信息：0 表示词首，1 表示非词首，-1 为占位符，其对应的词为<code>CLS</code>或者<code>SEP</code>；</p>
+</blockquote>
+<p>ERNIE 没有开源步骤步的代码。个人建议，可以重复 BERT 的预编码转换序列，然后利用百度的词法分析 API 加入分词边界信息。</p>
+<h3 id="动态打造-MLM-标注"><a href="#动态打造-MLM-标注" class="headerlink" title="动态打造 MLM 标注"></a>动态打造 MLM 标注</h3><p>论文的<em>3.2 知识整合</em>小节里提到：</p>
+<blockquote>
+<p>我们提出了一种<strong>多阶段的知识掩盖策略</strong>，而不是直接添加知识嵌入，而是将短语和实体级知识集成到语言表示中。</p>
+</blockquote>
+<p>通过阅读代码，实际上这个所谓的<em>多阶段知识掩盖策略</em>的逻辑是：在每个时代，以某个概率（这个值没给）<strong>随机</strong>选择<code>mask_word</code>或者<code>mask_char</code>模式。<code>mask_word</code>模式后续会走短语级掩盖逻辑，会利用分词边界信息；<code>mask_char</code>模式后续会走的基本级别掩蔽的逻辑，不会利用分词边界信息。</p>
+<p>论文的<em>3.2.2 短语的级遮蔽</em>里提及：</p>
+<blockquote>
+<p>在短语级掩码阶段，我们还使用基本语言单元作为训练输入，这与随机基本单元掩码不同，这次我们<strong>随机选择句子中的几个短语，对同一短语中的所有基本单元进行掩码和预测</strong>。</p>
+</blockquote>
+<p>短语级屏蔽的实现见：</p>
+<ol>
+<li>与 BERT 相对的，ERNIE 这一步是在每个时代动态生成的，且 Masking 的数量没有上限（没有<code>max_predictions_per_seq</code>的限制）。</li>
+<li>基于分词信息，<strong>以词为单位</strong>决定是否触发 masking 逻辑。</li>
+<li>对于每个需要 mask 的<strong>字符串（一个词），遍历其中每个输入（字符）</strong>：<ol>
+<li>80％的概率，把输入替换为<code>[MASK]</code>。</li>
+<li>10％的概率，把输入替换为随机的令牌。</li>
+<li>10％的概率，维持输入不变。</li>
+</ol>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/18/ernie/" title="ernie研究">https://ailab-aida.github.io/2019/10/18/ernie/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
 </div>
 
-</header>
+      
 
-      
-      
-      
-      <div class="post-body">
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
         
-          <div class="category-all-page">
-            <div class="category-all-title">
-              目前共计 3 个分类
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/17/youtube_net/" rel="next" title="">
+                  <i class="fa fa-chevron-left"></i> 
+                </a>
+              
             </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/机器学习/">机器学习</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/深度学习/">深度学习</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/移动端/">移动端</a><span class="category-list-count">2</span></li></ul>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/18/BERT/" rel="prev" title="BERT研究">
+                  BERT研究 <i class="fa fa-chevron-right"></i>
+                </a>
+              
             </div>
           </div>
         
-      </div>
-      
-      
-      
-    </div>
+      </footer>
     
+  </div>
+  
+  
+  
+  </article>
 
-    
-    
-    
   </div>
 
 
           </div>
           
+    
+    <div class="comments" id="gitalk-container"></div>
+  
 
         </div>
           
@@ -367,6 +485,8 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ERNIE-掩蔽策略"><span class="nav-number">2.</span> <span class="nav-text">ERNIE 掩蔽策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原始解析"><span class="nav-number">3.</span> <span class="nav-text">原始解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#构建序列与标记分词边界信息"><span class="nav-number">3.1.</span> <span class="nav-text">构建序列与标记分词边界信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态打造-MLM-标注"><span class="nav-number">3.2.</span> <span class="nav-text">动态打造 MLM 标注</span></a></li></ol></li></ol></div>
+        
       </div>
       <!--/noindex-->
 
@@ -587,6 +707,24 @@ window.addEventListener('pjax:success', () => {
 
   
 
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '8b9cc80741c911f2b522be0a52620858',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
 
     </div>
 </body>

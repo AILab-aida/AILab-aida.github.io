@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="热度算法前言在产品、运营这次做社区改版的过程中，我们 AILAB 部门结合具体的业务细节，通过研究、讨论与试错，最终设计了一个基本符合需求的内容热度值算法，本文就简述其设计方法。他山之石有为数很少的几家外国公司开源或公开说明了自家的内容热度值算法，包括 Hacker News、Reddit、Stack Overflow/Stack Exchange、StumbleUpon 等。我们在设计自己的算法">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="热度算法">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/17/热度算法/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="热度算法前言在产品、运营这次做社区改版的过程中，我们 AILAB 部门结合具体的业务细节，通过研究、讨论与试错，最终设计了一个基本符合需求的内容热度值算法，本文就简述其设计方法。他山之石有为数很少的几家外国公司开源或公开说明了自家的内容热度值算法，包括 Hacker News、Reddit、Stack Overflow/Stack Exchange、StumbleUpon 等。我们在设计自己的算法">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/195230-25139b6690f709d3.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/195230-27b684827b6337d8.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/195230-85267a67040f75fd.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/195230-2f40b64788542eba.png">
+<meta property="og:updated_time" content="2019-10-17T11:39:21.560Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="热度算法">
+<meta name="twitter:description" content="热度算法前言在产品、运营这次做社区改版的过程中，我们 AILAB 部门结合具体的业务细节，通过研究、讨论与试错，最终设计了一个基本符合需求的内容热度值算法，本文就简述其设计方法。他山之石有为数很少的几家外国公司开源或公开说明了自家的内容热度值算法，包括 Hacker News、Reddit、Stack Overflow/Stack Exchange、StumbleUpon 等。我们在设计自己的算法">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/195230-25139b6690f709d3.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/17/热度算法/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>热度算法 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/热度算法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">热度算法
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-17 17:23:05 / 修改时间：19:39:21" itemprop="dateCreated datePublished" datetime="2019-10-17T17:23:05+08:00">2019-10-17</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="热度算法"><a href="#热度算法" class="headerlink" title="热度算法"></a><a href="热度算法"></a>热度算法</h2><h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>在产品、运营这次做社区改版的过程中，我们 AILAB 部门结合具体的业务细节，通过研究、讨论与试错，最终设计了一个基本符合需求的内容热度值算法，本文就简述其设计方法。</p><h4 id="他山之石"><a href="#他山之石" class="headerlink" title="他山之石"></a>他山之石</h4><p>有为数很少的几家外国公司开源或公开说明了自家的内容热度值算法，包括 Hacker News、Reddit、Stack Overflow/Stack Exchange、StumbleUpon 等。我们在设计自己的算法之前，参考了他们的一些理念。为了节省篇幅，就不再重复讲一遍了，直接将 reference 传送门放在下面：</p><a id="more"></a>
+
+<ul>
+<li><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fmoz.com%2Fblog%2Freddit-stumbleupon-delicious-and-hacker-news-algorithms-exposed" target="_blank" rel="noopener">https://moz.com/blog/reddit-stumbleupon-delicious-and-hacker-news-algorithms-exposed</a></li>
+<li><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fgithub.com%2Freddit-archive%2Freddit%2Fblob%2F753b17407e9a9dca09558526805922de24133d53%2Fr2%2Fr2%2Flib%2Fdb%2F_sorts.pyx" target="_blank" rel="noopener">https://github.com/reddit-archive/reddit/blob/753b17407e9a9dca09558526805922de24133d53/r2/r2/lib/db/_sorts.pyx</a></li>
+<li><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fmeta.stackexchange.com%2Fquestions%2F11602%2Fwhat-formula-should-be-used-to-determine-hot-questions" target="_blank" rel="noopener">https://meta.stackexchange.com/questions/11602/what-formula-should-be-used-to-determine-hot-questions</a></li>
+<li><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fmeta.stackexchange.com%2Fquestions%2F60756%2Fhow-do-the-arbitrary-hotness-points-work-on-the-new-stack-exchange-home-page-a" target="_blank" rel="noopener">https://meta.stackexchange.com/questions/60756/how-do-the-arbitrary-hotness-points-work-on-the-new-stack-exchange-home-page-a</a></li>
+</ul>
+<h5 id="列举内容数据维度"><a href="#列举内容数据维度" class="headerlink" title="列举内容数据维度"></a>列举内容数据维度</h5><p>在我们的产品体系中，与一篇内容相关的指标如下：</p>
+<ul>
+<li>时间维度：发布时间 post_time、最后回复时间 last_reply_time、最后操作时间 last_op_time</li>
+<li>互动量维度：阅读量 view_num、回复量 reply_num、收藏量 favor_num、点赞量 like_num、回复点赞量 reply_like_num、分享量 share_num</li>
+<li>内容维度：内容长度 content_length、平均回复长度 reply_avg_length、图片数 picture_num</li>
+<li><p>用户维度：用户对内容的兴趣度、活跃度、发 / 回帖用户的声望，etc.</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/195230-25139b6690f709d3.png" alt></p>
+</li>
+</ul>
+<h5 id="明确各维度的业务含义"><a href="#明确各维度的业务含义" class="headerlink" title="明确各维度的业务含义"></a>明确各维度的业务含义</h5><h6 id="时间维度"><a href="#时间维度" class="headerlink" title="时间维度"></a>时间维度</h6><p>时间维度用来控制热度随时间的衰减，距离当下比较久远的内容应该具有更低的热度值，就像人会逐渐忘记一些之前做过的事情一样。我们认为，三种时间维度指标各自有适合的场景：</p>
+<ul>
+<li>发布时间：（1）内容时效性强，容易过期，如新闻和资讯网站；（2）UGC 远多于 PGC，且用户喜欢讨论流行话题，基本不需要内容沉淀，如综合性论坛和 BBS。</li>
+<li>最后回复时间：（1）内容具有沉淀意义，发布很久之后也仍然可读，如专业领域论坛或博客；（2）用户回复的信息量普遍大于内容主体，如交互式问答。</li>
+<li>最后操作时间：（1）UGC 经常或周期性由发布者自己修改，如小说连载；（2）以 PGC 为主并且运营有明显的指向性（人工推荐、打星标等），如商品推广。</li>
+</ul>
+<h6 id="互动量维度"><a href="#互动量维度" class="headerlink" title="互动量维度"></a>互动量维度</h6><p>互动量是表征内容热度的最直接指标，一般采用对各项数据加权的方式来计算。</p>
+<p>权重值的大小必然会有区别，阅读量的权重几乎总是最低的，而回复、点赞 / 收藏、分享量的权重值如何排序，也需要根据业务场景来具体讨论。</p>
+<p>以新浪微博为例，它追求的是热点内容（如明星相关的内容）的高正向评价与病毒式传播，所以点赞和转发的量相对于回复量而言往往都很高。而以网易新闻为例，其中很多板块都有不少争议性内容（如体育、3C 方面），目的是引起用户之间的强烈互动甚至撕逼，所以跟帖量又会远远超过喜欢和分享的数量。</p>
+<h6 id="内容维度"><a href="#内容维度" class="headerlink" title="内容维度"></a>内容维度</h6><p>内容维度一般只起辅助作用，因为内容的质量与字数、平均回复字数、图片数等指标的关系不太能通过计算来衡量（比如很长的文章也有可能完全是篇水文），只有通过 NLP 或者人工筛选才能更加精准地看出来。</p>
+<h6 id="用户维度"><a href="#用户维度" class="headerlink" title="用户维度"></a>用户维度</h6><p>在标签化推荐系统中，如果用户对带有标签的内容产生了互动，那么内容上的标签就会转化并积累为用户的兴趣向量。用户兴趣度和内容热度的综合，可以保证呈现给用户的内容不会过于大众化，也不会造成兴趣的收敛。另外，如果用户分级的体系比较完善，那么 KOL、大 V 创作或参与互动的内容往往会获得比普通用户更高的热度值。</p>
+<h5 id="算法设计思路"><a href="#算法设计思路" class="headerlink" title="算法设计思路"></a>算法设计思路</h5><h6 id="时间维度-1"><a href="#时间维度-1" class="headerlink" title="时间维度"></a>时间维度</h6><p>由于我们的定位是针对垂直领域的专业性攻略和交流社区，所以选取了最后回复时间作为时间维度。它的优点是优质内容可以随时获得较高的热度，激起用户的讨论欲望；缺点是无法应对挖坟、灌水等恶意行为，但可以通过反垃圾机制过滤掉这些异常数据。以后可以考虑发布时间与最后回复时间的结合方案。</p>
+<p>我们采用牛顿冷却定律作为时间衰减函数，即：</p>
+<blockquote>
+<p>H(t) = Ha · exp[-γ · (t-tlast) / 86400]</p>
+</blockquote>
+<p>其中 Ha 是内容的原始热度值，即通过互动量算出的热度值。采用以 e 为底的指数函数，tlast 即该内容的最后回复时间。时间的单位都是秒，所以要除一天中的秒数 86400，以天为单位做衰减。γ 是所谓 “重力因子”（gravity factor），即该值越大，帖子的热度会更快地下落。</p>
+<p>采用 Wolfram Alpha 画图可以展示出不同 Ha 与 γ 值的影响，我们也会根据具体业务的特点适当调整 γ 值。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/195230-27b684827b6337d8.png" alt></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/195230-85267a67040f75fd.png" alt></p>
+<h6 id="互动量维度-1"><a href="#互动量维度-1" class="headerlink" title="互动量维度"></a>互动量维度</h6><p>我们暂时还无法从后端日志或其他数据源采集到内容分享量，但是它是一个相对低频的行为，可以日后再实现。至于内容中回复的点赞量，我们认为热评对内容整体热度的贡献有限，并且也不太好采集，暂时也搁置一边。所以互动量维度剩下了四个指标：阅读量、回复量、收藏量、点赞量，内容的原始热度值 Ha 计算方法如下：</p>
+<blockquote>
+<p>Ha = ln(1+Nview) + 1.0·Nreply + 1.75·Nlike + 3.2·Nfavor</p>
+</blockquote>
+<p>回复、收藏、点赞量都是采用线性加权的方式来做，它们的权重是根据现有内容规律大致推断的。还有一种较为科学的方式是让运营人员根据经验手动为一批较热门的内容打分，然后利用多元线性回归（multivariate linear regression）确定各个系数的值，这件事可以之后做。</p>
+<p>阅读量的处理方式比较特殊。由于阅读是门槛最低的互动行为，因此我们倾向于认为那些第一批来阅读的用户对热度贡献值较大，而之后跟风来看的用户会越来越没有价值。自然对数能够很好地满足，如下图所示。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/195230-2f40b64788542eba.png" alt></p>
+<h6 id="内容维度-1"><a href="#内容维度-1" class="headerlink" title="内容维度"></a>内容维度</h6><p>内容字数和图片数可以间接地作为内容质量潜力的判断指标，但有很大的随机性。我们目前只采用了字数的常用对数值，即 lg(Nlength) 作为它对热度的贡献，按数量级增长的幅度很小，因此就算不准，也不会对最终结果造成什么影响。<br>图片数对某一部分内容而言可能非常具有代表性，可以与运营人员讨论确定一些标准。</p>
+<h6 id="用户维度-1"><a href="#用户维度-1" class="headerlink" title="用户维度"></a>用户维度</h6><p>经过上面的介绍，我们其实已经可以得出通用的热度值计算方法：</p>
+<blockquote>
+<p>H = [lg(Nlength) + ln(1+Nview) + 1.0·Nreply + 1.75·Nlike + 3.2·Nfavor] · exp[-γ · (t-tlast) / 86400]</p>
+</blockquote>
+<p>而用户维度的存在，可以让我们获得更加差异化的推荐效果。<br>目前我们的标签化推荐系统已经运行了相当长的时间，有不少的用户兴趣积累。我们根据日志采集每位用户的近 30 天行为，计算其对每个标签的兴趣度，形成兴趣向量，并将它们的值归一化到 [0.1,1.0] 区间内，以削除最低与最高兴趣之间的巨大差距。然后，计算用户兴趣向量与内容标签向量的相似度（余弦相似度、Pearson 相关性等），并将其作为总热度值的系数即可。</p>
+<p>在实际使用时，我们还可以用随机数适当打散排序，使内容列表展示在用户面前时看起来更加丰富。即：</p>
+<blockquote>
+<p>rand(0.75,1.25) · Cinterest · H</p>
+</blockquote>
+<p>至于用户声望的影响，是一个更大的话题，还有待我们去探索。需要注意的是，过分强调 KOL 和大佬的影响力本质上是反社交的，会造成 “精英主义”（elitism）的泛滥，所以一旦要上这种逻辑的话，需要严格控制。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>从技术人员的角度讲，一句话：技术本身是死的，但业务与人都是活的。如果技术人员对业务逻辑有深入了解的话，就会自然地去寻找更准确、高效的解决方法，双方合作起来也会更愉快。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/17/热度算法/" title="热度算法">https://ailab-aida.github.io/2019/10/17/热度算法/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/08/flutter provider基础使用/" rel="next" title="flutter provider基础使用">
+                  <i class="fa fa-chevron-left"></i> flutter provider基础使用
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/17/推荐算法整理/" rel="prev" title="推荐算法整理">
+                  推荐算法整理 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#热度算法"><span class="nav-number">1.</span> <span class="nav-text">热度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#他山之石"><span class="nav-number">1.0.2.</span> <span class="nav-text">他山之石</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#列举内容数据维度"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">列举内容数据维度</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#明确各维度的业务含义"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">明确各维度的业务含义</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#时间维度"><span class="nav-number">1.0.2.2.1.</span> <span class="nav-text">时间维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#互动量维度"><span class="nav-number">1.0.2.2.2.</span> <span class="nav-text">互动量维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#内容维度"><span class="nav-number">1.0.2.2.3.</span> <span class="nav-text">内容维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#用户维度"><span class="nav-number">1.0.2.2.4.</span> <span class="nav-text">用户维度</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#算法设计思路"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">算法设计思路</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#时间维度-1"><span class="nav-number">1.0.2.3.1.</span> <span class="nav-text">时间维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#互动量维度-1"><span class="nav-number">1.0.2.3.2.</span> <span class="nav-text">互动量维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#内容维度-1"><span class="nav-number">1.0.2.3.3.</span> <span class="nav-text">内容维度</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#用户维度-1"><span class="nav-number">1.0.2.3.4.</span> <span class="nav-text">用户维度</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.0.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'b64b59ad7356dbc8723ab41b8b4261d6',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
