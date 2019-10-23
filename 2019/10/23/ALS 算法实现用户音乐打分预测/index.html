@@ -57,19 +57,30 @@
   };
 </script>
 
-  <meta name="description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
+  <meta name="description" content="ALS 算法是矩阵分解的一种，用于评分预测。矩阵分解假设我们有一批用户数据，其中包含 m 个 User 和 n 个 Item, 用户和物品的关系是一个三元组，, 即用户对物品的评分，因此我们得到矩阵 Rm×nRm×nR{m\times n}, 其中的元素 ruiruir{ui}表示第 u 个用户对第 i 个 item 的评分。">
 <meta name="keywords" content="算法">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ernie研究">
-<meta property="og:url" content="https://ailab-aida.github.io/2019/10/18/ernie/index.html">
+<meta property="og:title" content="ALS 算法">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/23/ALS 算法实现用户音乐打分预测/index.html">
 <meta property="og:site_name" content="AILab-aida">
-<meta property="og:description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
+<meta property="og:description" content="ALS 算法是矩阵分解的一种，用于评分预测。矩阵分解假设我们有一批用户数据，其中包含 m 个 User 和 n 个 Item, 用户和物品的关系是一个三元组，, 即用户对物品的评分，因此我们得到矩阵 Rm×nRm×nR{m\times n}, 其中的元素 ruiruir{ui}表示第 u 个用户对第 i 个 item 的评分。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-10-18T06:35:40.298Z">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/052f5a75d5f05180a5d96493ba6c5ff3.jpg">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/bdf76f778622e77c743f65f779c63556.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/ec4804b062de4d1edcce456899f74c77.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/38d24bd732913b542cd317a519740b2d.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/c8ee7b61eab56b25d3676537cc1b2ea9.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/d5a23cea6ac3edecd055ba4e4980e087.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/477f04a5e9902a9d147905c1edfa8e4a.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/bd78e416bd935c4b52474a0d97b9eef8.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/0eb9dffbdcaea4e1e560e9eb770e6bf7.png">
+<meta property="og:image" content="https://flashgene.com/wp-content/uploads/2019/08/89e1dc247cf9723590fa0230d6e5a2e9.png">
+<meta property="og:updated_time" content="2019-10-23T08:46:23.543Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="ernie研究">
-<meta name="twitter:description" content="简介本文假定读者已经阅读过 BERT 与 ERNIE 的论文。ERNIE 掩蔽策略ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略： 我们将一个短语或一个实体作为一个单元，通常由多个单词组成。在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。">
-  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/18/ernie/">
+<meta name="twitter:title" content="ALS 算法">
+<meta name="twitter:description" content="ALS 算法是矩阵分解的一种，用于评分预测。矩阵分解假设我们有一批用户数据，其中包含 m 个 User 和 n 个 Item, 用户和物品的关系是一个三元组，, 即用户对物品的评分，因此我们得到矩阵 Rm×nRm×nR{m\times n}, 其中的元素 ruiruir{ui}表示第 u 个用户对第 i 个 item 的评分。">
+<meta name="twitter:image" content="https://flashgene.com/wp-content/uploads/2019/08/052f5a75d5f05180a5d96493ba6c5ff3.jpg">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/23/ALS 算法实现用户音乐打分预测/">
 
 
 <script id="page-configurations">
@@ -83,7 +94,7 @@
   };
 </script>
 
-  <title>ernie研究 | AILab-aida</title>
+  <title>ALS 算法 | AILab-aida</title>
   
 
 
@@ -274,7 +285,7 @@
   
   
   <div class="post-block post">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/ernie/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/23/ALS 算法实现用户音乐打分预测/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -286,7 +297,7 @@
       <meta itemprop="name" content="AILab-aida">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">ernie研究
+        <h1 class="post-title" itemprop="name headline">ALS 算法
 
           
         </h1>
@@ -302,7 +313,7 @@
                 
               
 
-              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:35:40" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+              <time title="创建时间：2019-10-23 11:56:10 / 修改时间：16:46:23" itemprop="dateCreated datePublished" datetime="2019-10-23T11:56:10+08:00">2019-10-23</time>
             </span>
           
             
@@ -315,7 +326,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
 
                 
                 
@@ -334,52 +345,104 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文假定读者已经阅读过 BERT 与 ERNIE 的论文。</p><h2 id="ERNIE-掩蔽策略"><a href="#ERNIE-掩蔽策略" class="headerlink" title="ERNIE 掩蔽策略"></a>ERNIE 掩蔽策略</h2><p>ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略：</p><blockquote>
-<p>我们将一个短语或一个实体作为一个单元，通常由多个单词组成。<strong>在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽</strong>。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。</p>
-</blockquote><a id="more"></a>
+        <p>ALS 算法是矩阵分解的一种，用于评分预测。</p><h1 id="矩阵分解"><a href="#矩阵分解" class="headerlink" title="矩阵分解"></a><a href="#矩阵分解" title="矩阵分解"></a>矩阵分解</h1><p>假设我们有一批用户数据，其中包含 m 个 User 和 n 个 Item, 用户和物品的关系是一个三元组，, 即用户对物品的评分，因此我们得到矩阵 Rm×nRm×nR<em>{m\times n}, 其中的元素 ruiruir</em>{ui}表示第 u 个用户对第 i 个 item 的评分。</p><a id="more"></a>
 
-
-<p>简单概括，ERNIE 会<strong>利用分词的信息</strong>，在词的粒度（短语级别）做掩蔽，通过这种策略可以使模型隐式地学习到词粒度的知识。与之相对的，BERT 的基本掩蔽策略是基于基础语言单元粒度的（basic language unit，在中文里对应输入的每一个字）：</p>
+<p><a href="/../typora-images/1538020000484.png"></a></p>
+<p>评分矩阵通常规模很大，并且通常是稀疏矩阵，因为一个用户不可能给所有商品评分。矩阵中缺失的评分，称为 missing item.</p>
+<p>接下来将这个矩阵分解为两个子矩阵，使得两个子矩阵能近似得到原矩阵：</p>
+<p><a href="/../typora-images/1538020213031.png"></a></p>
+<p>如下图所示，左边 X 矩阵实际代表用户的隐矩阵，即每个用户用一个 k 维向量表示，而右边的矩阵代表物品的隐矩阵，即每个物品用一个 k 维向量表示。k 的值通常远小于 n 和 m.</p>
+<p><a href="/../typora-images/1538020466589.png"></a></p>
+<p>为了使低秩矩阵 XY 的乘积接近于 R, 得到了我们的目标函数：</p>
+<p><a href="/../typora-images/1538020553627.png"></a></p>
+<p>通常加入正则项，得到：</p>
+<p><a href="/../typora-images/1538020590139.png"></a></p>
+<p>我们的目标就是优化上式，得到训练结果 X, Y。预测时，我们只要将 User 和 Item 代入 rui=xTuyirui=xuTyir_{ui}=x_u^Ty_i 就能得到相应的评分预测值。</p>
+<p>此外，由于训练出了每个用户和物品的隐向量，因此根据向量比较 User 和 Item 之间的相似度。</p>
+<h1 id="ALS-优化"><a href="#ALS-优化" class="headerlink" title="ALS 优化"></a><a href="#ALS优化" title="ALS优化"></a>ALS 优化</h1><p>直接优化公式 2 比较困难，因此需要用 ALS 中的核心概念：交替。先固定其他维度，只优化其中一个维度。</p>
+<p>对 xuxux_u 求导，将 yiyiy_i 当作常量，可得：</p>
+<p><a href="/../typora-images/1538020965623.png"></a></p>
+<p>令导数为 0，可得：</p>
+<p><a href="/../typora-images/1538021322942.png"></a></p>
+<p>同理，对 yiyiy_i 求导，由于 X 和 Y 是对称的，得到：</p>
+<p><a href="/../typora-images/1538021355541.png"></a></p>
+<p>因此，整个迭代优化过程为：</p>
 <blockquote>
-<p>它将句子视为<strong>基本语言单位</strong>的序列，对于<strong>英语</strong>，基本语言单位为<strong>单词</strong>，对于<strong>中文</strong>，基本语言单位为<strong>汉字</strong>。</p>
-<p>…</p>
-<p><strong>词组</strong>是一小部分单词或字符，一起充当概念单元……并使用一些依赖于语言的<strong>细分工具</strong>来获取其他语言（例如<strong>中文）</strong>的词/短语信息。</p>
-</blockquote>
-<h2 id="原始解析"><a href="#原始解析" class="headerlink" title="原始解析"></a>原始解析</h2><p>通过简单的转换逻辑，可以直接把 ERNIE 与 BERT 在模型结构上没有明显的区别。可以将其发布到 ERNIE 与 BERT 在模型结构上没有明显的区别。</p>
-<p>主要的差异在 MLM 的数据预先逻辑部分：</p>
-<ul>
-<li>BERT 的数据预处理的输入是若干个 txt 文本，输出是带 NSP，MLM 标注的序列数据集，详见<a href="https://huntzhan.github.io/posts/nlp/bert-pretrain-data/" target="_blank" rel="noopener">BERT 系列：数据重新编码解析</a>一文。</li>
-<li>ERNIE 的数据初步分为两个阶段：<ul>
-<li>训练前的数据准备：建立序列与标记分词边界信息。</li>
-<li>训练过程中的数据准备：在每个纪元，基于分词边界信息动态构建 MLM 标注。</li>
-</ul>
-</li>
-</ul>
-<h3 id="构建序列与标记分词边界信息"><a href="#构建序列与标记分词边界信息" class="headerlink" title="构建序列与标记分词边界信息"></a>构建序列与标记分词边界信息</h3><p>这一步的输出是一个 txt 文件：</p>
-<blockquote>
-<p>每个样本由 5 个’ <code>;</code>‘的分隔词组成，数据格式：<code>token_ids; sentence_type_ids; position_ids; seg_labels; next_sentence_label</code>；其中<code>seg_labels</code>表示分词边界信息：0 表示词首，1 表示非词首，-1 为占位符，其对应的词为<code>CLS</code>或者<code>SEP</code>；</p>
-</blockquote>
-<p>ERNIE 没有开源步骤步的代码。个人建议，可以重复 BERT 的预编码转换序列，然后利用百度的词法分析 API 加入分词边界信息。</p>
-<h3 id="动态打造-MLM-标注"><a href="#动态打造-MLM-标注" class="headerlink" title="动态打造 MLM 标注"></a>动态打造 MLM 标注</h3><p>论文的<em>3.2 知识整合</em>小节里提到：</p>
-<blockquote>
-<p>我们提出了一种<strong>多阶段的知识掩盖策略</strong>，而不是直接添加知识嵌入，而是将短语和实体级知识集成到语言表示中。</p>
-</blockquote>
-<p>通过阅读代码，实际上这个所谓的<em>多阶段知识掩盖策略</em>的逻辑是：在每个时代，以某个概率（这个值没给）<strong>随机</strong>选择<code>mask_word</code>或者<code>mask_char</code>模式。<code>mask_word</code>模式后续会走短语级掩盖逻辑，会利用分词边界信息；<code>mask_char</code>模式后续会走的基本级别掩蔽的逻辑，不会利用分词边界信息。</p>
-<p>论文的<em>3.2.2 短语的级遮蔽</em>里提及：</p>
-<blockquote>
-<p>在短语级掩码阶段，我们还使用基本语言单元作为训练输入，这与随机基本单元掩码不同，这次我们<strong>随机选择句子中的几个短语，对同一短语中的所有基本单元进行掩码和预测</strong>。</p>
-</blockquote>
-<p>短语级屏蔽的实现见：</p>
 <ol>
-<li>与 BERT 相对的，ERNIE 这一步是在每个时代动态生成的，且 Masking 的数量没有上限（没有<code>max_predictions_per_seq</code>的限制）。</li>
-<li>基于分词信息，<strong>以词为单位</strong>决定是否触发 masking 逻辑。</li>
-<li>对于每个需要 mask 的<strong>字符串（一个词），遍历其中每个输入（字符）</strong>：<ol>
-<li>80％的概率，把输入替换为<code>[MASK]</code>。</li>
-<li>10％的概率，把输入替换为随机的令牌。</li>
-<li>10％的概率，维持输入不变。</li>
-</ol>
+<li><p>随机生成 X, Y</p>
+<p>repeat until convergence {</p>
+</li>
+<li><p>固定 Y, 使用公式 3 更新 xuxux_u</p>
+</li>
+<li><p>固定 X, 使用公式 4 更新 yiyiy_i</p>
+<p>}</p>
 </li>
 </ol>
+</blockquote>
+<p>一般使用 RMSE 评估误差是否收敛：</p>
+<p><a href="/../typora-images/1538021531707.png"></a></p>
+<p>算法复杂度：</p>
+<ol>
+<li><p>求 xuxux_u:O(k2N+k3m)O(k2N+k3m)O(k^2N+k^3m)</p>
+</li>
+<li><p>求 yiyiy_i:O(k2N+k3n)O(k2N+k3n)O(k^2N+k^3n)</p>
+</li>
+</ol>
+<p>可以看出来当 k 一定的时候，这个算法的复杂度是<strong>线性</strong>的。</p>
+<p>因为这个迭代过程，交替优化 X 和 Y，因此又被称作交替最小二乘算法（Alternating Least Squares，ALS）。</p>
+<h1 id="ALS-与隐式反馈"><a href="#ALS-与隐式反馈" class="headerlink" title="ALS 与隐式反馈"></a><a href="#ALS与隐式反馈" title="ALS与隐式反馈"></a>ALS 与隐式反馈</h1><p>隐式反馈与 ALS 的结合，有 ALS-WR 算法，即加权的 ALS 算法。</p>
+<p>显示反馈：用户对商品的评分。</p>
+<p>隐式反馈：用户对商品的行为，如点击，收藏，搜索，购买记录等。</p>
+<p>隐式反馈的特点：</p>
+<ol>
+<li><p>没有负面反馈，用户一般会直接忽略不喜欢的商品，而不是给予负面评价</p>
+</li>
+<li><p>隐式反馈包含大量噪声</p>
+</li>
+<li><p>隐式反馈难以量化</p>
+</li>
+<li><p>显式反馈表现的是用户的<strong>喜好（preference）</strong>，而隐式反馈表现的是用户的<strong>信任（confidence）</strong>。比如用户最喜欢的一般是电影，但观看时间最长的却是连续剧。大米购买的比较频繁，量也大，但未必是用户最想吃的食物。</p>
+</li>
+</ol>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/052f5a75d5f05180a5d96493ba6c5ff3.jpg" alt></p>
+<p>很多人在决定是否看一部电影之前都会去豆瓣看下评分作为参考，看完电影也会给一个自己的分数。 每个人对每个商品或者电影或是音乐都有一个心理的分数，这个分数 表 明用户是否对这个内容满意。 作为内容的提供方，如果可以预测出每个用户对于内容的心理分数，就能更好的理解用户，并给用户提供好的内容推荐。 今天就介绍下如何通过 ALS 矩阵分解算法实现用户对于音乐或者电影的评分预测。</p>
+<h2 id="ALS-算法介绍"><a href="#ALS-算法介绍" class="headerlink" title="ALS 算法介绍"></a>ALS 算法介绍</h2><p>ALS 算法是基于模型的推荐算法，基本思想是对稀疏矩阵进行模型分解，评估出缺失项的值，以此来得到一个基本的训练模型。 然后依照此模型可以针对新的用户和物品数据进行评估。 ALS 是采用交替的最小二乘法来算出缺失项的，交替的最小二乘法是在最小二乘法的基础上发展而来的。</p>
+<p>从协同过滤的分类来说，ALS 算法属于 User-Item CF，也叫做混合 CF，它同时考虑了 User 和 Item 两个方面。</p>
+<p>我们通过音乐打分这个案例介绍下交替最小二乘法的原理，首先拿到的原始数据是每个听众对每首歌的评分矩阵 A，这个评分可能是非常稀疏的，因为不是每个用户都听过所有的歌，也不是每个用户都会对每首歌评分。</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/bdf76f778622e77c743f65f779c63556.png" alt></p>
+<p>ALS 矩阵分解会把矩阵 A 分解成两个矩阵的相乘，分别是 X 矩阵和 Y 矩阵，</p>
+<p><code>矩阵A=矩阵X和矩阵Y的转秩的乘积</code></p>
+<p>x 的列表示和 Y 的横表示可以称之为 ALS 中的因子，这个因子是有隐含定义的，这里假设有 3 个因子，分别是性格、教育程度、爱好。 A 矩阵经过 ALS 分解出的 X、Y 矩阵可以分别表示成：</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/ec4804b062de4d1edcce456899f74c77.png" alt></p>
+<p>(上图为 x 矩阵)</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/38d24bd732913b542cd317a519740b2d.png" alt></p>
+<p>(上图为 Y 矩阵)</p>
+<p>数据经过这样的拆解就很容易做用户对音乐的评分预测。 比如有听众 6，他从没听过 “红豆“这首歌，但是我们可以拿到听众 6 在矩阵分解中 X 矩阵的向量 M，这时候只有把向量 M 和” 红豆 “在 Y 矩阵中的对应向量 N 相乘，就能预测出听众 6 对于” 红豆“这首歌的评分。</p>
+<h2 id="ALS-在-PAI-实验"><a href="#ALS-在-PAI-实验" class="headerlink" title="ALS 在 PAI 实验"></a>ALS 在 PAI 实验</h2><p>现在在 PAI 上面对 ALS 算法案例进行实验。 整体流程只需要包含输入数据源和 ALS 矩阵分解组件即可。 本案例已经集成于 PAI-STUDIO 首页模板：</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/c8ee7b61eab56b25d3676537cc1b2ea9.png" alt></p>
+<p>创建后如图：</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/d5a23cea6ac3edecd055ba4e4980e087.png" alt></p>
+<h3 id="1-数据源"><a href="#1-数据源" class="headerlink" title="1. 数据源"></a>1. 数据源</h3><p>输入数据源包含 4 个字段</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/477f04a5e9902a9d147905c1edfa8e4a.png" alt></p>
+<p>User: 用户 ID</p>
+<p>Item： 音乐 ID</p>
+<p>score： user 对 item 的评分</p>
+<h3 id="2-ALS-矩阵分解"><a href="#2-ALS-矩阵分解" class="headerlink" title="2.ALS 矩阵分解"></a>2.ALS 矩阵分解</h3><p>需要设置 3 个对应字段，</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/bd78e416bd935c4b52474a0d97b9eef8.png" alt></p>
+<p>参数名称</p>
+<p>参数描述</p>
+<p>取值范围</p>
+<p>是否必选，默认值</p>
+<table><tbody><tr><td>userColName</td><td>user 列名</td><td>列的类型必须是 bigint，可以不连续编号</td><td>必选</td></tr><tr><td>itemColName</td><td>item 列名</td><td>列的类型必须是 bigint，可以不连续编号</td><td>必选</td></tr><tr><td>rateColName</td><td>打分列名</td><td>列的类型必须是数值类型</td><td>必选</td></tr><tr><td>numFactors</td><td>因子数</td><td>正整数</td><td>可选，默认值 100</td></tr><tr><td>numIter</td><td>迭代数</td><td>正整数</td><td>可选，默认值 10</td></tr><tr><td>lambda</td><td>正则化系数</td><td>浮点数</td><td>可选，默认值 0.1</td></tr><tr><td>implicitPref</td><td>是否采用隐式偏好模型</td><td>布尔型</td><td>可选，默认值 false</td></tr><tr><td>alpha</td><td>隐式偏好系数</td><td>浮点数，大于 0</td><td>可选，默认值 40</td></tr></tbody></table>
+
+<h3 id="3-结果分析"><a href="#3-结果分析" class="headerlink" title="3. 结果分析"></a>3. 结果分析</h3><p>本案例中会输出 2 张表，对应 ALS 算法介绍中说的 X 矩阵和 Y 矩阵。</p>
+<p>X 矩阵表如图：</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/0eb9dffbdcaea4e1e560e9eb770e6bf7.png" alt></p>
+<p>Y 矩阵表如图：</p>
+<p><img src="https://flashgene.com/wp-content/uploads/2019/08/89e1dc247cf9723590fa0230d6e5a2e9.png" alt></p>
+<p>比如要预测 user1 对音乐 item994556636 的评分，只要将下方两个向量相乘即可</p>
+<p>User1： [-0.14220297,0.8327106,0.5352268,0.6336995,1.2326205,0.7112976,0.9794858,0.8489773,0.330319,0.7426911]</p>
+<p>item994556636： [0.71699333,0.5847747,0.96564907,0.36637592,0.77271074,0.52454436,0.69028413,0.2341857,0.73444265,0.8352135]</p>
 
     </div>
 
@@ -396,7 +459,7 @@
     <strong>本文作者： </strong>AILab-aida</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://ailab-aida.github.io/2019/10/18/ernie/" title="ernie研究">https://ailab-aida.github.io/2019/10/18/ernie/</a>
+    <a href="https://ailab-aida.github.io/2019/10/23/ALS 算法实现用户音乐打分预测/" title="ALS 算法">https://ailab-aida.github.io/2019/10/23/ALS 算法实现用户音乐打分预测/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
@@ -421,8 +484,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2019/10/18/BERT/" rel="next" title="BERT研究">
-                  <i class="fa fa-chevron-left"></i> BERT研究
+                <a href="/2019/10/22/embedding技术在推荐中的应用/" rel="next" title="embedding技术在推荐中的应用">
+                  <i class="fa fa-chevron-left"></i> embedding技术在推荐中的应用
                 </a>
               
             </div>
@@ -430,10 +493,6 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-              
-                <a href="/2019/10/18/推荐系统/" rel="prev" title="推荐系统">
-                  推荐系统 <i class="fa fa-chevron-right"></i>
-                </a>
               
             </div>
           </div>
@@ -485,7 +544,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ERNIE-掩蔽策略"><span class="nav-number">2.</span> <span class="nav-text">ERNIE 掩蔽策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原始解析"><span class="nav-number">3.</span> <span class="nav-text">原始解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#构建序列与标记分词边界信息"><span class="nav-number">3.1.</span> <span class="nav-text">构建序列与标记分词边界信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态打造-MLM-标注"><span class="nav-number">3.2.</span> <span class="nav-text">动态打造 MLM 标注</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#矩阵分解"><span class="nav-number">1.</span> <span class="nav-text">矩阵分解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ALS-优化"><span class="nav-number">2.</span> <span class="nav-text">ALS 优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ALS-与隐式反馈"><span class="nav-number">3.</span> <span class="nav-text">ALS 与隐式反馈</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ALS-算法介绍"><span class="nav-number">3.1.</span> <span class="nav-text">ALS 算法介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ALS-在-PAI-实验"><span class="nav-number">3.2.</span> <span class="nav-text">ALS 在 PAI 实验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-数据源"><span class="nav-number">3.2.1.</span> <span class="nav-text">1. 数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-ALS-矩阵分解"><span class="nav-number">3.2.2.</span> <span class="nav-text">2.ALS 矩阵分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-结果分析"><span class="nav-number">3.2.3.</span> <span class="nav-text">3. 结果分析</span></a></li></ol></li></ol></li></ol></div>
         
       </div>
       <!--/noindex-->
@@ -717,7 +776,7 @@ window.addEventListener('pjax:success', () => {
       repo: 'ailab-aida.github.io',
       owner: 'AILab-aida',
       admin: ['ailab'],
-      id: '8b9cc80741c911f2b522be0a52620858',
+      id: '789dafb385557a1fb2e6feb509ad924f',
         language: 'zh-CN',
       
       distractionFreeMode: 'true'

@@ -57,18 +57,18 @@
   };
 </script>
 
-  <meta name="description" content="https://drivingc.com/">
-<meta name="keywords" content="深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)">
+  <meta name="description" content="CF 协同过滤推荐算法原理1.1 概述什么是协同过滤 (Collaborative Filtering, 简称 CF)？首先想一个简单的问题，如果你现在想看个电影，但你不知道具体看哪部，你会怎么做？大部分的人会问问周围的朋友，看看最近有什么好看的电影推荐，而我们一般更倾向于从口味比较类似的朋友那里得到推荐。这就是协同过滤的核心思想。">
+<meta name="keywords" content="算法">
 <meta property="og:type" content="article">
-<meta property="og:title" content="AILab-aida">
+<meta property="og:title" content="协同过滤推荐算法">
 <meta property="og:url" content="https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/index.html">
 <meta property="og:site_name" content="AILab-aida">
-<meta property="og:description" content="https://drivingc.com/">
+<meta property="og:description" content="CF 协同过滤推荐算法原理1.1 概述什么是协同过滤 (Collaborative Filtering, 简称 CF)？首先想一个简单的问题，如果你现在想看个电影，但你不知道具体看哪部，你会怎么做？大部分的人会问问周围的朋友，看看最近有什么好看的电影推荐，而我们一般更倾向于从口味比较类似的朋友那里得到推荐。这就是协同过滤的核心思想。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-10-17T12:14:33.793Z">
+<meta property="og:updated_time" content="2019-10-23T03:44:26.600Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="AILab-aida">
-<meta name="twitter:description" content="https://drivingc.com/">
+<meta name="twitter:title" content="协同过滤推荐算法">
+<meta name="twitter:description" content="CF 协同过滤推荐算法原理1.1 概述什么是协同过滤 (Collaborative Filtering, 简称 CF)？首先想一个简单的问题，如果你现在想看个电影，但你不知道具体看哪部，你会怎么做？大部分的人会问问周围的朋友，看看最近有什么好看的电影推荐，而我们一般更倾向于从口味比较类似的朋友那里得到推荐。这就是协同过滤的核心思想。">
   <link rel="canonical" href="https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/">
 
 
@@ -83,7 +83,7 @@
   };
 </script>
 
-  <title> | AILab-aida</title>
+  <title>协同过滤推荐算法 | AILab-aida</title>
   
 
 
@@ -286,7 +286,7 @@
       <meta itemprop="name" content="AILab-aida">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
+        <h1 class="post-title" itemprop="name headline">协同过滤推荐算法
 
           
         </h1>
@@ -302,12 +302,33 @@
                 
               
 
-              <time title="创建时间：2019-10-17 20:03:54 / 修改时间：20:14:33" itemprop="dateCreated datePublished" datetime="2019-10-17T20:03:54+08:00">2019-10-17</time>
+              <time title="创建时间：2019-10-17 20:03:54" itemprop="dateCreated datePublished" datetime="2019-10-17T20:03:54+08:00">2019-10-17</time>
             </span>
           
             
 
             
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-10-23 11:44:26" itemprop="dateModified" datetime="2019-10-23T11:44:26+08:00">2019-10-23</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -321,7 +342,76 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><a href="https://drivingc.com/" target="_blank" rel="noopener">https://drivingc.com/</a></p>
+        <ol>
+<li>CF 协同过滤推荐算法原理<br>1.1 概述<br>什么是协同过滤 (Collaborative Filtering, 简称 CF)？<br>首先想一个简单的问题，如果你现在想看个电影，但你不知道具体看哪部，你会怎么做？<br>大部分的人会问问周围的朋友，看看最近有什么好看的电影推荐，而我们一般更倾向于从口味比较类似的朋友那里得到推荐。这就是协同过滤的核心思想。</li>
+</ol><a id="more"></a>
+<p>协同过滤算法又分为基于用户的协同过滤算法和基于物品的协同过滤算法</p>
+<p>1.2 案例需求<br>如下数据是各用户对各文档的偏好：<br>用户/文档 文档 A 文档 B 文档 C 文档 D<br>用户 A √ √ 推荐？ 推荐？<br>用户 B √ √ √<br>用户 C √ √ √<br>用户 D √ √<br>现在需要基于上述数据，给 A 用户推荐一篇文档</p>
+<p>1.3 算法分析<br>1.3.1 基于用户相似度的分析<br>直觉分析：“用户 A/B”都喜欢物品 A 和物品 B，从而“用户 A/B”的口味最为相近<br>因此，为“用户 A”推荐物品时可参考“用户 B”的偏好，从而推荐 D</p>
+<p>这种就是基于用户的协同过滤算法 UserCF 指导思想<br>1.3.2 基于物品相似度的分析<br>直觉分析：物品组合(A,D)被同时偏好出现的次数最多，因而可以认为 A/D 两件物品的相似[其实 BD 组合出现次数也最多<br>真实的推荐应该根据 A 用户的 A 文档推荐结果汇总 B 文档推荐结果，然后评分取前 N 名]度最高，从而，可以为选择了 A 物品的用户推荐 D 物品</p>
+<p>这种就是基于物品的协同过滤算法 ItemCF 指导思想</p>
+<p>1.4 算法要点<br>1.4.1、指导思想<br>这种过滤算法的有效性基础在于：<br>1、用户偏好具有相似性，即用户可分类。这种分类的特征越明显，推荐准确率越高<br>2、物品之间具有相似性，即偏好某物品的人，都很可能也同时偏好另一件相似物品</p>
+<p>1.4.2、两种 CF 算法适用的场景<br>什么情况下使用哪种算法推荐效果会更好？<br>不同环境下这两种理论的有效性也不同，应用时需做相应调整。<br>a.如豆瓣上的文艺作品，用户对其的偏好程度与用户自身的品位关联性较强；适合 UserCF<br>b.而对于电子商务网站来说，商品之间的内在联系对用户的购买行为影响更为显著。</p>
+<p>1.5 算法实现<br>总的来说，要实现协同过滤，需要一下几个步骤：<br>1．收集用户偏好<br>2．找到相似的用户或物品<br>3．计算推荐</p>
+<p>1.5.1 收集用户偏好<br>用户有很多方式向系统提供自己的偏好信息，而且不同的应用也可能大不相同，下面举例进行介绍：<br>用户行为 类型 特征 作用<br>评分 显式 整数量化值[0,n] 可以得到精确偏好<br>投票 显式 布尔量化值 0|1 可以得到精确偏好<br>转发 显式 布尔量化值 0|1 可以得到精确偏好<br>保存书签 显式 布尔量化值 0|1 可以得到精确偏好<br>标记书签 Tag 显式 一些单词 需要进一步分析得到偏好<br>评论 显式 一些文字 需要进一步分析得到偏好<br>点击流 隐式 一组点击记录 需要进一步分析得到偏好<br>页面停留时间 隐式 一组时间信息 噪音偏大，不好利用<br>购买 隐式 布尔量化值 0|1 可以得到精确偏好</p>
+<p>1.5.2 原始偏好数据的预处理<br> 用户行为识别/组合<br>在一般应用中，我们提取的用户行为一般都多于一种，关于如何组合这些不同的用户行为，比如，可以将用户行为分为“查看”和“购买”等等，然后基于不同的行为，计算不同的用户 / 物品相似度。<br>类似于当当网或者京东给出的“购买了该图书的人还购买了 …”，“查看了图书的人还查看了 …”</p>
+<p> 喜好程度加权<br>根据不同行为反映用户喜好的程度将它们进行加权，得到用户对于物品的总体喜好。<br>一般来说，显式的用户反馈比隐式的权值大，但比较稀疏，毕竟进行显示反馈的用户是少数；同时相对于“查看”，“购买”行为反映用户喜好的程度更大，但这也因应用而异。</p>
+<p> 数据减噪和归一化。<br>① 　减噪：用户行为数据是用户在使用应用过程中产生的，它可能存在大量的噪音和用户的误操作，我们可以通过经典的数据挖掘算法过滤掉行为数据中的噪音，这样可以是我们的分析更加精确。<br>② 　归一化：如前面讲到的，在计算用户对物品的喜好程度时，可能需要对不同的行为数据进行加权。但可以想象，不同行为的数据取值可能相差很大，比如，用户的查看数据必然比购买数据大的多，如何将各个行为的数据统一在一个相同的取值范围中，从而使得加权求和得到的总体喜好更加精确，就需要我们进行归一化处理。最简单的归一化处理，就是将各类数据除以此类中的最大值，以保证归一化后的数据取值在 [0,1] 范围中。</p>
+<p> 形成用户偏好矩阵<br>一般是二维矩阵，一维是用户列表，另一维是物品列表，值是用户对物品的偏好，一般是 [0,1] 或者 [-1, 1] 的浮点数值。</p>
+<p>1.5.3 找到相似用户或物品<br>当已经对用户行为进行分析得到用户喜好后，我们可以根据用户喜好计算相似用户和物品，然后基于相似用户或者物品进行推荐，这就是最典型的 CF 的两个分支：基于用户的 CF 和基于物品的 CF。这两种方法都需要计算相似度，下面我们先看看最基本的几种计算相似度的方法。<br>1.5.4 相似度的计算<br>相似度的计算，现有的几种基本方法都是基于向量（Vector）的，其实也就是计算两个向量的距离，距离越近相似度越大。<br>在推荐的场景中，在用户 - 物品偏好的二维矩阵中，我们可以将一个用户对所有物品的偏好作为一个向量来计算用户之间的相似度，或者将所有用户对某个物品的偏好作为一个向量来计算物品之间的相似度。</p>
+<p>CF 的常用方法有三种，分别是欧式距离法、皮尔逊相关系数法、余弦相似度法。<br>为了测试算法，给出以下简单的用好偏好数据矩阵：<br>行表示三名用户，列表示三个品牌，对品牌的喜爱度按照 1~5 增加。<br>用户 苹果 小米 魅族<br>zhangsan 5 5 2<br>Lisi 3 5 4<br>wangwu 1 2 5<br>（1）欧氏距离法<br>就是计算每两个点的距离，比如 Nike 和 Sony 的相似度   。<br>数值越小，表示相似度越高。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def OsDistance(vector1, vector2):</span><br><span class="line">  sqDiffVector = vector1-vector2</span><br><span class="line">  sqDiffVector=sqDiffVector**2</span><br><span class="line">  sqDistances = sqDiffVector.sum()</span><br><span class="line">  distance = sqDistances**0.5</span><br><span class="line">  return distance</span><br></pre></td></tr></table></figure>
+<p>（2）皮尔逊相关系数<br>两个变量之间的相关系数越高，从一个变量去预测另一个变量的精确度就越高，这是因为相关系数越高，就意味着这两个变量的共变部分越多，所以从其中一个变量的变化就可越多地获知另一个变量的变化。如果两个变量之间的相关系数为 1 或-1，那么你完全可由变量 X 去获知变量 Y 的值。<br>·         当相关系数为 0 时，X 和 Y 两变量无关系。<br>·         当 X 的值增大，Y 也增大，正相关关系，相关系数在 0.00 与 1.00 之间<br>·         当 X 的值减小，Y 也减小，正相关关系，相关系数在 0.00 与 1.00 之间<br>·         当 X 的值增大，Y 减小，负相关关系，相关系数在-1.00 与 0.00 之间<br>          当 X 的值减小，Y 增大，负相关关系，相关系数在-1.00 与 0.00 之间<br>相关系数的绝对值越大，相关性越强，相关系数越接近于 1 和-1，相关度越强，相关系数越接近于 0，相关度越弱。<br>在 python 中用函数 corrcoef 实现，具体方法见参考资料</p>
+<p>（3）余弦相似度<br>通过测量两个向量内积空间的夹角的余弦值来度量它们之间的相似性。0 度角的余弦值是 1，而其他任何角度的余弦值都不大于 1;并且其最小值是-1。从而两个向量之间的角度的余弦值确定两个向量是否大致指向相同的方向。两个向量有相同的指向时，余弦相似度的值为 1；两个向量夹角为 90° 时，余弦相似度的值为 0；两个向量指向完全相反的方向时，余弦相似度的值为-1。在比较过程中，向量的规模大小不予考虑，仅仅考虑到向量的指向方向。余弦相似度通常用于两个向量的夹角小于 90° 之内，因此余弦相似度的值为 0 到 1 之间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def cosSim(inA,inB):</span><br><span class="line">  num = float(inA.T*inB)</span><br><span class="line">  denom = la.norm(inA)*la.norm(inB)</span><br><span class="line">  return 0.5+0.5\*(num/denom)</span><br></pre></td></tr></table></figure>
+<p>注：本课程的实战案例基于皮尔逊相关系数法实现</p>
+<p>1.5.3 计算推荐<br>UserCF 基于用户相似度的推荐<br>计算推荐的过程其实就是 KNN 算法的计算过程<br>ItemCF 基于物品相似度的推荐<br>算法思路</p>
+<ol>
+<li>构建物品的同现矩阵</li>
+<li>构建用户对物品的评分矩阵</li>
+<li><p>通过矩阵计算得出推荐结果<br>推荐结果=用户评分矩阵*同现矩阵<br>实质：计算各种物品组合的出现次数</p>
+</li>
+<li><p>CF 协同过滤算法 Python 实战<br>2.1 电影推荐需求<br>根据一个用户对电影评分的数据集来实现基于用户相似度的协同过滤算法推荐，相似度的算法采用皮尔逊相关系数法<br>数据样例如下：<br>用户 ID：电影 ID：评分：时间<br>1::1193::5::978300760<br>1::661::3::978302109<br>1::914::3::978301968<br>1::3408::4::978300275<br>1::2355::5::978824291<br>1::1197::3::978302268<br>1::1287::5::978302039<br>1::2804::5::978300719<br>1::594::4::978302268<br>1::919::4::978301368</p>
+</li>
+</ol>
+<p>2.2 算法实现<br>本案例使用的数据分析包为 pandas，Numpy 和 matplotlib</p>
+<p>2.2.1 数据规整<br>首先将评分数据从 ratings.dat 中读出到一个 DataFrame 里：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; import pandas as pd</span><br><span class="line">&gt; &gt; &gt; from pandas import Series,DataFrame</span><br><span class="line">&gt; &gt; &gt; rnames = [&apos;user_id&apos;,&apos;movie_id&apos;,&apos;rating&apos;,&apos;timestamp&apos;]</span><br><span class="line">&gt; &gt; &gt; ratings = pd.read_table(r&apos;ratings.dat&apos;,sep=&apos;::&apos;,header=None,names=rnames)</span><br><span class="line">&gt; &gt; &gt; ratings[:3]</span><br><span class="line">&gt; &gt; &gt; user_id movie_id rating timestamp</span><br><span class="line">&gt; &gt; &gt; 0 1 1193 5 978300760</span><br><span class="line">&gt; &gt; &gt; 1 1 661 3 978302109</span><br><span class="line">&gt; &gt; &gt; 2 1 914 3 978301968</span><br></pre></td></tr></table></figure>
+<p>[3 rows x 4 columns]<br>ratings 表中对我们有用的仅是 user_id、movie_id 和 rating 这三列，因此我们将这三列取出，放到一个以 user 为行，movie 为列，rating 为值的表 data 里面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; data = ratings.pivot(index=&apos;user_id&apos;,columns=&apos;movie_id&apos;,values=&apos;rating&apos;) #形成一个透视表</span><br><span class="line">&gt; &gt; &gt; data[:5]</span><br></pre></td></tr></table></figure>
+<p>可以看到这个表相当得稀疏，填充率大约只有 5%，接下来要实现推荐的第一步是计算 user 之间的相关系数</p>
+<p>2.2.2 相关度测算</p>
+<p>DataFrame 对象有一个很亲切的方法：<br>.corr(method=’pearson’, min_periods=1) 方法，可以对所有列互相计算相关系数。<br>其中：<br>method 默认为皮尔逊相关系数，<br>min_periods 参数，这个参数的作用是设定计算相关系数时的最小样本量，低于此值的一对列将不进行运算。这个值的取舍关系到相关系数计算的准确性，因此有必要先来确定一下这个参数。</p>
+<p>2.2.3 min_periods 参数测定<br>测定这样一个参数的基本方法:<br> 统计在 min_periods 取不同值时，相关系数的标准差大小，越小越好；<br>但同时又要考虑到，我们的样本空间十分稀疏，min_periods 定得太高会导致出来的结果集太小，所以只能选定一个折中的值。</p>
+<p>这里我们测定评分系统标准差的方法为：<br> 在 data 中挑选一对重叠评分最多的用户，用他们之间的相关系数的标准差去对整体标准差做点估计。<br>在此前提下对这一对用户在不同样本量下的相关系数进行统计，观察其标准差变化。</p>
+<p>首先，要找出重叠评分最多的一对用户。我们新建一个以 user 为行列的方阵 foo，然后挨个填充不同用户间重叠评分的个数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; foo = DataFrame(np.empty((len(data.index),len(data.index)),dtype=int),index=data.index,columns=data.index)</span><br><span class="line">&gt; &gt; &gt; #print(empt.shape): (6040, 6040)</span><br><span class="line">&gt; &gt; &gt; for i in foo.index:</span><br><span class="line">        for j in foo.columns:</span><br><span class="line">            foo.ix[i,j] = data.ix[i][data.ix[j].notnull()].dropna().count()</span><br></pre></td></tr></table></figure>
+<p>这段代码特别费时间，因为最后一行语句要执行 4000*4000 = 1600 万遍；</p>
+<p>找到的最大值所对应的行列分别为 424 和 4169，这两位用户之间的重叠评分数为 998：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; for i in foo.index:</span><br><span class="line"></span><br><span class="line">        foo.ix[i,i]=0   #先把对角线的值设为 0</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; ser = Series(np.zeros(len(foo.index)))</span><br><span class="line">&gt; &gt; &gt; for i in foo.index:</span><br><span class="line"></span><br><span class="line">        ser[i]=foo[i].max()   #计算每行中的最大值</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; ser.idxmax() #返回 ser 的最大值所在的行号</span><br><span class="line">&gt; &gt; &gt; 4169</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; ser[4169] #取得最大值</span><br><span class="line">&gt; &gt; &gt; 998</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; foo[foo==998][4169].dropna() #取得另一个 user_id</span><br><span class="line">&gt; &gt; &gt; 424 4169</span><br><span class="line">&gt; &gt; &gt; Name: user_id, dtype: float64</span><br></pre></td></tr></table></figure>
+<p>把 424 和 4169 的评分数据单独拿出来，放到一个名为 test 的表里，另外计算了一下这两个用户之间的相关系数为 0.456，还算不错，另外通过柱状图了解一下他俩的评分分布情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; data.ix[4169].corr(data.ix[424])</span><br><span class="line">&gt; &gt; &gt; 0.45663851303413217</span><br><span class="line">&gt; &gt; &gt; test = data.reindex([424,4169],columns=data.ix[4169]data.ix[424].notnull()].dropna().index)</span><br><span class="line">&gt; &gt; &gt; test</span><br><span class="line">&gt; &gt; &gt; movie_id 2 6 10 11 12 17 ...</span><br><span class="line">&gt; &gt; &gt; 424 4 4 4 4 1 5 ...</span><br><span class="line">&gt; &gt; &gt; 4169 3 4 4 4 2 5 ...</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; test.ix[424].value_counts(sort=False).plot(kind=&apos;bar&apos;)</span><br><span class="line">&gt; &gt; &gt; test.ix[4169].value_counts(sort=False).plot(kind=&apos;bar&apos;)</span><br></pre></td></tr></table></figure>
+<p>对这俩用户的相关系数统计，我们分别随机抽取 20、50、100、200、500 和 998 个样本值，各抽 20 次。并统计结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; periods_test = DataFrame(np.zeros((20,7)),columns=[10,20,50,100,200,500,998])</span><br><span class="line">&gt; &gt; &gt; for i in periods_test.index:</span><br><span class="line"></span><br><span class="line">        for j in periods_test.columns:</span><br><span class="line">            sample = test.reindex(columns=np.random.permutation(test.columns)[:j])</span><br><span class="line">            periods_test.ix[i,j] = sample.iloc[0].corr(sample.iloc[1])</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; periods_test[:5]</span><br><span class="line"></span><br><span class="line">        10        20        50        100       200       500       998</span><br><span class="line"></span><br><span class="line">0 -0.306719 0.709073 0.504374 0.376921 0.477140 0.426938 0.456639</span><br><span class="line">1 0.386658 0.607569 0.434761 0.471930 0.437222 0.430765 0.456639</span><br><span class="line">2 0.507415 0.585808 0.440619 0.634782 0.490574 0.436799 0.456639</span><br><span class="line">3 0.628112 0.628281 0.452331 0.380073 0.472045 0.444222 0.456639</span><br><span class="line">4 0.792533 0.641503 0.444989 0.499253 0.426420 0.441292 0.456639</span><br></pre></td></tr></table></figure>
+<p>[5 rows x 7 columns]</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; periods_test.describe()</span><br><span class="line"></span><br><span class="line">             10         20         50         100        200        500  #998略</span><br><span class="line"></span><br><span class="line">count 20.000000 20.000000 20.000000 20.000000 20.000000 20.000000</span><br><span class="line">mean 0.346810 0.464726 0.458866 0.450155 0.467559 0.452448</span><br><span class="line">std 0.398553 0.181743 0.103820 0.093663 0.036439 0.029758</span><br><span class="line">min -0.444302 0.087370 0.192391 0.242112 0.412291 0.399875</span><br><span class="line">25% 0.174531 0.320941 0.434744 0.375643 0.439228 0.435290</span><br><span class="line">50% 0.487157 0.525217 0.476653 0.468850 0.472562 0.443772</span><br><span class="line">75% 0.638685 0.616643 0.519827 0.500825 0.487389 0.465787</span><br><span class="line">max 0.850963 0.709073 0.592040 0.634782 0.546001 0.513486</span><br></pre></td></tr></table></figure>
+<p>[8 rows x 7 columns]<br>从 std 这一行来看，理想的 min_periods 参数值应当为 200 左右(标准差和均值、极值最接近)。</p>
+<p>2.2.3 算法检验<br>为了确认在 min_periods=200 下本推荐算法的靠谱程度，最好还是先做个检验。<br>具体方法为：在评价数大于 200 的用户中随机抽取 1000 位用户，每人随机提取一个评价另存到一个数组里，并在数据表中删除这个评价。然后基于阉割过的数据表计算被提取出的 1000 个评分的期望值，最后与真实评价数组进行相关性比较，看结果如何。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; check_size = 1000</span><br><span class="line">&gt; &gt; &gt; check = &#123;&#125;</span><br><span class="line">&gt; &gt; &gt; check_data = data.copy() #复制一份 data 用于检验，以免篡改原数据</span><br><span class="line">&gt; &gt; &gt; check_data = check_data.ix[check_data.count(axis=1)&gt;200] #滤除评价数小于 200 的用户</span><br><span class="line">&gt; &gt; &gt; for user in np.random.permutation(check_data.index):</span><br><span class="line"></span><br><span class="line">        movie = np.random.permutation(check_data.ix[user].dropna().index)[0]</span><br><span class="line">        check[(user,movie)] = check_data.ix[user,movie]</span><br><span class="line">        check_data.ix[user,movie] = np.nan</span><br><span class="line">        check_size -= 1</span><br><span class="line">        if not check_size:</span><br><span class="line">            break</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; corr = check_data.T.corr(min_periods=200)</span><br><span class="line">&gt; &gt; &gt; corr_clean = corr.dropna(how=&apos;all&apos;)</span><br><span class="line">&gt; &gt; &gt; corr_clean = corr_clean.dropna(axis=1,how=&apos;all&apos;) #删除全空的行和列</span><br><span class="line">&gt; &gt; &gt; check_ser = Series(check) #这里是被提取出来的 1000 个真实评分</span><br><span class="line">&gt; &gt; &gt; check_ser[:5]</span><br><span class="line">&gt; &gt; &gt; (15, 593) 4</span><br><span class="line">&gt; &gt; &gt; (23, 555) 3</span><br><span class="line">&gt; &gt; &gt; (33, 3363) 4</span><br><span class="line">&gt; &gt; &gt; (36, 2355) 5</span><br><span class="line">&gt; &gt; &gt; (53, 3605) 4</span><br><span class="line">&gt; &gt; &gt; dtype: float64</span><br><span class="line">&gt; &gt; &gt; 接下来要基于 corr_clean 给 check_ser 中的 1000 个用户-影片对计算评分期望。</span><br><span class="line">&gt; &gt; &gt; 计算方法为：对与用户相关系数大于 0.1 的其他用户评分进行加权平均，权值为相关系数</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; result = Series(np.nan,index=check_ser.index)</span><br><span class="line">&gt; &gt; &gt; for user,movie in result.index: #这个循环看着很乱，实际内容就是加权平均而已</span><br><span class="line"></span><br><span class="line">        prediction = []</span><br><span class="line">        if user in corr_clean.index:</span><br><span class="line">            corr_set = corr_clean[user][corr_clean[user]&gt;0.1].dropna()   #仅限大于 0.1 的用户</span><br><span class="line">        else:continue</span><br><span class="line">        for other in corr_set.index:</span><br><span class="line">            if  not np.isnan(data.ix[other,movie]) and other != user:#注意bool(np.nan)==True</span><br><span class="line">                prediction.append((data.ix[other,movie],corr_set[other]))</span><br><span class="line">        if prediction:</span><br><span class="line">            result[(user,movie)] = sum([value*weight for value,weight in prediction])/sum([pair[1] for pair in prediction])</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; result.dropna(inplace=True)</span><br><span class="line">&gt; &gt; &gt; len(result)#随机抽取的 1000 个用户中也有被 min_periods=200 刷掉的</span><br><span class="line">&gt; &gt; &gt; 862</span><br><span class="line">&gt; &gt; &gt; result[:5]</span><br><span class="line">&gt; &gt; &gt; (23, 555) 3.967617</span><br><span class="line">&gt; &gt; &gt; (33, 3363) 4.073205</span><br><span class="line">&gt; &gt; &gt; (36, 2355) 3.903497</span><br><span class="line">&gt; &gt; &gt; (53, 3605) 2.948003</span><br><span class="line">&gt; &gt; &gt; (62, 1488) 2.606582</span><br><span class="line">&gt; &gt; &gt; dtype: float64</span><br><span class="line">&gt; &gt; &gt; result.corr(check_ser.reindex(result.index))</span><br><span class="line">&gt; &gt; &gt; 0.436227437429696</span><br><span class="line">&gt; &gt; &gt; (result-check_ser.reindex(result.index)).abs().describe()#推荐期望与实际评价之差的绝对值</span><br><span class="line">&gt; &gt; &gt; count 862.000000</span><br><span class="line">&gt; &gt; &gt; mean 0.785337</span><br><span class="line">&gt; &gt; &gt; std 0.605865</span><br><span class="line">&gt; &gt; &gt; min 0.000000</span><br><span class="line">&gt; &gt; &gt; 25% 0.290384</span><br><span class="line">&gt; &gt; &gt; 50% 0.686033</span><br><span class="line">&gt; &gt; &gt; 75% 1.132256</span><br><span class="line">&gt; &gt; &gt; max 3.629720</span><br><span class="line">&gt; &gt; &gt; dtype: float64</span><br></pre></td></tr></table></figure>
+<p>862 的样本量能达到 0.436 的相关系数，应该说结果还不错。如果一开始没有滤掉评价数小于 200 的用户的话，那么首先在计算 corr 时会明显感觉时间变长，其次 result 中的样本量会很小，大约 200+个。但因为样本量变小的缘故，相关系数可以提升到 0.5~0.6 。</p>
+<p>另外从期望与实际评价的差的绝对值的统计量上看，数据也比较理想。</p>
+<p>2.2.4 实现推荐<br>在上面的检验，尤其是平均加权的部分做完后，推荐的实现就没有什么新东西了。<br>首先在原始未阉割的 data 数据上重做一份 corr 表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">&gt; &gt; &gt; corr = data.T.corr(min_periods=200)</span><br><span class="line">&gt; &gt; &gt; corr_clean = corr.dropna(how=&apos;all&apos;)</span><br><span class="line">&gt; &gt; &gt; corr_clean = corr_clean.dropna(axis=1,how=&apos;all&apos;)</span><br><span class="line"></span><br><span class="line">我们在 corr_clean 中随机挑选一位用户为他做一个推荐列表：</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; lucky = np.random.permutation(corr_clean.index)[0]</span><br><span class="line">&gt; &gt; &gt; gift = data.ix[lucky]</span><br><span class="line">&gt; &gt; &gt; gift = gift[gift.isnull()] #现在 gift 是一个全空的序列</span><br><span class="line"></span><br><span class="line">最后的任务就是填充这个 gift：</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; corr_lucky = corr_clean[lucky].drop(lucky)#lucky 与其他用户的相关系数 Series，不包含 lucky 自身</span><br><span class="line">&gt; &gt; &gt; corr_lucky = corr_lucky[corr_lucky&gt;0.1].dropna() #筛选相关系数大于 0.1 的用户</span><br><span class="line">&gt; &gt; &gt; for movie in gift.index: #遍历所有 lucky 没看过的电影</span><br><span class="line"></span><br><span class="line">        prediction = []</span><br><span class="line">        for other in corr_lucky.index:  #遍历所有与lucky 相关系数大于 0.1 的用户</span><br><span class="line">            if not np.isnan(data.ix[other,movie]):</span><br><span class="line">                prediction.append((data.ix[other,movie],corr_clean[lucky][other]))</span><br><span class="line">        if prediction:</span><br><span class="line">            gift[movie] = sum([value*weight for value,weight in prediction])/sum([pair[1] for pair in prediction])</span><br><span class="line"></span><br><span class="line">&gt; &gt; &gt; gift.dropna().order(ascending=False) #将 gift 的非空元素按降序排列</span><br><span class="line">&gt; &gt; &gt; movie_id</span><br><span class="line">&gt; &gt; &gt; 3245 5.000000</span><br><span class="line">&gt; &gt; &gt; 2930 5.000000</span><br><span class="line">&gt; &gt; &gt; 2830 5.000000</span><br><span class="line">&gt; &gt; &gt; 2569 5.000000</span><br><span class="line">&gt; &gt; &gt; 1795 5.000000</span><br><span class="line">&gt; &gt; &gt; 981 5.000000</span><br><span class="line">&gt; &gt; &gt; 696 5.000000</span><br><span class="line">&gt; &gt; &gt; 682 5.000000</span><br><span class="line">&gt; &gt; &gt; 666 5.000000</span><br><span class="line">&gt; &gt; &gt; 572 5.000000</span><br><span class="line">&gt; &gt; &gt; 1420 5.000000</span><br><span class="line">&gt; &gt; &gt; 3338 4.845331</span><br><span class="line">&gt; &gt; &gt; 669 4.660464</span><br><span class="line">&gt; &gt; &gt; 214 4.655798</span><br><span class="line">&gt; &gt; &gt; 3410 4.624088</span><br><span class="line">&gt; &gt; &gt; ...</span><br><span class="line">&gt; &gt; &gt; 2833 1</span><br><span class="line">&gt; &gt; &gt; 2777 1</span><br><span class="line">&gt; &gt; &gt; 2039 1</span><br><span class="line">&gt; &gt; &gt; 1773 1</span><br><span class="line">&gt; &gt; &gt; 1720 1</span><br><span class="line">&gt; &gt; &gt; 1692 1</span><br><span class="line">&gt; &gt; &gt; 1538 1</span><br><span class="line">&gt; &gt; &gt; 1430 1</span><br><span class="line">&gt; &gt; &gt; 1311 1</span><br><span class="line">&gt; &gt; &gt; 1164 1</span><br><span class="line">&gt; &gt; &gt; 843 1</span><br><span class="line">&gt; &gt; &gt; 660 1</span><br><span class="line">&gt; &gt; &gt; 634 1</span><br><span class="line">&gt; &gt; &gt; 591 1</span><br><span class="line">&gt; &gt; &gt; 56 1</span><br><span class="line">&gt; &gt; &gt; Name: 3945, Length: 2991, dtype: float64</span><br></pre></td></tr></table></figure>
+<p>3、CF 协同过滤算法补充<br>3.1、计算距离的数学公式<br>欧几里德距离（Euclidean Distance）<br>最初用于计算欧几里德空间中两个点的距离，假设 x，y 是 n 维空间的两个点，它们之间的欧几里德距离是：</p>
+<p>可以看出，当 n=2 时，欧几里德距离就是平面上两个点的距离。<br>当用欧几里德距离表示相似度，一般采用以下公式进行转换：距离越小，相似度越大</p>
+<p>皮尔逊相关系数（Pearson Correlation Coefficient）<br>皮尔逊相关系数一般用于计算两个定距变量间联系的紧密程度，它的取值在 [-1，+1] 之间。</p>
+<p>sx, sy 是 x 和 y 的样品标准偏差。<br>Cosine 相似度（Cosine Similarity）<br>Cosine 相似度被广泛应用于计算文档数据的相似度：</p>
+<p>Tanimoto 系数（Tanimoto Coefficient）<br>Tanimoto 系数也称为 Jaccard 系数，是 Cosine 相似度的扩展，也多用于计算文档数据的相似度：</p>
+<p>相似邻居的计算<br>介绍完相似度的计算方法，下面我们看看如何根据相似度找到用户-物品的邻居，常用的挑选邻居的原则可以分为两类：</p>
+<p>1)固定数量的邻居：K-neighborhoods 或者 Fix-size neighborhoods<br>不论邻居的“远近”，只取最近的 K 个，作为其邻居。<br>如下图中的 A，假设要计算点 1 的 5- 邻居，那么根据点之间的距离，我们取最近的 5 个点，分别是点 2，点 3，点 4，点 7 和点 5。但很明显我们可以看出，这种方法对于孤立点的计算效果不好，因为要取固定个数的邻居，当它附近没有足够多比较相似的点，就被迫取一些不太相似的点作为邻居，这样就影响了邻居相似的程度，比如下图中，点 1 和点 5 其实并不是很相似。</p>
+<p>2)基于相似度门槛的邻居：Threshold-based neighborhoods<br>与计算固定数量的邻居的原则不同，基于相似度门槛的邻居计算是对邻居的远近进行最大值的限制，落在以当前点为中心，距离为 K 的区域中的所有点都作为当前点的邻居，这种方法计算得到的邻居个数不确定，但相似度不会出现较大的误差。<br>如下图中的 B，从点 1 出发，计算相似度在 K 内的邻居，得到点 2，点 3，点 4 和点 7，这种方法计算出的邻居的相似度程度比前一种优，尤其是对孤立点的处理。</p>
+<p>图：相似邻居计算示意图</p>
+<p>3.2、协同过滤算法常见问题<br>虽然协同过滤是一种比较省事的推荐方法，但在某些场合下并不如利用元信息推荐好用。协同过滤会遇到的两个常见问题是 1)稀疏性问题——因用户做出评价过少，导致算出的相关系数不准确 2)冷启动问题——因物品获得评价过少，导致无“权”进入推荐列表中<br>都是样本量太少导致的（上例中也使用了至少 200 的有效重叠评价数）。<br>因此在对于新用户和新物品进行推荐时，使用一些更一般性的方法效果可能会更好。比如：<br> 给新用户推荐更多平均得分超高的电影；<br> 把新电影推荐给喜欢类似电影（如具有相同导演或演员）的人。<br>后面这种做法需要维护一个物品分类表，这个表既可以是基于物品元信息划分的，也可是通过聚类得到的。</p>
 
     </div>
 
@@ -338,7 +428,7 @@
     <strong>本文作者： </strong>AILab-aida</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/">https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/</a>
+    <a href="https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/" title="协同过滤推荐算法">https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
@@ -348,6 +438,15 @@
       
 
       <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
 
         
 
@@ -434,7 +533,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
