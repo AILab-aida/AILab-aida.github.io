@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Posted on 2019-02-22 | Modified: 2019-03-17 | In Notes | 0 |Words count in article: 1,347 | Reading time ≈ 6Python 库简介 - 机器学习库专题。123456789101112131415161718#回归from sklearn.linear_model import LinearRe">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PythonLib - 机器学习库专题">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="Posted on 2019-02-22 | Modified: 2019-03-17 | In Notes | 0 |Words count in article: 1,347 | Reading time ≈ 6Python 库简介 - 机器学习库专题。123456789101112131415161718#回归from sklearn.linear_model import LinearRe">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://vel.life/Intro-to-Python-Libs/PythonLib.png">
+<meta property="og:image" content="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/sklearnsheet.png">
+<meta property="og:image" content="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/ml_map.png">
+<meta property="og:image" content="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/Keras_Cheat_Sheet_Python.png">
+<meta property="og:updated_time" content="2019-10-28T09:07:13.361Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PythonLib - 机器学习库专题">
+<meta name="twitter:description" content="Posted on 2019-02-22 | Modified: 2019-03-17 | In Notes | 0 |Words count in article: 1,347 | Reading time ≈ 6Python 库简介 - 机器学习库专题。123456789101112131415161718#回归from sklearn.linear_model import LinearRe">
+<meta name="twitter:image" content="https://vel.life/Intro-to-Python-Libs/PythonLib.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>PythonLib - 机器学习库专题 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">PythonLib - 机器学习库专题
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 16:03:18 / 修改时间：17:07:13" itemprop="dateCreated datePublished" datetime="2019-10-28T16:03:18+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Posted on 2019-02-22 | Modified: 2019-03-17 | In <a href="https://vel.life/categories/Notes/" target="_blank" rel="noopener">Notes</a> | <a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/#comments" target="_blank" rel="noopener">0</a> |</p><p>Words count in article: 1,347 | Reading time ≈ 6</p><p><a href="https://vel.life/Intro-to-Python-Libs/PythonLib.png" target="_blank" rel="noopener"><img src="https://vel.life/Intro-to-Python-Libs/PythonLib.png" alt></a></p><p>Python 库简介 - 机器学习库专题。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#回归</span><br><span class="line">from sklearn.linear_model import LinearRegression #线性回归</span><br><span class="line">from sklearn.linear_model import Ridge #岭回归，可选alpha=.5</span><br><span class="line">from sklearn.linear_model import BayesianRidge #贝叶斯岭回归</span><br><span class="line">from sklearn.linear_model import Lasso #Lasso回归</span><br><span class="line">from sklearn.tree import DecisionTreeRegressor #决策树回归</span><br><span class="line">from sklearn.ensemble import RandomForestRegressor #随机森林回归</span><br><span class="line">#分类</span><br><span class="line">from sklearn.linear_model import LogisticRegression #逻辑回归</span><br><span class="line">from sklearn.svm import SVC, LinearSVC #支持向量机</span><br><span class="line">from sklearn.ensemble import RandomForestClassifier #随机森林分类器</span><br><span class="line">from sklearn.neighbors import KNeighborsClassifier #K近邻</span><br><span class="line">from sklearn.naive_bayes import GaussianNB</span><br><span class="line">from sklearn.linear_model import Perceptron #感知机</span><br><span class="line">from sklearn.linear_model import SGDClassifier #随机梯度下降分类器</span><br><span class="line">from sklearn.tree import DecisionTreeClassifier #决策树分类器</span><br><span class="line">#特征工程</span><br><span class="line">import sklearn.preprocessing as preprocessing</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+<blockquote>
+<p>参考：<a href="https://scikit-learn.org/stable/documentation.html" target="_blank" rel="noopener">Ducumentation</a>，<a href="https://scikit-learn.org/stable/user_guide.html#user-guide" target="_blank" rel="noopener"><strong>User Guide</strong></a>，<a href="http://sklearn.apachecn.org/#/" target="_blank" rel="noopener"><strong>中文文档</strong></a>，<a href="https://scikit-learn.org/stable/modules/classes.html" target="_blank" rel="noopener"><strong>API 参考</strong></a></p>
+<p><a href="https://www.cnblogs.com/pinard/p/6026343.html" target="_blank" rel="noopener">scikit-learn 线性回归算法库小结</a></p>
+<p><a href="https://kite.com/python/docs/sklearn" target="_blank" rel="noopener">https://kite.com/python/docs/sklearn</a></p>
+<p><a href="http://www.baidu.com/link?url=_ugAETHKoZZ_mDBqSJq4aDdERDcHgLf3-Uqiyp_wzI9Q2sjaL62niUw1vGv9cnKjiuxeuJqB9a3JBJCXbyh_Xgl6yDpBpt8yY2Yee2VbAly&amp;wd=&amp;eqid=e9008d6f00029e41000000065c6f9641" target="_blank" rel="noopener"><em>sklearn</em> 库的学习 - yeal - CSDN 博客</a></p>
+<p>Source: <a href="http://blog.yhat.com/posts/scikit-learn-cheat-sheet.html" target="_blank" rel="noopener">yhat</a></p>
+</blockquote>
+<p><a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/sklearnsheet.png" target="_blank" rel="noopener"><img src="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/sklearnsheet.png" alt></a></p>
+<blockquote>
+<p>Source: <a href="https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html" target="_blank" rel="noopener">map</a> （蓝色圆框是决策条件，绿色方框是可选算法）</p>
+</blockquote>
+<p><a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/ml_map.png" target="_blank" rel="noopener"><img src="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/ml_map.png" alt></a></p>
+<h2 id="数据与预处理-Preprocessing"><a href="#数据与预处理-Preprocessing" class="headerlink" title="数据与预处理 Preprocessing"></a><a href="#数据与预处理-Preprocessing" title="数据与预处理 Preprocessing"></a>数据与预处理 <a href="https://scikit-learn.org/stable/modules/preprocessing.html#preprocessing" target="_blank" rel="noopener">Preprocessing</a></h2><h3 id="sklearn-datasets-Datasets"><a href="#sklearn-datasets-Datasets" class="headerlink" title="sklearn.datasets: Datasets"></a><a href="#sklearn-datasets-Datasets" title="sklearn.datasets: Datasets"></a><a href="https://scikit-learn.org/stable/modules/classes.html#module-sklearn.datasets" target="_blank" rel="noopener"><code>sklearn.datasets</code></a>: Datasets</h3><p>主要分成三类方法。</p>
+<ul>
+<li><a href="https://scikit-learn.org/stable/datasets/index.html#toy-datasets" target="_blank" rel="noopener"><strong>The dataset loaders</strong></a>：加载小型<strong>标准数据集</strong>。<ul>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_boston.html#sklearn.datasets.load_boston" target="_blank" rel="noopener"><code>load_boston</code></a>([return_X_y]) 波士顿房价回归</li>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html#sklearn.datasets.load_iris" target="_blank" rel="noopener"><code>load_iris</code></a>([return_X_y]) 鸢尾花分类</li>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_linnerud.html#sklearn.datasets.load_linnerud" target="_blank" rel="noopener"><code>load_linnerud</code></a>([return_X_y]) 多元回归</li>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html#sklearn.datasets.load_digits" target="_blank" rel="noopener"><code>load_digits</code></a>([n_class, return_X_y]) 手写数字分类</li>
+<li>这些数据集可用于快速验证算法性能。Seaborn 也有类似方法：<code>seaborn.load_dataset(&#39;datasetName&#39;)</code></li>
+</ul>
+</li>
+<li><a href="https://scikit-learn.org/stable/datasets/index.html#real-world-datasets" target="_blank" rel="noopener"><strong>The dataset fetchers</strong></a>：下载和加载<strong>大型数据集</strong>。</li>
+<li><a href="https://scikit-learn.org/stable/datasets/index.html#sample-generators" target="_blank" rel="noopener"><strong>The dataset generation functions</strong></a>：生成<strong>模拟数据集</strong>。</li>
+</ul>
+<blockquote>
+<p>默认返回一个类字典，也可用<code>.</code>引用。包含：‘data’（数据），‘target’（标签），‘DESCR’（描述），‘filename’（文件地址）等。</p>
+<p>如果加参数<code>default=False</code>则返回类型是<a href="http://www.runoob.com/python/python-tuples.html" target="_blank" rel="noopener">元组</a><code>tuple(X,y)</code>，包含一个数据集矩阵<code>data</code>和标签向量<code>target</code>。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">from sklearn import datasets</span><br><span class="line"></span><br><span class="line">df = datasets.load_iris()</span><br><span class="line">print(df[&apos;data&apos;])</span><br><span class="line">print(df.target)</span><br><span class="line">print(df.target_names)</span><br><span class="line">print(df[&apos;feature_names&apos;])</span><br><span class="line">print(df.DESCR)</span><br></pre></td></tr></table></figure>
+<h2 id="降维-Dimensionality-reduction"><a href="#降维-Dimensionality-reduction" class="headerlink" title="降维 Dimensionality reduction"></a><a href="#降维-Dimensionality-reduction" title="降维 Dimensionality reduction"></a>降维 <a href="https://scikit-learn.org/stable/modules/decomposition.html#decompositions" target="_blank" rel="noopener">Dimensionality reduction</a></h2><h2 id="分类-Classification"><a href="#分类-Classification" class="headerlink" title="分类 Classification"></a><a href="#分类-Classification" title="分类 Classification"></a>分类 <a href="https://scikit-learn.org/stable/supervised_learning.html#supervised-learning" target="_blank" rel="noopener">Classification</a></h2><h2 id="回归-Regression"><a href="#回归-Regression" class="headerlink" title="回归 Regression"></a><a href="#回归-Regression" title="回归 Regression"></a>回归 <a href="https://scikit-learn.org/stable/supervised_learning.html#supervised-learning" target="_blank" rel="noopener">Regression</a></h2><h2 id="聚类-Clustering"><a href="#聚类-Clustering" class="headerlink" title="聚类 Clustering"></a><a href="#聚类-Clustering" title="聚类 Clustering"></a>聚类 <a href="https://scikit-learn.org/stable/modules/clustering.html#clustering" target="_blank" rel="noopener">Clustering</a></h2><h2 id="模型选择-Model-selection"><a href="#模型选择-Model-selection" class="headerlink" title="模型选择 Model selection"></a><a href="#模型选择-Model-selection" title="模型选择 Model selection"></a>模型选择 <a href="https://scikit-learn.org/stable/model_selection.html#model-selection" target="_blank" rel="noopener">Model selection</a></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#回归</span><br><span class="line">from xgboost import XGBRegressor #xgboost回归</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://xgboost.readthedocs.io/en/latest/" target="_blank" rel="noopener">XGBoost Documentation — xgboost 0.81 documentation</a></p>
+<p><a href="http://xgboost.apachecn.org/" target="_blank" rel="noopener">XGBoost 中文文档 - ApacheCN</a></p>
+<p><a href="https://xgboost.readthedocs.io/en/latest/tutorials/model.html" target="_blank" rel="noopener">introduction to xgboost</a></p>
+<p><a href="http://djjowfy.com/2017/08/01/XGBoost%E7%9A%84%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">XGBoost 的原理</a></p>
+<p><a href="https://arxiv.org/pdf/1603.02754v1.pdf" target="_blank" rel="noopener">XGBoost: A Scalable Tree Boosting System</a> （Paper）</p>
+<p><a href="https://homes.cs.washington.edu/~tqchen/pdf/BoostedTree.pdf" target="_blank" rel="noopener">Introduction to Boosted Trees</a> （PPT）</p>
+</blockquote>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://lightgbm.readthedocs.io/en/latest/" target="_blank" rel="noopener">Welcome to LightGBM’s documentation! — LightGBM documentation</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=3&amp;ved=2ahUKEwid3471mO3gAhVbF4gKHcb2C7EQFjACegQICBAB&amp;url=http%3A%2F%2Flightgbm.apachecn.org%2F&amp;usg=AOvVaw0e_9J0jEeZtOEgiecjyXTi" target="_blank" rel="noopener">LightGBM 中文文档 - ApacheCN</a></p>
+<p>参考资料：</p>
+<p><a href="https://mlln.cn/2015/04/19/Statsmodels%EF%BC%9A[1]%E6%A8%A1%E5%9D%97%E7%AE%80%E4%BB%8B/" target="_blank" rel="noopener">Statsmodels：模块简介</a></p>
+<p><a href="https://www.statsmodels.org/" target="_blank" rel="noopener"><strong>Documentation</strong></a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/22692029" target="_blank" rel="noopener">Python Statsmodels 统计包之 OLS 回归</a></p>
+<p><a href="https://www.google.com.hk/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=9&amp;ved=2ahUKEwjRn7uUwPngAhW6xYsBHTH7B5sQFjAIegQIBRAB&amp;url=https%3A%2F%2Fwww.ichdata.com%2Fuse-python-to-do-time-series.html&amp;usg=AOvVaw3ZkdOg8SFcPXwmvLatbYmQ" target="_blank" rel="noopener">Python 中做时间序列分析 | GA 小站</a></p>
+<blockquote>
+<p>《<a href="https://link.jianshu.com/?t=http://www.cnblogs.com/foley/p/5582358.html" target="_blank" rel="noopener">python 时间序列分析</a>》或者 <a href="https://link.jianshu.com/?t=https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/" target="_blank" rel="noopener"><em>Complete guide to create a Time Series Forecast (with Codes in Python)</em></a>【翻译版《<a href="https://cloud.tencent.com/developer/article/1059136" target="_blank" rel="noopener">时间序列预测全攻略（附带 Python 代码）</a>》】</p>
+</blockquote>
+</blockquote>
+<h2 id="Citation"><a href="#Citation" class="headerlink" title="Citation"></a><a href="#Citation" title="Citation"></a>Citation</h2><p>When using statsmodels in scientific publication, please consider using the following citation:</p>
+<blockquote>
+<p>Seabold, Skipper, and Josef Perktold. “<a href="http://conference.scipy.org/proceedings/scipy2010/pdfs/seabold.pdf" target="_blank" rel="noopener">Statsmodels: Econometric and statistical modeling with python.</a>” <em>Proceedings of the 9th Python in Science Conference.</em> 2010.</p>
+</blockquote>
+<p>Bibtex entry:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@inproceedings&#123;seabold2010statsmodels,</span><br><span class="line">  title=&#123;Statsmodels: Econometric and statistical modeling with python&#125;,</span><br><span class="line">  author=&#123;Seabold, Skipper and Perktold, Josef&#125;,</span><br><span class="line">  booktitle=&#123;9th Python in Science Conference&#125;,</span><br><span class="line">  year=&#123;2010&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://pyflux.readthedocs.io/" target="_blank" rel="noopener">Introduction — PyFlux 0.4.7 documentation</a></p>
+<p><a href="https://www.google.com.hk/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=10&amp;ved=2ahUKEwjRn7uUwPngAhW6xYsBHTH7B5sQFjAJegQIAxAB&amp;url=https%3A%2F%2Fwww.jianshu.com%2Fp%2Fcced6617b423&amp;usg=AOvVaw1SGM33BMJw-hNvYnx4sJeA" target="_blank" rel="noopener">AR(I)MA 时间序列建模过程——步骤和 python 代码 - 简书</a></p>
+</blockquote>
+<p>（待续）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import tensorflow as tf</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考 <a href="http://www.tensorfly.cn/tfdoc/get_started/introduction.html" target="_blank" rel="noopener">TensorFlow 文档</a>。（<a href="https://feisky.xyz/machine-learning/tensorflow/" target="_blank" rel="noopener">More</a>）</p>
+</blockquote>
+<p>Tensor 是 Google 开源的<strong>深度学习框架</strong>，如其名 “张量流”，即以处理张量形式的数据流见长。</p>
+<p>（待续）</p>
+<h2 id="Theano"><a href="#Theano" class="headerlink" title="Theano"></a><a href="#Theano" title="Theano"></a>Theano</h2><blockquote>
+<p><a href="http://deeplearning.net/software/theano/" target="_blank" rel="noopener">Welcome — Theano 1.0.0 documentation - Deep Learning</a></p>
+<p><a href="https://morvanzhou.github.io/tutorials/machine-learning/theano/" target="_blank" rel="noopener">Theano 教程系列 | 莫烦 Python</a></p>
+</blockquote>
+<p>偏重符号代数处理（<a href="https://www.zhihu.com/question/35485591" target="_blank" rel="noopener">from</a>），学术性更强。</p>
+<p>（待续）</p>
+<h2 id="Tflearn"><a href="#Tflearn" class="headerlink" title="Tflearn"></a><a href="#Tflearn" title="Tflearn"></a>Tflearn</h2><blockquote>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwiMt-fIycvgAhWxF6YKHasWAecQFjAAegQIChAB&amp;url=http%3A%2F%2Ftflearn.org%2F&amp;usg=AOvVaw0PXX321GyR9OYQJaFiQ82b" target="_blank" rel="noopener">TFLearn | TensorFlow Deep Learning Library</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwiMt-fIycvgAhWxF6YKHasWAecQFjABegQICRAB&amp;url=https%3A%2F%2Fwww.jianshu.com%2Fp%2F367f691eb439&amp;usg=AOvVaw2bsKa0ltbljO5uAHeX0Yse" target="_blank" rel="noopener">【深度学习 Hello World 系列（一）】 用 TFLearn 实现 MNIST - 简书</a></p>
+</blockquote>
+<p>（待续）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">form tensorflow import keras</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考： <a href="https://keras.io/zh/" target="_blank" rel="noopener">Keras 中文文档</a></p>
+<p>Source: <a href="https://www.datacamp.com/community/blog/keras-cheat-sheet" target="_blank" rel="noopener">datacamp</a></p>
+</blockquote>
+<p><a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/Keras_Cheat_Sheet_Python.png" target="_blank" rel="noopener"><img src="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/Keras_Cheat_Sheet_Python.png" alt></a></p>
+<p>（待续）</p>
+<blockquote>
+<p>参考：<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwjHvsuf5MrgAhVbyYsBHUXfDCIQFjABegQIDRAB&amp;url=https%3A%2F%2Fpytorch.org%2F&amp;usg=AOvVaw2mABY6VbqZdRJYnleMzDSb" target="_blank" rel="noopener">PyTorch</a>， <a href="https://pytorch-cn.readthedocs.io/zh/latest/" target="_blank" rel="noopener">PyTorch 中文文档</a></p>
+<p><a href="https://oldpan.me/archives/pytorch-torch-relation" target="_blank" rel="noopener">浅谈 Pytorch 与 Torch 的关系</a></p>
+<p><a href="https://github.com/zergtant/pytorch-handbook" target="_blank" rel="noopener">PyTorch 中文手册（pytorch handbook）</a></p>
+</blockquote>
+<p>（待续）</p>
+<blockquote>
+<p>参考：<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwjuldy-48LgAhWMFIgKHTttCSQQFjABegQIBBAB&amp;url=http%3A%2F%2Fcaffe.berkeleyvision.org%2Ftutorial%2F&amp;usg=AOvVaw2Gdfnj3xwbWyE_wJ3TPAof" target="_blank" rel="noopener">Caffe | Caffe Tutorial</a>，<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwjuldy-48LgAhWMFIgKHTttCSQQFjAAegQIChAB&amp;url=http%3A%2F%2Fcaffe.berkeleyvision.org%2F&amp;usg=AOvVaw1ROYCBhBGt4qPm7F8UXTnG" target="_blank" rel="noopener">Caffe | Deep Learning Framework</a></p>
+</blockquote>
+<p>（待续）</p>
+<h2 id="NVCaffe"><a href="#NVCaffe" class="headerlink" title="NVCaffe"></a><a href="#NVCaffe" title="NVCaffe"></a>NVCaffe</h2><blockquote>
+<p>参考：<a href="http://docs.nvidia.com/deeplearning/dgx/caffe-user-guide/index.html" target="_blank" rel="noopener">NVCaffe User Guide :: Deep Learning Frameworks Documentation</a></p>
+<blockquote>
+<p>NVCaffe™ is an NVIDIA-maintained fork of BVLC Caffe tuned for NVIDIA GPUs, particularly in <strong>multi-GPU</strong> configurations.</p>
+</blockquote>
+<p>参考资料：</p>
+<p><a href="https://mxnet.apache.org/" target="_blank" rel="noopener">MXNet: A Scalable Deep Learning Framework</a></p>
+<p><a href="https://mxnet.apache.org/versions/master/tutorials/index.html" target="_blank" rel="noopener">Documentation</a></p>
+</blockquote>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="http://www.paddlepaddle.org/" target="_blank" rel="noopener">http://www.paddlepaddle.org/</a></p>
+<p>参考资料：</p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwjh-ZG3jsXgAhUqyosBHehrBxkQFjAAegQIDRAB&amp;url=https%3A%2F%2Fwww.nltk.org%2F&amp;usg=AOvVaw1cuWsEY8ZUmW75nSDfXo7m" target="_blank" rel="noopener">Natural Language Toolkit — NLTK 3.4 documentation</a>，<a href="https://www.nltk.org/book/" target="_blank" rel="noopener">NLTK Book</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=4&amp;ved=2ahUKEwjh-ZG3jsXgAhUqyosBHehrBxkQFjADegQIChAB&amp;url=https%3A%2F%2Fwww.jianshu.com%2Fp%2F0e1d51a7549d&amp;usg=AOvVaw33EAqm9XUscu9CWfPta9pj" target="_blank" rel="noopener">Python 数据科学入门教程：NLTK - 简书</a></p>
+</blockquote>
+<p>自然语言处理库。</p>
+<p>（待续）</p>
+<h2 id="Jieba"><a href="#Jieba" class="headerlink" title="Jieba"></a><a href="#Jieba" title="Jieba"></a>Jieba</h2><blockquote>
+<p>参考资料：</p>
+<p><a href="https://pypi.org/project/jieba/" target="_blank" rel="noopener">jieba - PyPI</a></p>
+<p><a href="https://github.com/fxsjy/jieba" target="_blank" rel="noopener">GitHub - fxsjy/jieba: 结巴中文分词</a></p>
+</blockquote>
+<p>中文分词。</p>
+<h2 id="Jiagu"><a href="#Jiagu" class="headerlink" title="Jiagu"></a><a href="#Jiagu" title="Jiagu"></a>Jiagu</h2><blockquote>
+<p>参考资料：</p>
+<p><a href="https://github.com/ownthink/Jiagu%EF%BC%8C[%E6%80%9D%E7%9F%A5](https://www.ownthink.com/" target="_blank" rel="noopener">https://github.com/ownthink/Jiagu，[思知](https://www.ownthink.com/</a>&gt;)</p>
+<blockquote>
+<p>Jiagu 以 <strong>BiLSTM</strong> 等模型为基础，使用大规模语料训练而成。将提供中文分词、词性标注、命名实体识别、关键词抽取、文本摘要、新词发现等常用自然语言处理功能。参考了各大工具优缺点制作，将 Jiagu 回馈给大家。</p>
+</blockquote>
+</blockquote>
+<p>使用深度学习模型，效率较慢。（<a href="https://github.com/ownthink/evaluation" target="_blank" rel="noopener">性能评估</a>）</p>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=3&amp;ved=2ahUKEwiu_djpysbgAhUN6LwKHVONACIQFjACegQICxAB&amp;url=https%3A%2F%2Fgithub.com%2Fexplosion%2FspaCy&amp;usg=AOvVaw0bHs688uC8meknU233KKPv" target="_blank" rel="noopener">GitHub - explosion/spaCy: Industrial-strength Natural Language …</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwiu_djpysbgAhUN6LwKHVONACIQFjABegQIDBAB&amp;url=https%3A%2F%2Fspacy.io%2Fusage%2F&amp;usg=AOvVaw37a68P1esXwvUNOclDy9-W" target="_blank" rel="noopener">spaCy Usage Documentation</a></p>
+<p><a href="http://www.52nlp.cn/tag/python-spacy" target="_blank" rel="noopener">Python spaCy | 我爱自然语言处理</a></p>
+<p><a href="https://github.com/wshuyi/demo-spacy-text-processing" target="_blank" rel="noopener"><strong>如何用 Python 处理自然语言？（Spacy 与 Word Embedding）</strong></a></p>
+</blockquote>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwjfoc2z2sbgAhVHxrwKHWn0ABUQFjAAegQIChAB&amp;url=https%3A%2F%2Fradimrehurek.com%2Fgensim%2F&amp;usg=AOvVaw1rpCBt05Ozm36wNfESu3tq" target="_blank" rel="noopener">gensim: Topic modelling for humans - Radim Řehůřek</a></p>
+</blockquote>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwjwtf_o1sbgAhUe97wKHXYXAQEQFjAAegQICRAB&amp;url=https%3A%2F%2Fgithub.com%2Fhankcs%2FHanLP&amp;usg=AOvVaw3rYZOoGiwNtO-V2TO7pGcK" target="_blank" rel="noopener">GitHub - hankcs/HanLP: 自然语言处理中文分词词性标注命名实体识别 …</a></p>
+<p><a href="http://hanlp.com/" target="_blank" rel="noopener">HanLP 在线演示</a></p>
+<p>参考资料：</p>
+<p><a href="https://github.com/tensorflow/lingvo" target="_blank" rel="noopener">lingvo</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwjFwYaI4efgAhWFJaYKHQ8XALMQFjAAegQIBBAB&amp;url=https%3A%2F%2Fjuejin.im%2Fpost%2F5c75f05bf265da2dca387111&amp;usg=AOvVaw23jwNxSIiGaIO1M0KtX9Pq" target="_blank" rel="noopener">各种 NLP 操作难实现？谷歌开源序列建模框架 Lingvo - 掘金</a></p>
+<p><a href="https://arxiv.org/pdf/1902.08295.pdf" target="_blank" rel="noopener">Lingvo: a Modular and Scalable Framework for Sequence-to-Sequence Modeling</a></p>
+<p>参考资料：</p>
+<p><a href="https://www.microsoft.com/en-us/cognitive-toolkit/" target="_blank" rel="noopener">Microsoft Cognitive Toolkit (CNTK)</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/28047133" target="_blank" rel="noopener">让我们一起来学习 CNTK 吧 - 知乎</a></p>
+</blockquote>
+<p>语音识别。</p>
+<p>（待续）</p>
+<blockquote>
+<p>参考资料：</p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=1&amp;ved=2ahUKEwij3KmZ-bvgAhXac3AKHWBTCdkQFjAAegQIARAB&amp;url=https%3A%2F%2Fpypi.org%2Fproject%2Fopencv-python%2F&amp;usg=AOvVaw3ZlQ0giNOPompJrAzIptzx" target="_blank" rel="noopener">opencv-python · PyPI</a>，<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwij3KmZ-bvgAhXac3AKHWBTCdkQFjABegQIABAB&amp;url=http%3A%2F%2Fopencv-python-tutroals.readthedocs.io%2Fen%2Flatest%2Fpy_tutorials%2Fpy_tutorials.html&amp;usg=AOvVaw1cAr6qg62bEPQrsy6wppky" target="_blank" rel="noopener">OpenCV-Python Tutorials - Read the Docs</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=5&amp;ved=2ahUKEwiRuIrM-LvgAhVOA4gKHf8vCl0QFjAEegQICRAB&amp;url=https%3A%2F%2Fgithub.com%2Fopencv&amp;usg=AOvVaw3QM_rnw2NdMkNTUrZ6aa4X" target="_blank" rel="noopener">OpenCV · GitHub</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwiF54Ti-LvgAhWYUd4KHSb4AwYQFjABegQIARAB&amp;url=http%3A%2F%2Fwiki.opencv.org.cn%2Findex.php%2F%25E9%25A6%2596%25E9%25A1%25B5&amp;usg=AOvVaw2PDb6q0oAO8SjadIngHhp_" target="_blank" rel="noopener">OpenCV 中文指南</a></p>
+<p><a href="https://ptorch.com/docs/6/" target="_blank" rel="noopener">OpenCV-Python 中文文档</a></p>
+<p><a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=6&amp;ved=2ahUKEwij3KmZ-bvgAhXac3AKHWBTCdkQFjAFegQIBBAB&amp;url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F24425116&amp;usg=AOvVaw2LV9aDk5pqcnEHMRAbBFmv" target="_blank" rel="noopener">给深度学习入门者的 Python 快速教程 - 番外篇之 Python-OpenCV - 知乎</a></p>
+</blockquote>
+<p>（待续）</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/" title="PythonLib - 机器学习库专题">https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/Python库使用简介/" rel="next" title="Python库使用简介">
+                  <i class="fa fa-chevron-left"></i> Python库使用简介
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/SVM 支持向量机/" rel="prev" title="SVM 支持向量机">
+                  SVM 支持向量机 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据与预处理-Preprocessing"><span class="nav-number">1.</span> <span class="nav-text">数据与预处理 Preprocessing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sklearn-datasets-Datasets"><span class="nav-number">1.1.</span> <span class="nav-text">sklearn.datasets: Datasets</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#降维-Dimensionality-reduction"><span class="nav-number">2.</span> <span class="nav-text">降维 Dimensionality reduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分类-Classification"><span class="nav-number">3.</span> <span class="nav-text">分类 Classification</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回归-Regression"><span class="nav-number">4.</span> <span class="nav-text">回归 Regression</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#聚类-Clustering"><span class="nav-number">5.</span> <span class="nav-text">聚类 Clustering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模型选择-Model-selection"><span class="nav-number">6.</span> <span class="nav-text">模型选择 Model selection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Citation"><span class="nav-number">7.</span> <span class="nav-text">Citation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Theano"><span class="nav-number">8.</span> <span class="nav-text">Theano</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tflearn"><span class="nav-number">9.</span> <span class="nav-text">Tflearn</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NVCaffe"><span class="nav-number">10.</span> <span class="nav-text">NVCaffe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jieba"><span class="nav-number">11.</span> <span class="nav-text">Jieba</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jiagu"><span class="nav-number">12.</span> <span class="nav-text">Jiagu</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'd304642a6a6c3dab4f53fabe842e0977',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

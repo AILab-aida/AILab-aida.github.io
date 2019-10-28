@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="在互联网精准广告中，可以从多个角度来评估一个 CTR 模型的性能，但通常以 AUC 作为模型评估的最直接指标，直观上讲，AUC 是从排序能力的角度来对模型进行评估。下面将详细解释 AUC 的含义及其计算方式，2.1 ROC 曲线理解ROC（Receiver Operating Characteristic）曲线和 AUC 常被用来评价一个二值分类器的优劣，分类器算法，常用的评价指标主要有 prec">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AUC 及其理解">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/AUC 及其理解/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="在互联网精准广告中，可以从多个角度来评估一个 CTR 模型的性能，但通常以 AUC 作为模型评估的最直接指标，直观上讲，AUC 是从排序能力的角度来对模型进行评估。下面将详细解释 AUC 的含义及其计算方式，2.1 ROC 曲线理解ROC（Receiver Operating Characteristic）曲线和 AUC 常被用来评价一个二值分类器的优劣，分类器算法，常用的评价指标主要有 prec">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/tp-tn%E6%9B%B2%E7%BA%BF.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E5%88%86%E7%B1%BB%E5%87%BD%E6%95%B0.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8601.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8602.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF%E7%BB%98%E5%88%B6.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/auc%E6%9D%83%E9%87%8D.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E6%8E%92%E5%BA%8F.png">
+<meta property="og:updated_time" content="2019-10-28T12:01:11.701Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AUC 及其理解">
+<meta name="twitter:description" content="在互联网精准广告中，可以从多个角度来评估一个 CTR 模型的性能，但通常以 AUC 作为模型评估的最直接指标，直观上讲，AUC 是从排序能力的角度来对模型进行评估。下面将详细解释 AUC 的含义及其计算方式，2.1 ROC 曲线理解ROC（Receiver Operating Characteristic）曲线和 AUC 常被用来评价一个二值分类器的优劣，分类器算法，常用的评价指标主要有 prec">
+<meta name="twitter:image" content="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/AUC 及其理解/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>AUC 及其理解 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/AUC 及其理解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">AUC 及其理解
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:15:24 / 修改时间：20:01:11" itemprop="dateCreated datePublished" datetime="2019-10-28T15:15:24+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在互联网精准广告中，可以从多个角度来评估一个 CTR 模型的性能，但通常以 AUC 作为模型评估的最直接指标，直观上讲，AUC 是从排序能力的角度来对模型进行评估。下面将详细解释 AUC 的含义及其计算方式，</p><h2 id="2-1-ROC-曲线理解"><a href="#2-1-ROC-曲线理解" class="headerlink" title="2.1 ROC 曲线理解"></a><a href="#2-1-ROC曲线理解" title="2.1 ROC曲线理解"></a>2.1 ROC 曲线理解</h2><p>ROC（Receiver Operating Characteristic）曲线和 AUC 常被用来评价一个二值分类器的优劣，分类器算法，常用的评价指标主要有 precision，recall，F-score；<br>一个典型的 ROC 曲线如下图所示：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png" alt></a></p><a id="more"></a>
+
+<p>ROC 曲线的横坐标为 false positive rate（FPR），纵坐标为 true positive rate（TPR），下面详细说明 FPR 和 TPR 是如何定义的：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/tp-tn%E6%9B%B2%E7%BA%BF.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/tp-tn%E6%9B%B2%E7%BA%BF.png" alt></a></p>
+<p>TP：预测是正的样本，实际上也是正的样本<br>TP：预测是正的样本，实际上是负样本<br>FN：预测是为负样本，实际上是正样本<br>TN：预测是为负样本，实际上也是负样本<br>正确率：测试出来准确的正样本 / 所有的正样本：TP/(TP + FP)<br>召回率：测试出来正确的正样本 / 所有的正样本：TP/(FP + FN)</p>
+<p>TPR：true positive rate，TPR = TP / (TP + FN)，表示预测为正的正确结果 TP 在所有正样本 T 中的占比，显然 TPR 越大，模型的预估能力更好；<br>FPR：false positive rate，FPR = FP / (FP + TN)，表示预测为正的错误结果 FP 在所有负样本 F 中的占比，显然 FPR 越大，模型的预估能力越差；</p>
+<p>接下来，我们考虑 ROC 曲线上的四个点和一条线：</p>
+<ol>
+<li>第一个点 (0, 1)，即 FPR = 0, TPR = 1，这意味着，FN = 0，并且 FP = 0，这是一个完美的分类器，将所有的样本都正确分类；</li>
+<li>第二个点 (1, 0)，即 FPR = 1, TPR = 0，这意味着，TP = 0，并且 FN = 0，这是一个最糟糕的分类器，因为它成功避开了所有的正确答案；</li>
+<li>第三个点 (0, 0)，即 FPR = 0, TPR = 0，这意味着，TP = 0, FP = 0，这意味着，分类器将所有的样本都预测为负样本；</li>
+<li>第四个点 (1, 1) 即 FPR = 1, TPR = 0，这意味着，FN = 0, TN = 0，也就是分类器将分类器将所有的样本都预测为正样本；<br>经过以上分析，我们可以断定，<strong>ROC 曲线越接近左上角，分类器的性能越好</strong>。</li>
+</ol>
+<p>下面考虑 ROC 曲线 y=x 上的点。这条对角线上的点其实表示的是一个采用随机猜测策略的分类器结果，例如 (0.5, 0.5)，即 TP = FN, FP = TN，表示该分类器随机对于一半的样本猜测为正样本，另外一半的样本为负样本。</p>
+<p>这里需要思考一个问题：<br>给一堆训练样本，那么得到一个分类结果，得到 FPR 和 TPR，那么对应的是 ROC 上的一个点，ROC 曲线是如何获取的呢？<br>Wikipedia 上是这么解释的：<br>In signal detection theory, a receiver operating characteristic (ROC), or simply ROC curve, is a graphical plot which illustrates the performance of a binary classifier system as its discrimination threshold is varied.<br>这里的关键在于 “as its discrimination threshold is varied”，如何理解？我们忽略了分类器的一个重要功能 “概率输出”，即表示分类器某个样本具有多大的概率属于正样本（或者负样本），这里应该对分类器判断为正样本的概率阈值进行一定的调整，获得多组坐标点数据，进而得到 ROC 曲线。</p>
+<h2 id="2-2-ROC-曲线绘制"><a href="#2-2-ROC-曲线绘制" class="headerlink" title="2.2 ROC 曲线绘制"></a><a href="#2-2-ROC曲线绘制" title="2.2 ROC曲线绘制"></a>2.2 ROC 曲线绘制</h2><p>假设模型 M 对样本进行预测，当预测值大于阈值 r 时，采用下面的函数来预测最后的结果：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E5%88%86%E7%B1%BB%E5%87%BD%E6%95%B0.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E5%88%86%E7%B1%BB%E5%87%BD%E6%95%B0.png" alt></a></p>
+<p>然后，对每一个 r，模型对所有的样本预测一遍，计算所得到的 TPR 和 FPR，对所有的点 (FPR, TPR) 在 ROC 图上进行标注就可以得到 ROC 曲线，AUC 就是指 ROC 曲线下方的面积。举一个例子来说明，下表中有 10 个样本，5 个正样本，5 个负样本，即 T = 5， F = 5，<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8601.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8601.png" alt></a></p>
+<p>第一列表示模型 M 对样本的打分，第二列表示样本实际为正 / 负样本，我们让 r 从正无穷逐渐减小到负无穷，对每一个区间的 r 计算 (FPR,TPR)，计算结果如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8602.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E5%BE%97%E5%88%8602.png" alt></a></p>
+<p>由上表绘制 ROC 曲线如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF%E7%BB%98%E5%88%B6.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF%E7%BB%98%E5%88%B6.png" alt></a></p>
+<p>以上就是 ROC 曲线的含义及其绘制步骤。</p>
+<h2 id="3-1-AUC-计算"><a href="#3-1-AUC-计算" class="headerlink" title="3.1 AUC 计算"></a><a href="#3-1-AUC计算" title="3.1 AUC计算"></a>3.1 AUC 计算</h2><p><strong>（1）方法一：计算 ROC 面积法</strong><br>由上文所述，AUC 即为 ROC 曲线下方的面积，按梯形法计算上图的面积为 0.62。</p>
+<p><strong>（2）方法二：随机抽选正负样本对法</strong><br>在所有标注样本中，正样本共有 T 个，负样本共有 F 个，如果随机抽取一个正样本和负样本，共有 T<em>F 个 pair，其中如果有 s 个 pair 的正样本 pair 满足正样本的 score 高于负样本（权重为 1），v 个 pair 的正负样本 score 相同（权重为 0.5），则 AUC 就等于：<br>(s + 0.5</em> v) / (T <em>F)<br>上例中，s = 15， v = 1，则 AUC = ( 15 + 1</em> 0.5) / (5 * 5)，和梯形法计算结果一致。<br>整体上对于一个样本 pair：的权重 Wij 的计算如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/auc%E6%9D%83%E9%87%8D.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/auc%E6%9D%83%E9%87%8D.png" alt></a></p>
+<p>s(i) 和 s(j) 分别表示正样本和负样本的 score。</p>
+<p><strong>（3）方法三：排序求和法</strong><br>上面提到了两种计算 AUC 的方法，一种梯形法，另一种权重法，然而这两种方法在单机上计算复杂度比较高，下面这种方式计算 AUC 比较简单：<br>我们可以将所有样本按升序排好后，通过样本的序号 (或者是排序位置，从 1 开始)rank 来计算，计算公式如下：<br>AUC = ((所有正样本的 rank 相加) - T<em>(T + 1)/2) / (T</em> F)<br>对相等 score 的样本，需要赋予相同的 rank，即把所有这些 score 相等的样本的 rank 和取平均值。<br>上表中结果重新排序如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E6%8E%92%E5%BA%8F.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E6%A0%B7%E6%9C%AC%E6%8E%92%E5%BA%8F.png" alt></a></p>
+<p>所有正样本的 rank 相加 = 10 + 9 + (5 + 6) /2 + 4 + 2 = 30.5，注意 5 和 6 由于 score 相同，需要均分 rank 和。<br>AUC = (30.5 - 5 <em>6 / 2) / (5</em> 5) = 0.62</p>
+<h2 id="3-2-AUC-理解"><a href="#3-2-AUC-理解" class="headerlink" title="3.2 AUC 理解"></a><a href="#3-2-AUC理解" title="3.2 AUC理解"></a>3.2 AUC 理解</h2><p>上例中给出了 10 个样本，其中 5 个正样本 5 个负样本，1 表示样本发生了 click，0 表示样本有曝光但是没有被 click，score 表示样本的预估 ctr（pCtr），我们的期望是我们的预估的 ctr 高的广告，其实际应该有 click，这样就说明我的预估是有效且准确的，当然没有 click 发生也是可以理解，预估目前还做不到 100% 的准确。也就是说，被点击的样本预估的 pCtr 应该要高于没有被点击的样本，当所有被点击的样本 pCtr 都要大于未被点击的样本 pCtr 时，模型是最优的，当然这只是理想情况。</p>
+<p>理想的排序能力是按照 pCTR 进行预估降序排列后，所有的正样本都排在负样本的前面，即预估会排在前面的广告都会被 click，模型优化的目标就是朝这个理想目标靠拢。</p>
+<p>AUC 的值不会大于 1，又由于 ROC 曲线一般都处于 y=x 这条直线的上方，所以 AUC 的取值范围一般在 0.5 到 1 之间。使用 AUC 作为评价标准是因为很多时候 ROC 曲线并不能清晰的说明哪个分类器的效果更好，而作为一个数值，对应 AUC 更大的分类器效果更好。而且 ROC 越靠近左上角越好，对应着 AUC 面积越大越好。</p>
+<p>先 AUC 是一个概率值，当随机挑选一个正样本以及一个负样本时，当前的分类器根据计算得到的 score 值将这个正样本排在负样本前面的概率就是 AUC 值。当然 AUC 越大，当前的分类算法越有可能将正样本排在负样本前面，即能够更好的分类。</p>
+<p><strong>为什么使用 ROC？</strong>既然有这么多评价标准，为什么还要用 ROC 和 AUC 呢？因为 ROC 有个很好的特性：当测试机中的正负样本分布变化的时候，ROC 曲线能够保持不变。<br>在实际的数据集中，经常会出现类不平衡现象，即负样本比正样本多很多（或者相反），而且测试数据中的正负样本的分布也可能随着时间变化。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/AUC 及其理解/" title="AUC 及其理解">https://ailab-aida.github.io/2019/10/28/AUC 及其理解/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/RNN 原理详解以及 tensorflow 中的 RNN 实现/" rel="next" title="RNN 原理详解以及 tensorflow 中的 RNN 实现">
+                  <i class="fa fa-chevron-left"></i> RNN 原理详解以及 tensorflow 中的 RNN 实现
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/深度学习在 CTR 预估中的应用之 Attention FM/" rel="prev" title="深度学习在 CTR 预估中的应用之 Attention FM">
+                  深度学习在 CTR 预估中的应用之 Attention FM <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-ROC-曲线理解"><span class="nav-number">1.</span> <span class="nav-text">2.1 ROC 曲线理解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-ROC-曲线绘制"><span class="nav-number">2.</span> <span class="nav-text">2.2 ROC 曲线绘制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-AUC-计算"><span class="nav-number">3.</span> <span class="nav-text">3.1 AUC 计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-AUC-理解"><span class="nav-number">4.</span> <span class="nav-text">3.2 AUC 理解</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'ba18a8e441683aca58c0ee221fe308ea',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

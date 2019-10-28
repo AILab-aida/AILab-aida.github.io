@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1 背景说明1.1 行文缘由最近因为工作上的原因，接触到较多的文本分类相关的领域：比如在信息流广告或者搜索广告中，对关键词、广告创意进行行业分类等。于是，对传统的文本分类方法和目前比较流行的用深度学习进行文本分类做了一个归纳总结，这篇文章就是讲 CNN 在文本分类中的应用，也是行业中的一篇非常经典的文章。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深度学习在文本分类中的应用之 CNN">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1 背景说明1.1 行文缘由最近因为工作上的原因，接触到较多的文本分类相关的领域：比如在信息流广告或者搜索广告中，对关键词、广告创意进行行业分类等。于是，对传统的文本分类方法和目前比较流行的用深度学习进行文本分类做了一个归纳总结，这篇文章就是讲 CNN 在文本分类中的应用，也是行业中的一篇非常经典的文章。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/traditional_text_classification.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/word2vector%E7%BB%93%E6%9E%84.jpg">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/nnlm%E7%9B%AE%E6%A0%87.jpg">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/cbow-skip-gram.jpg">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/CNN%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/cnn_core.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/cnn-pooling.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/cnn-fc.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/cnn-performance.png">
+<meta property="og:updated_time" content="2019-10-28T12:02:56.246Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深度学习在文本分类中的应用之 CNN">
+<meta name="twitter:description" content="1 背景说明1.1 行文缘由最近因为工作上的原因，接触到较多的文本分类相关的领域：比如在信息流广告或者搜索广告中，对关键词、广告创意进行行业分类等。于是，对传统的文本分类方法和目前比较流行的用深度学习进行文本分类做了一个归纳总结，这篇文章就是讲 CNN 在文本分类中的应用，也是行业中的一篇非常经典的文章。">
+<meta name="twitter:image" content="http://7xtapc.com2.z0.glb.clouddn.com/traditional_text_classification.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>深度学习在文本分类中的应用之 CNN | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">深度学习在文本分类中的应用之 CNN
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:13:23 / 修改时间：20:02:56" itemprop="dateCreated datePublished" datetime="2019-10-28T15:13:23+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-背景说明"><a href="#1-背景说明" class="headerlink" title="1 背景说明"></a><a href="#1-背景说明" title="1 背景说明"></a>1 背景说明</h1><h2 id="1-1-行文缘由"><a href="#1-1-行文缘由" class="headerlink" title="1.1 行文缘由"></a><a href="#1-1-行文缘由" title="1.1 行文缘由"></a>1.1 行文缘由</h2><p>最近因为工作上的原因，接触到较多的文本分类相关的领域：比如在信息流广告或者搜索广告中，对关键词、广告创意进行行业分类等。于是，对传统的文本分类方法和目前比较流行的用深度学习进行文本分类做了一个归纳总结，这篇文章就是讲 CNN 在文本分类中的应用，也是行业中的一篇非常经典的文章。</p><a id="more"></a>
+<h2 id="1-2-传统的文本分类方法"><a href="#1-2-传统的文本分类方法" class="headerlink" title="1.2 传统的文本分类方法"></a><a href="#1-2-传统的文本分类方法" title="1.2 传统的文本分类方法"></a>1.2 传统的文本分类方法</h2><p>传统的文本分类方法主要是靠人工特征工程 + 浅层分类模型组成，一般的流程见下图：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/traditional_text_classification.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/traditional_text_classification.png" alt></a></p>
+<p><strong>（1）特征工程</strong><br>特征工程在机器学习中往往是最耗时耗力的，但却极其的重要。抽象来讲，机器学习问题是把数据转换成信息再提炼到知识的过程，特征是 “数据—&gt; 信息”的过程，决定了结果的上限，而分类器是 “信息—&gt; 知识”的过程，则是去逼近这个上限。然而特征工程不同于分类器模型，不具备很强的通用性，往往需要结合对特征任务的理解。</p>
+<p>文本分类问题所在的自然语言领域自然也有其特有的特征处理逻辑，传统分本分类任务大部分工作也在此处。文本特征工程分为文本预处理、特征提取、文本表示三个部分，最终目的是把文本转换成计算机可理解的格式，并封装足够用于分类的信息，即很强的特征表达能力。</p>
+<p><strong>文本预处理</strong><br>文本预处理过程是在文本中提取关键词表示文本的过程，中文文本处理中主要包括文本分词和去停用词两个阶段。这里就不作介绍。</p>
+<p><strong>文本表示</strong><br>文本表示的目的是把文本预处理后的转换成计算机可理解的方式，是决定文本分类质量最重要的部分。传统做法常用词袋模型（BOW, Bag Of Words）或向量空间模型（Vector Space Model），最大的不足是忽略文本上下文关系，每个词之间彼此独立，并且无法表征语义信息。词袋模型的示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$$( 0, 0, 0, 0, .... , 1, ... 0, 0, 0, 0)$$</span><br></pre></td></tr></table></figure>
+<p>一般来说词库量至少都是百万级别，因此词袋模型有个两个最大的问题：高纬度、高稀疏性。词袋模型是向量空间模型的基础，因此向量空间模型通过特征项选择降低维度，通过特征权重计算增加稠密性。</p>
+<p><strong>特征提取</strong><br>向量空间模型的文本表示方法的特征提取对应特征项的选择和特征权重计算两部分。特征选择的基本思路是根据某个评价指标独立的对原始特征项（词项）进行评分排序，从中选择得分最高的一些特征项，过滤掉其余的特征项。常用的评价有文档频率、互信息、信息增益、χ² 统计量等。<br>特征权重主要是经典的 TF-IDF 方法及其扩展方法，主要思路是一个词的重要度与在类别内的词频成正比，与所有类别出现的次数成反比。</p>
+<p><strong>（2）浅层分类器</strong><br>分类器基本都是统计分类方法了，基本上大部分机器学习方法都在文本分类领域有所应用，比如朴素贝叶斯分类算法（Naive Bayes）、KNN、SVM、最大熵和神经网络等等，传统分类模型不是本文重点，在这里就不展开了。</p>
+<h2 id="1-3-深度学习文本分类方法"><a href="#1-3-深度学习文本分类方法" class="headerlink" title="1.3 深度学习文本分类方法"></a><a href="#1-3-深度学习文本分类方法" title="1.3 深度学习文本分类方法"></a>1.3 深度学习文本分类方法</h2><p>我们知道，传统方法一般采用 one-hot 或者 multi-hot 来表示文本，由于文本词汇集的规模，<strong>势必会导致文本表示的高稀疏性，高稀疏性意味着输入的数据维度很高，如果紧接着的隐藏层只有几百个神经元的话，也会导致上亿甚至几十亿的参数规模，也就意味着需要更多的训练数据，伴随而来的是训练时间和成本</strong>。因此，神经网络对于传统的文本处理方法是无能为力的。</p>
+<p>此外需要人工进行特征工程，成本很高。而深度学习最初在之所以图像和语音取得巨大成功，一个很重要的原因是图像和语音原始数据是连续和稠密的，有局部相关性。应用深度学习解决大规模文本分类问题最重要的是解决文本表示，再利用 CNN/RNN 等网络结构自动获取特征表达能力，去掉繁杂的人工特征工程，端到端的解决问题。</p>
+<p>近几年随着深度学习的发展，深度学习天然的对特征的处理能够极大的提高文本分类的性能。特别是 Word Embedding 发展起来之后，并且这种 Embedding 思想为其他领域的发展也起到了积极作用（哈哈，这里顺便提一句 Neural Embedding 思想在 CTR 预估中的广泛应用）。</p>
+<h3 id="1-3-1-深度学习文本应用基础之词向量"><a href="#1-3-1-深度学习文本应用基础之词向量" class="headerlink" title="1.3.1 深度学习文本应用基础之词向量"></a><a href="#1-3-1-深度学习文本应用基础之词向量" title="1.3.1 深度学习文本应用基础之词向量"></a>1.3.1 深度学习文本应用基础之词向量</h3><p>分布式表示（Distributed Representation）其实 Hinton 最早在 1986 年就提出了，基本思想是将每个词表达成 n 维稠密、连续的实数向量，与之相对的 one-hot encoding 向量空间只有一个维度是 1，其余都是 0。分布式表示最大的优点是具备非常 powerful 的特征表达能力，比如 n 维向量每维 k 个值，可以表征 knknk^n 个概念。事实上，不管是神经网络的隐层，还是多个潜在变量的概率主题模型，都是应用分布式表示。下图是 03 年 Bengio 在 A Neural Probabilistic Language Model 的网络结构：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/word2vector%E7%BB%93%E6%9E%84.jpg" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/word2vector%E7%BB%93%E6%9E%84.jpg" alt></a></p>
+<p>这篇文章提出的神经网络语言模型（NNLM，Neural Probabilistic Language Model）采用的是文本分布式表示，即每个词表示为稠密的实数向量。NNLM 模型的目标是构建语言模型：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/nnlm%E7%9B%AE%E6%A0%87.jpg" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/nnlm%E7%9B%AE%E6%A0%87.jpg" alt></a></p>
+<p>词的分布式表示即词向量（word embedding）是训练语言模型的一个附加产物，即图中的 Matrix C。<br>尽管 Hinton 86 年就提出了词的分布式表示，Bengio 03 年便提出了 NNLM，词向量真正火起来是 google Mikolov 13 年发表的两篇 word2vec 的文章 Efficient Estimation of Word Representations in Vector Space 和 Distributed Representations of Words and Phrases and their Compositionality，更重要的是发布了简单好用的 word2vec 工具包，在语义维度上得到了很好的验证，极大的推进了文本分析的进程。下图是文中提出的 CBOW 和 Skip-Gram 两个模型的结构，基本类似于 NNLM，不同的是模型去掉了非线性隐层，预测目标不同，CBOW 是上下文词预测当前词，Skip-Gram 则相反。</p>
+<p><a href="http://7xtapc.com2.z0.glb.clouddn.com/cbow-skip-gram.jpg" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/cbow-skip-gram.jpg" alt></a></p>
+<p>除此之外，提出了 Hierarchical Softmax 和 Negative Sample 两个方法，很好的解决了计算有效性，事实上这两个方法都没有严格的理论证明，有些 trick 之处，非常的实用主义。详细的过程不再阐述了，有兴趣深入理解 word2vec 的，推荐读读这篇很不错的 paper：word2vec Parameter Learning Explained。额外多提一点，实际上 word2vec 学习的向量和真正语义还有差距，更多学到的是具备相似上下文的词，比如 “good”“bad” 相似度也很高，反而是文本分类任务输入有监督的语义能够学到更好的语义表示。</p>
+<p>至此，文本的表示通过词向量的表示方式，把文本数据从高纬度高稀疏的神经网络难处理的方式，变成了类似图像、语音的的连续稠密数据。深度学习算法本身有很强的数据迁移性，很多之前在图像领域很适用的深度学习算法比如 CNN 等也可以很好的迁移到文本领域了，接下来就看 CNN 是如何应用在文本分类任务中的。</p>
+<h1 id="2-CNN-用于文本分类"><a href="#2-CNN-用于文本分类" class="headerlink" title="2 CNN 用于文本分类"></a><a href="#2-CNN用于文本分类" title="2 CNN用于文本分类"></a>2 CNN 用于文本分类</h1><p><a href="http://aclweb.org/anthology/D14-1181" target="_blank" rel="noopener">这篇文章</a>是 2016 Yann LeCun 团队发表的，至今已被它因近 2000 次，可见其价值。</p>
+<p>CNN 最初在图像领域取得了巨大成功，原理这里就不讲了，核心点在于可以捕捉局部相关性（CNN 主要是捕捉空间上的相关性，RNN 捕捉时间上的相关性），具体到文本分类任务中可以利用 CNN 来提取句子中类似 n-gram 的关键信息（其实一个 n-gram 代表的就是前后词语搭配的空间上的关系）。</p>
+<h2 id="2-1-模型结构"><a href="#2-1-模型结构" class="headerlink" title="2.1 模型结构"></a><a href="#2-1-模型结构" title="2.1 模型结构"></a>2.1 模型结构</h2><p>CNN 模型结构如下图所示：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/CNN%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/CNN%E6%96%87%E6%9C%AC%E5%88%86%E7%B1%BB%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84.png" alt></a></p>
+<h2 id="2-2-模型解读之输入层"><a href="#2-2-模型解读之输入层" class="headerlink" title="2.2 模型解读之输入层"></a><a href="#2-2-模型解读之输入层" title="2.2 模型解读之输入层"></a>2.2 模型解读之输入层</h2><p>这里的输入层显示有两个 channel，其实我们可以看作是一个，因为后文中说到这两个 channel 分别是 static 和 non-static，即使用的词向量是否随着训练发生变化。non-static 就是词向量随着模型训练变化（Fine tune），这样的好处是词向量可以根据数据集做适当调整，<strong>但是 CS224d 课程里也说过当数据集较小时不推荐此操作，否则容易产生过拟合现象</strong>。static 就是直接使用 word2vec 训练好的词向量即可。此外，由图可知，输入层是将一个句子所有单词（padding）的词向量进行拼接成一个矩阵，每一行代表一个词。每个句子固定为某个数目个词，如果不够的补 padding。</p>
+<h2 id="2-2-模型解读之卷积层"><a href="#2-2-模型解读之卷积层" class="headerlink" title="2.2 模型解读之卷积层"></a><a href="#2-2-模型解读之卷积层" title="2.2 模型解读之卷积层"></a>2.2 模型解读之卷积层</h2><p>每个卷积核的大小为 filter_size*embedding_size，filter_size 代表卷积核纵向上包含单词个数，即认为相邻几个词之间有词序关系，文章中使用的是 [3，4，5]。embedding_size 就是词向量的维数。每个卷积核计算完成之后我们就得到了 1 个列向量，代表着该卷积核从句子中提取出来的特征。有多少和卷积核就能提取出多少种特征，即图中在纵深方向上 channel 的数量。<br>论文中指出用到的多个 filter 的大小不一样，如上面所说得 [3，4，5]，即分别将 3、4、5 个词拼接在一起，这样可以获取词序特征；<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/cnn_core.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/cnn_core.png" alt></a></p>
+<h2 id="2-3-模型解读之-pooling-层"><a href="#2-3-模型解读之-pooling-层" class="headerlink" title="2.3 模型解读之 pooling 层"></a><a href="#2-3-模型解读之pooling层" title="2.3 模型解读之pooling层"></a>2.3 模型解读之 pooling 层</h2><p>文中提到 pooling 操作就是将卷积得到的列向量的最大值提取出来。这样 pooling 操作之后我们会获得一个 num_filters 维的行向量，即将每个卷积核的最大值连接起来。这样做还有一个好处就是，如果我们之前没有对句子进行 padding 操作，那么句子的长度是不同的，卷积之后得到的列向量维度也是不同的，可以通过 pooling 来消除句子之间长度不同的差异；并且多个不同大小的 filter 经过卷积层之后维数也不一致，但是经过 pooling 层之后维数就变得一致了。<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/cnn-pooling.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/cnn-pooling.png" alt></a></p>
+<h2 id="2-4-模型解读之全连接层"><a href="#2-4-模型解读之全连接层" class="headerlink" title="2.4 模型解读之全连接层"></a><a href="#2-4-模型解读之全连接层" title="2.4 模型解读之全连接层"></a>2.4 模型解读之全连接层</h2><p>为了将 pooling 层输出的向量转化为我们想要的预测结果，加上一个 softmax 层即可。针对电影评价的分类任务，就是将其转化为正面、负面两个结果。文中还提到了过拟合的问题，因为实验中所使用的数据集相对较小，很容易就会发生过拟合现象，在实验过程中也会发现当迭代 3000 多轮的时候准确率就会接近 1。所以这里引如 dropout 来减少过拟合现象。此外还可以考虑 L2 正则化等方法实现防止过拟合的功能。<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/cnn-fc.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/cnn-fc.png" alt></a></p>
+<p>全连接层的输出依赖于最终结果的分类类别个数；全连接之后再做 softmax 即可；</p>
+<h2 id="2-5-性能对比"><a href="#2-5-性能对比" class="headerlink" title="2.5 性能对比"></a><a href="#2-5-性能对比" title="2.5 性能对比"></a>2.5 性能对比</h2><p>CNN 用于文本分类最终的性能表现如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/cnn-performance.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/cnn-performance.png" alt></a></p>
+<p>模型最终的性能如上图，可以看出，CNN 做文本分类相比于传统方法有较大的性能提升；</p>
+<h1 id="3-总结"><a href="#3-总结" class="headerlink" title="3 总结"></a><a href="#3-总结" title="3 总结"></a>3 总结</h1><p>个人认为这篇文章的主要创新点是：（1）充分利用 CNN 卷积核提取局部信息的能力，结合 n-gram 将 CNN 较好的应用在文本分类任务中；（2）提出双 channel 机制，针对特定的任务，可以调整预训练的 word2vector 来更好的同场景相适应，当然前提是数据集较大。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/" title="深度学习在文本分类中的应用之 CNN">https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/深度学习中的 Batch Normalization/" rel="next" title="深度学习中的 Batch Normalization">
+                  <i class="fa fa-chevron-left"></i> 深度学习中的 Batch Normalization
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/局部敏感哈希算法原理及其应用/" rel="prev" title="局部敏感哈希算法原理及其应用">
+                  局部敏感哈希算法原理及其应用 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-背景说明"><span class="nav-number">1.</span> <span class="nav-text">1 背景说明</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-行文缘由"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 行文缘由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-传统的文本分类方法"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 传统的文本分类方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-深度学习文本分类方法"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 深度学习文本分类方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-1-深度学习文本应用基础之词向量"><span class="nav-number">1.3.1.</span> <span class="nav-text">1.3.1 深度学习文本应用基础之词向量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-CNN-用于文本分类"><span class="nav-number">2.</span> <span class="nav-text">2 CNN 用于文本分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-模型结构"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 模型结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-模型解读之输入层"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 模型解读之输入层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-模型解读之卷积层"><span class="nav-number">2.3.</span> <span class="nav-text">2.2 模型解读之卷积层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-模型解读之-pooling-层"><span class="nav-number">2.4.</span> <span class="nav-text">2.3 模型解读之 pooling 层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-模型解读之全连接层"><span class="nav-number">2.5.</span> <span class="nav-text">2.4 模型解读之全连接层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-性能对比"><span class="nav-number">2.6.</span> <span class="nav-text">2.5 性能对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-总结"><span class="nav-number">3.</span> <span class="nav-text">3 总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'ad77a988f38f4f2ab619ae99c7126770',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

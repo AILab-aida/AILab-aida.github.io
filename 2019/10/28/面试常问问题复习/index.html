@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1. xgboost 原理1. 简介：​ XGBoost 是 boosting 算法的其中一种。Boosting 算法的思想是将许多弱分类器集成在一起形成一个强分类器。因为 XGBoost 是一种提升树模型，所以它是将许多树模型集成在一起，形成一个很强的分类器。而所用到的树模型则是 CART 回归树模型。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="面试常问问题复习">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/面试常问问题复习/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1. xgboost 原理1. 简介：​ XGBoost 是 boosting 算法的其中一种。Boosting 算法的思想是将许多弱分类器集成在一起形成一个强分类器。因为 XGBoost 是一种提升树模型，所以它是将许多树模型集成在一起，形成一个很强的分类器。而所用到的树模型则是 CART 回归树模型。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=Gini%28D%2CA%29%3D%5Cfrac%7B%5Cleft%7C+D_%7B1%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B1%7D%29%2B%5Cfrac%7B%5Cleft%7C+D_%7B2%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B2%7D%29">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=+r_%7Bmi%7D%3Dy_i-f_%7B%28m-1%29%7D+%28x_i+%29%2Ci%3D1%2C2%2C%E2%80%A6%2Cn">
+<meta property="og:image" content="https://www.zhihu.com/equation?tex=+f_m+%28x%29%3Df_%7B%28m-1%29%7D+%28x%29%2BT%28x%3A%CE%B8_m+%29">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190225111205754.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190225115812391.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/11/23/15fe6b1373233f38?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-f5c2979afb29c442.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/744/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-6468143a030475ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/658/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-1d309317d2ceb2a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/992/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-646760bb218f4ef4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-4334fdf426c430fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-80ade329381fa2ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-7ef036d61e8d33f1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-42f4e611892d2776.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-255c5afe74c4a679.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/920/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-750d52e547f6ca8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-c1c777abbf1b6dc6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-a2fc7640daa28bbd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-a6d143b50c707785.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/776/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-23fe5da02137a65a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/932/format/webp">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/4155986-b979c4026bee15d2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp">
+<meta property="og:updated_time" content="2019-10-28T11:47:43.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="面试常问问题复习">
+<meta name="twitter:description" content="1. xgboost 原理1. 简介：​ XGBoost 是 boosting 算法的其中一种。Boosting 算法的思想是将许多弱分类器集成在一起形成一个强分类器。因为 XGBoost 是一种提升树模型，所以它是将许多树模型集成在一起，形成一个很强的分类器。而所用到的树模型则是 CART 回归树模型。">
+<meta name="twitter:image" content="https://www.zhihu.com/equation?tex=Gini%28D%2CA%29%3D%5Cfrac%7B%5Cleft%7C+D_%7B1%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B1%7D%29%2B%5Cfrac%7B%5Cleft%7C+D_%7B2%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B2%7D%29">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/面试常问问题复习/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>面试常问问题复习 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/面试常问问题复习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">面试常问问题复习
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 19:25:52 / 修改时间：19:47:43" itemprop="dateCreated datePublished" datetime="2019-10-28T19:25:52+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-xgboost-原理"><a href="#1-xgboost-原理" class="headerlink" title="1. xgboost 原理"></a><a href="#1-xgboost原理" title="1. xgboost原理"></a>1. xgboost 原理</h2><h3 id="1-简介："><a href="#1-简介：" class="headerlink" title="1. 简介："></a><a href="#1-简介：" title="1. 简介："></a>1. 简介：</h3><p>​ XGBoost 是 boosting 算法的其中一种。Boosting 算法的思想是将许多弱分类器集成在一起形成一个强分类器。因为 XGBoost 是一种提升树模型，所以它是将许多树模型集成在一起，形成一个很强的分类器。而所用到的树模型则是 <strong>CART 回归树模型</strong>。</p><a id="more"></a>
+<h3 id="2-CART-回归树"><a href="#2-CART-回归树" class="headerlink" title="2. CART 回归树"></a><a href="#2-CART回归树" title="2. CART回归树"></a>2. CART 回归树</h3><ol>
+<li><p>CART 回归树是假设树为二叉树，通过不断将特征进行分裂。比如当前树结点是基于第 j 个特征值进行分裂的，设该特征值小于 s 的样本划分为左子树，大于 s 的样本划分为右子树。</p>
+</li>
+<li><p><strong>CART(回归树, regressiontree) 是 xgboost 最基本的组成部分</strong>。其根据训练特征及训练数据构建分类树，判定每条数据的预测结果。其中构建树使用 gini 指数计算增益，即进行构建树的特征选取，gini 指数公式如式 (1), gini 指数计算增益公式如式 (2)：</p>
+<p>$Gini(D) = \sum_{k=1}^Kp_k(1-p_k)$ (1)</p>
+<p>$p_k$ 表示数据集 $D$ 中类别 $k$ 的概率，$K$ 表示类别个数。</p>
+<blockquote>
+<p>注：此处的 $k$ 表示分类类别。</p>
+</blockquote>
+<p><a href="https://www.zhihu.com/equation?tex=Gini%28D%2CA%29%3D%5Cfrac%7B%5Cleft%7C+D_%7B1%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B1%7D%29%2B%5Cfrac%7B%5Cleft%7C+D_%7B2%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B2%7D%29" target="_blank" rel="noopener"><img src="https://www.zhihu.com/equation?tex=Gini%28D%2CA%29%3D%5Cfrac%7B%5Cleft%7C+D_%7B1%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B1%7D%29%2B%5Cfrac%7B%5Cleft%7C+D_%7B2%7D+%5Cright%7C%7D%7B%5Cleft%7C+D+%5Cright%7C%7DGini%28D_%7B2%7D%29" alt></a></p>
+<p>$D$ 表示整个数据集，$D_1$ 和 $D_2$ 分别表示数据集中特征为 $A$ 的数据集和特征非 $A$ 的数据集， $Gini(D_1)$ 表示特征为 $A$ 的数据集的 gini 指数。</p>
+</li>
+</ol>
+<h3 id="3-Boosting-tree"><a href="#3-Boosting-tree" class="headerlink" title="3. Boosting tree"></a><a href="#3-Boosting-tree" title="3. Boosting tree"></a>3. Boosting tree</h3><p>一个 CART 往往过于简单, 并不能有效地做出预测，为此，采用更进一步的模型 boosting tree，利用多棵树来进行组合预测。具体算法如下：</p>
+<p>输入：训练集 $T={(x_1,y_1),(x_2,y_2),\dots,(x_n,y_n)}$</p>
+<p>输出：提升树 $f_M(x)$</p>
+<p>步骤：</p>
+<p>(1) 初始化 $f_0(x) = 0$</p>
+<p>(2) 对 $m = 1,2,\dots,M$</p>
+<p>​ (a) 计算残差 <a href="https://www.zhihu.com/equation?tex=+r_%7Bmi%7D%3Dy_i-f_%7B%28m-1%29%7D+%28x_i+%29%2Ci%3D1%2C2%2C%E2%80%A6%2Cn" target="_blank" rel="noopener"><img src="https://www.zhihu.com/equation?tex=+r_%7Bmi%7D%3Dy_i-f_%7B%28m-1%29%7D+%28x_i+%29%2Ci%3D1%2C2%2C%E2%80%A6%2Cn" alt></a></p>
+<p>​ (b) 拟合残差 $r_{mi}$ 学习一个回归树，得到 $T(x:\theta_m)$</p>
+<p>​ (c) 更新 <a href="https://www.zhihu.com/equation?tex=+f_m+%28x%29%3Df_%7B%28m-1%29%7D+%28x%29%2BT%28x%3A%CE%B8_m+%29" target="_blank" rel="noopener"><img src="https://www.zhihu.com/equation?tex=+f_m+%28x%29%3Df_%7B%28m-1%29%7D+%28x%29%2BT%28x%3A%CE%B8_m+%29" alt></a></p>
+<p>(3) 得到回归提升树：$f<em>M(x) = \sum</em>{m=1}^M T(x:\theta_m)$</p>
+<h3 id="4-XGBoost"><a href="#4-XGBoost" class="headerlink" title="4. XGBoost"></a><a href="#4-XGBoost" title="4. XGBoost"></a>4. XGBoost</h3><p>XGBoost 是一种基于决策树（CART）的分布式的高效的梯度提升算法，它可被应用到分类、回归、排序等任务中，与一般的 GBDT 算法相比，XGBoost 主要有以下几个优点：</p>
+<ol>
+<li><strong>对叶节点的权重进行了惩罚，相当于添加了正则项，防止过拟合</strong></li>
+<li>XGBoost 的目标函数<strong>优化利用了损失函数关于待求函数的二阶导数</strong>，而 GBDT 只利用了一阶信息</li>
+<li>XGBoos<strong>t 支持列采样，类似于随机森林，构建每棵树时对属性进行采样</strong>，训练速度快，效果好</li>
+<li>类似于学习率，学习到一棵树后，对其<strong>权重进行缩减</strong>，从而降低该棵树的作用，<strong>提升可学习空间</strong></li>
+<li>构建树的算法包括精确的算法和近似的算法，近似的算法对每维特征加权分位进行分桶，具体的算法利用到了损失函数关于待求树的二阶导数。</li>
+<li>添加了<strong>对于稀疏数据的支持</strong>，当数据的某个特征缺失时，将该数据划分到默认的子节点，本文提出了一个算法来求解这个默认方向。</li>
+<li><strong>可并行的近似直方图算法</strong>，分裂节点时，数据在 block 中按列存放，而且已经经过了预排序，因此可以并行计算，即同时对各个属性遍历最优分裂点</li>
+</ol>
+<p>boosting 是属于串行的集成方法，其预测函数为多个基分类器的集成，其学习过程也是先学习前 (t-1) 个基分类器，再学习第 t 个基分类器。XGBoost 中最主要的基学习器为 CART（分类与回归树）。分类的话就是</p>
+<p>离散值判定，回归的话就是将连续值分段判定（比如 age&lt;15）。每个叶子节点对应 score，每个样本在每棵树里的得分相加，就是这个样本的总得分：</p>
+<p>$\hat y<em>i = \sum</em>{k=1}^K f_k(x_i), f_k \in {F}$</p>
+<p>K 表示有 K 棵树，$f_k$ 相当于第 k 棵树，而 F 空间表示整个 CART 树空间。因此我们的目标函数可以写成：</p>
+<p>​ $obj (\theta) = \sum<em>i^n l(y_i, \hat y_i) + \sum</em>{k=1}^K \Omega(f_k)$</p>
+<p>然后：</p>
+<script type="math/tex; mode=display">
+%</script><p>假设我们的目标函数如下：</p>
+<p>$\begin{split}obj = \sum<em>{i=1}^n l(y_i, \hat y_i^{(t)}) + \sum</em>{i=1}^t\Omega(f_i) \ \end{split}$</p>
+<p>这个目标函数里，我们的训练目标是 $f_t(x_i)$，即对应一棵树。通过递增训练（Additive Training）的方式，我们可以一棵树一棵树的求解。</p>
+<p>那么我们如何从上面的公式中求解最优的 T 棵树呢？首先考虑第 t 棵树的目标函数：</p>
+<script type="math/tex; mode=display">
+%</script><p>$l$ 表示损失函数，$Ω(f<em>t)$ 表示第 t 棵树的正则化项。损失函数 l 可以是 MSE（最小平方误差），也可以用 logistic 损失函数，也可以同交叉熵损失函数等。那么我们假设已知损失函数，对 ll 进行泰勒级数展开到二阶导数，可以得到如下目标函数：<br>$\text{obj}^{(t)} = \sum</em>{i=1}^n [l(y_i, \hat{y}_i^{(t-1)}) + g_i f_t(x_i) + \frac{1}{2} h_i f_t^2(x_i)] + \Omega(f_t) + constant$</p>
+<p>去除掉所有常数项后，得到第 t 棵树的目标函数为：</p>
+<p>$obj^(t)=\sum_{i=1}^n [g_i f_t(x_i) + \frac{1}{2} h_i f_t^2(x_i)] + \Omega(f_t)$<br>这样，目标函数只依赖于损失函数的一阶导数和二阶导数了。</p>
+<p>再考虑正则项，正则项如何定义？考虑树的复杂度，我们可以得到正则项：$\Omega(f) = \gamma T + \frac{1}{2}\lambda \sum_{j=1}^T w_j^2$</p>
+<p>其中，$γ$ 和 $λ$ 是人工设定参数，T 为树的叶子节点个数，且</p>
+<p>$w_{q(x)} = f_t(x), w \in R^T, q:R^d\rightarrow {1,2,\cdots,T} .$</p>
+<p>最终目标函数：</p>
+<script type="math/tex; mode=display">
+%</script><p>整合后目标函数为：$\text{obj}^{(t)} = \sum^T_{j=1} [G_jw_j + \frac{1}{2} (H_j+\lambda) w_j^2] +\gamma T$</p>
+<h3 id="5-如何学习具体的树结构"><a href="#5-如何学习具体的树结构" class="headerlink" title="5. 如何学习具体的树结构"></a><a href="#5-如何学习具体的树结构" title="5. 如何学习具体的树结构"></a>5. 如何学习具体的树结构</h3><p>由于我们知道了如何去评价一棵树到底有多好（上面的目标函数），那么我们就可以将构造树的步骤进行分解，每一次只优化一层树。考虑一个节点，我们要将该节点分成两个叶子节点，那么我们获得的分数（此处用 gain 表示，就是分之前和分之后的目标函数差）</p>
+<p>$Gain = \frac{1}{2} \left[\frac{G_L^2}{H_L+\lambda}+\frac{G_R^2}{H_R+\lambda}-\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right] - \gamma$</p>
+<p>这个公式中包含：</p>
+<ul>
+<li>左叶子节点得分</li>
+<li>右叶子节点得分</li>
+<li>原叶子节点得分</li>
+<li>额外的叶子的正则化项</li>
+</ul>
+<p>如果 gain 比 $γ$ 稍小，那么我们最好不要增加这个分支。这就是树模型里的剪枝思想。<br>通过这种方式，我们不断构造各种分法的树，从而求解得到最佳的树。</p>
+<h3 id="6-节点分裂算法"><a href="#6-节点分裂算法" class="headerlink" title="6. 节点分裂算法"></a><a href="#6-节点分裂算法" title="6. 节点分裂算法"></a>6. 节点分裂算法</h3><p>因为树结构未知，只能采用贪婪的算法，从根节点出发，每次选择一个属性及其对应的值，使得损失函数减少最多，根据选择的属性分裂节点。论文中给出了精确的和近似的算法，当数据量非常大时，采用近似的算法可以有效减少计算量。</p>
+<h4 id="6-1-精确贪婪算法-Basic-Exact-Greedy-Algorithms"><a href="#6-1-精确贪婪算法-Basic-Exact-Greedy-Algorithms" class="headerlink" title="6.1 精确贪婪算法 (Basic Exact Greedy Algorithms)"></a><a href="#6-1-精确贪婪算法-Basic-Exact-Greedy-Algorithms" title="6.1 精确贪婪算法(Basic Exact Greedy Algorithms)"></a>6.1 精确贪婪算法 (Basic Exact Greedy Algorithms)</h4><p><a href="https://img-blog.csdnimg.cn/20190225111205754.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70" target="_blank" rel="noopener"><img src="https://img-blog.csdnimg.cn/20190225111205754.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70" alt></a></p>
+<p>算法如上图所示，核心思想如下</p>
+<ul>
+<li>两个 for 循环，第一个 for 遍历所有特征，第二个 for 找出最佳的特征值作为分裂点</li>
+<li>选分裂点的依据 score 为分裂前后损失函数的减少量</li>
+<li>第二个 for 循环中，先对数据按照特征值进行排序，这样做的目的为了后面一次遍历就能求出所有分裂点的 score 值。$G_L,G_R$ 只需要在当前的基础上进行加减，不需要再扫描所有数据</li>
+<li>贪心算法体现在，当前分裂点的选择只考虑能使得当前损失函数减少量最大</li>
+</ul>
+<p>这里的 m 值通常小于样本维度 d, 表示列采样得到的属性个数，值得注意的是，由于要遍历所有的属性的所有取值，因此，通常需要在训练之前对所有样本做一个预排序 (pre-sort)，从而避免每次选择属性都要重新排序。</p>
+<h4 id="6-2-近似算法-Approximate-Algorithm-for-Split-Finding"><a href="#6-2-近似算法-Approximate-Algorithm-for-Split-Finding" class="headerlink" title="6.2 近似算法 (Approximate Algorithm for Split Finding)"></a><a href="#6-2-近似算法-Approximate-Algorithm-for-Split-Finding" title="6.2 近似算法(Approximate Algorithm for Split Finding)"></a>6.2 近似算法 (Approximate Algorithm for Split Finding)</h4><p>精确贪心算法虽然很强大，但是当数据无法完全加载到内存中或者在分布式的条件下，这种基于穷举的分裂点寻找方法效率就会非常低下。于是作者提出了一种近似分割的算法，这种算法首先通过加权分位数的算法选出了一些可能的分裂点，然后再遍历这些较少的分裂点来找到最佳分裂点。</p>
+<p>对于值为连续值的特征，当样本数非常大时，该特征取值过多，遍历所有取值复杂度较高，而且容易过拟合。因此，考虑将特征值分桶，即找到 l 个分位点，将位于相邻分位点之间的样本分在一个桶中，在遍历该特征的时候，只需要遍历各个分位点，从而计算最优划分。注意到上面算法流程中说明了有全局的近似 (global) 和局部 (local) 的近似，所谓全局就是在新生成一棵树之前就对各个特征计算分位点并划分样本，之后在每次分裂过程中都采用近似划分，而局部就是在具体的某一次分裂节点的过程中采用近似算法。</p>
+<p><strong>带权重直方图算法</strong><br>主要用于近似算法中分位点的计算，假设分位点为 ${s<em>{k1},s</em>{k2},..,s<em>{kl}}$ 假设，假设 $(x</em>{1k},h<em>1),(x</em>{2k},h<em>2),..,(x</em>{nk},h<em>n)$ 表示所有样本的第表示所有样本的第 $k$ 个特征值及二阶导数, 这意味着大概有 $1/ϵ$ 个分位点。<br>本文还提出了分布式 _weighted quantile sketch algorithm</em> ，该算法的优点是解决了带权重的直方图算法问题，以及有理论保证。</p>
+<h4 id="6-3-稀疏特征处理-Sparsity-aware-Split-Finding"><a href="#6-3-稀疏特征处理-Sparsity-aware-Split-Finding" class="headerlink" title="6.3 稀疏特征处理 (Sparsity-aware Split Finding)"></a><a href="#6-3-稀疏特征处理-Sparsity-aware-Split-Finding" title="6.3 稀疏特征处理(Sparsity-aware Split Finding)"></a>6.3 稀疏特征处理 (Sparsity-aware Split Finding)</h4><p>XGBoost 还特别设计了针对稀疏数据的算法，假设样本的第 i 个特征缺失时，无法利用该特征对样本进行划分，这里的做法是将该样本默认地分到指定的子节点，至于具体地分到哪个节点还需要下面的算法来计算：<br><a href="https://img-blog.csdnimg.cn/20190225115812391.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70" target="_blank" rel="noopener"><img src="https://img-blog.csdnimg.cn/20190225115812391.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2RwZW5nd2FuZw==,size_16,color_FFFFFF,t_70" alt></a><br>该算法的主要思想是，分别假设特征缺失的样本属于右子树和左子树，而且只在不缺失的样本上迭代，分别计算缺失样本属于右子树和左子树的增益，选择增益最大的方向为缺失数据的默认方向。</p>
+<h2 id="2-GBDT-原理"><a href="#2-GBDT-原理" class="headerlink" title="2. GBDT 原理"></a><a href="#2-GBDT原理" title="2. GBDT原理"></a>2. GBDT 原理</h2><p>GBDT 是一个系列算法，具有很好的性能，可以用于回归、分类、排序的机器学习任务，也是机器学习面试时常考的一个知识点，在这写下个人的一些理解，也当做个笔记。</p>
+<p>GBDT 分为两部分，GB: Gradient Boosting 和 DT: Decision tree。</p>
+<p>GBDT 算法是属于 Boosting 算法族的一部分，可将弱学习器提升为强学习器的算法，属于集成学习的范畴。</p>
+<h3 id="2-1-决策树"><a href="#2-1-决策树" class="headerlink" title="2.1 决策树"></a><a href="#2-1-决策树" title="2.1 决策树"></a>2.1 决策树</h3><p>由于 GBDT 中的弱学习器采用的是决策树，在这儿我们先介绍下决策树。</p>
+<p>顾名思义，决策树对应于数据结构中的树结构，可以认为是 if-then 规则的集合，具有可解释性、分类速度快等优点。</p>
+<p>决策树的学习通常包含 3 个步骤：特征选择、决策树的生成和决策树的修剪。</p>
+<p>决策树由结点和有向边组成，结点有两种类型：内部结点和叶子结点，内部结点表示一个特征或属性，叶子结点表示一个类。</p>
+<p>分类时，根据内部结点的特征对样本进行测试，根据测试结果，分配到相应的子节点，递归直到到达叶子结点，则分类为叶子结点所在的类。</p>
+<p>互斥且完备：每一个样本都被树的一条路径（一条规则）所覆盖，而且只被一条路径所覆盖。</p>
+<p>决策树学习的本质是从训练数据中归纳出一组分类规则，由训练数据集估计条件概率模型。</p>
+<p>决策树学习的算法通常是一个递归地<strong>选择最优特征，并根据该特征对训练数据进行分割</strong>。</p>
+<p>决策树常用的算法有 ID3、C4.5 和 CART。</p>
+<ul>
+<li><h4 id="特征选择"><a href="#特征选择" class="headerlink" title="特征选择"></a><a href="#特征选择" title="特征选择"></a>特征选择</h4></li>
+</ul>
+<p>特征选择在于选取对训练数据具有分类能力的特征。通常的准则是<strong>信息增益或信息增益比</strong>。</p>
+<ol>
+<li><p><strong>信息增益</strong></p>
+<p>表示得知特征 X 的信息而使得类 Y 的信息的不确定性减少的程度。</p>
+<p>特征 A 对训练数据集 D 的信息增益 $g(D,A)$，定义为集合 D 的经验熵与特征 A 给定条件下 D 的经验条件熵 $H(D|A)$ 之差，即：</p>
+<p>​ $g(D,A)=H(D)−H(D|A)$</p>
+<p><strong>信息增益大的特征具有更强的分类能力。</strong></p>
+</li>
+<li><p><strong>信息增益比</strong></p>
+<p>​ <strong>以信息增益作为划分训练数据集的特征，存在偏向于选择取值较多的特征的问题</strong>。</p>
+<p>​ 使用信息增益比可以对这一问题进行校正。特征 A 对训练数据集 D 的信息增益比 $g_R(D,A)$ 定义为其信息增益 $g(D,A)$ 与训练数据集 D 关于特征 A 的值的熵 $H_A(D)$ 之比，即</p>
+<p>​ $g_R(D,A)=\frac{g(D,A)}{H_A(D)}$</p>
+<p><strong>选信息增益比高的特征</strong></p>
+</li>
+<li><p><strong>基尼指数</strong></p>
+<p>对于给定的样本集合 D，其基尼指数为：</p>
+<p>​ $Gini(D) = 1 - \sum<em>{k=1}^K(\frac{|C</em>{k}|}{|D|})^2$</p>
+<p>$Ck$ 是 D 中属于第 k 类的样本子集，K 是类的个数。</p>
+<p>如果样本集合 D 根据某特征被分隔成 $D1$ 和 $D2$ 两部分：则在特征 A 条件下，集合 D 的基尼指数定义为：</p>
+<p>​ $Gini(D, A) = \frac{|D<em>{1}|}{|D|}Gini(D</em>{1}) + \frac{|D<em>{2}|}{|D|}Gini(D</em>{2})$</p>
+</li>
+</ol>
+<p>​ 基尼指数值越大，样本集合的不确定性也就越大。</p>
+<p>​ <strong>选基尼指数小的特征分割。</strong></p>
+<ol>
+<li><p><strong>平方误差最小化</strong><br>这是针对回归任务来说的，在构建回归树时进行特征选取的准则。</p>
+<p><strong>ID3 算法是使用信息增益准则来进行特征选择。</strong><br><strong>C4.5 算法是使用信息增益比准则来进行特征选择。</strong><br><strong>CART 算法是使用基尼指数和平方误差最小化来进行特征选择。</strong></p>
+</li>
+<li><h4 id="决策树的剪枝"><a href="#决策树的剪枝" class="headerlink" title="决策树的剪枝"></a><a href="#决策树的剪枝" title="决策树的剪枝"></a>决策树的剪枝</h4><p>决策树生成算法递归地产生决策树，直到不能继续下去为止。这样容易出现过拟合现象。</p>
+<p>在决策树学习中将已生成的树进行简化的过程称为剪枝。</p>
+<p>决策树的剪枝往往通过极小化决策树整体的损失函数或代价函数来实现。</p>
+</li>
+</ol>
+<h3 id="2-2-CART-算法"><a href="#2-2-CART-算法" class="headerlink" title="2.2 CART 算法"></a><a href="#2-2-CART算法" title="2.2 CART算法"></a>2.2 CART 算法</h3><p>分类回归树 (classification and regression tree, CART) 是应用广泛的决策树学习算法。</p>
+<p>CART 假设决策树是二叉树，内部结点特征的取值为 “是” 和“否”，左边分支是取值为 “是” 的分支，右分支是取值为 “否” 的分支。</p>
+<p>CART 算法由以下两步组成：<br>（1）决策树生成：基于训练数据生成决策树，生成的决策树要尽量大；<br>（2）决策树剪枝：用验证数据集对已生成的树进行剪枝并选择最优子树，这时用损失函数最小作为剪枝的标准。</p>
+<h4 id="1-分类树构建"><a href="#1-分类树构建" class="headerlink" title="1. 分类树构建"></a><a href="#1-分类树构建" title="1. 分类树构建"></a><strong>1. 分类树构建</strong></h4><p>分类树构建与上面的 ID3 算法和 C4.5 算法类似，这里就不再叙述。</p>
+<h4 id="2-回归树构建"><a href="#2-回归树构建" class="headerlink" title="2. 回归树构建"></a><a href="#2-回归树构建" title="2. 回归树构建"></a><strong>2. 回归树构建</strong></h4><p>一个回归树对应着输入空间的一个划分以及在划分单元上的输出值，假设已将输入空间划分为 M 个单元 $R_1,R_2,…,R_M$，并且在每个单元 $R_m$ 上有一个固定的输出值 $c_m$，则回归树模型可表示为：</p>
+<p>$f(x) = \sum<em>{m=1}^{M}c</em>{m}I(x\in R_{m})$</p>
+<p>单元 $R_m$ 上的 $c_m$ 的最优值 $\hat c_m$ 是 $R_m$ 上所有输入样本 $x_i$ 对应的输出 $y_i$ 的均值。</p>
+<p>如何进行划分，采用启发式的方法，选择第 $j$ 个变量 $x(j)$ 和它取的值，作为切分变量和切分点，并定义两个区域：</p>
+<p>$R1(j,s)=x|x(j)≤s$</p>
+<p>$R2(j,s)=x|x(j)&gt;s$</p>
+<p>然后寻找最优切分变量 j 和最优切分点 s，具体地，求解：</p>
+<p>$min<em>{j, s} [min</em>{c<em>{1}}\sum</em>{x<em>{i}\in R</em>{1}(j,s)}(y<em>{i}-c</em>{1})^2 + min<em>{c</em>{2}}\sum<em>{x</em>{i}\in R<em>{2}(j,s)}(y</em>{i}-c_{2})^2]$</p>
+<p>每次在选择切分变量 j 和切分点 s 时，遍历变量 j，对固定的切分变量 j 扫描切分点 s，选择使上式达到最小值的对 (j,s)。</p>
+<h3 id="2-3-提升树模型"><a href="#2-3-提升树模型" class="headerlink" title="2.3 提升树模型"></a><a href="#2-3-提升树模型" title="2.3 提升树模型"></a>2.3 提升树模型</h3><p>采用<strong>加法模型（即基函数的线性组合）</strong>与<strong>前向分布算法</strong>，以决策树为基函数的提升方法称为提升树。</p>
+<h4 id="1-加法模型-积硅步以至千里"><a href="#1-加法模型-积硅步以至千里" class="headerlink" title="1. 加法模型 - 积硅步以至千里"></a><a href="#1-加法模型-积硅步以至千里" title="1. 加法模型-积硅步以至千里"></a>1. 加法模型 - 积硅步以至千里</h4><p>加法模型的基本思想是 “积硅步以至千里”，就是每次学习一点，然后一步步的接近最终要预测的值（完全是 gradient 的思想~）。</p>
+<p>提升树模型可以表示为决策树的加法模型：</p>
+<p>$f<em>{M}(x) = \sum</em>{m=1}^M T(x;\theta_{m})$</p>
+<p>其中，$T(x;θ_m)$ 表示决策树，$θ_m$ 为决策树的参数；M 为树的个数</p>
+<p>在给定训练数据及损失函数 $L(y,f(y))$ 的条件下，学习加法模型 $f_M(x)$ 称为经验风险极小化即损失函数极小化问题：</p>
+<p>$\underset{\theta<em>{m}}{min} = \sum</em>{i = 1}^{N}L(y<em>{i}, \sum</em>{m=1}^M T(x;\theta_{m}))$</p>
+<p>这是一个复杂的优化问题。可以使用前向分步算法来求解这一优化问题。</p>
+<h4 id="2-前向分步算法"><a href="#2-前向分步算法" class="headerlink" title="2. 前向分步算法"></a><a href="#2-前向分步算法" title="2. 前向分步算法"></a>2. 前向分步算法</h4><p>首先确定初始提升树 $f_0(x)=0$，第 m 步模型是：</p>
+<p>$f<em>{m}(x) = f</em>{m-1}(x)+ T(x;\theta_{m})$</p>
+<p>其中，$f_{m−1}(x)$ 为当前模型，通过经验风险极小化确定下一棵决策树的参数 $θ_m$，</p>
+<p>$\hat \theta<em>{m} = arg \underset{\theta</em>{m}}{min} \sum<em>{i=1}^ML(y</em>{i}, f<em>{m-1}(x</em>{i})+T(x<em>{i}; \theta</em>{m}))$</p>
+<p>树的线性组合可以很好的拟合训练数据，即使数据中的输入和输出之间的关系很复杂也是如此，所以提升树是一个高功能的学习算法。<br>针对不同问题的提升树学习算法，其主要区别在于使用的损失函数不同，包括用平方误差损失函数的回归问题，用指数损失函数的分类问题，以及用一般损失函数的一般决策问题。</p>
+<h4 id="3-回归问题提升树"><a href="#3-回归问题提升树" class="headerlink" title="3. 回归问题提升树"></a><a href="#3-回归问题提升树" title="3. 回归问题提升树"></a>3. 回归问题提升树</h4><p>采用平方误差损失函数时，</p>
+<p>$L(y, f(x)) = (y-f(x))^2$</p>
+<p>其损失变为：</p>
+<p>$L(y, f<em>{m-1}(x) + T(x;\theta</em>{m})) = [y-f<em>{m-1}(x)-T(x;\theta</em>{m})]^2 = [r-T(x;\theta_{m})]^2$</p>
+<p>这里，$r = y - f_{m-1}(x)$<br>是当前模型拟合数据的残差，对回归问题的提升树来说，只需要简单地拟合当前模型的残差。</p>
+<h3 id="2-4-GBDT"><a href="#2-4-GBDT" class="headerlink" title="2.4 GBDT"></a><a href="#2-4-GBDT" title="2.4 GBDT"></a>2.4 GBDT</h3><p><a href="https://user-gold-cdn.xitu.io/2017/11/23/15fe6b1373233f38?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" target="_blank" rel="noopener"><img src="https://user-gold-cdn.xitu.io/2017/11/23/15fe6b1373233f38?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+<p>当损失函数是平方损失和指数损失函数时，每一步优化是很简单的。但对一般损失函数而言，往往每一步优化并不那么容易。这时就需要用到梯度提升 (gradient boosting) 算法。<br>这是利用最速下降法的近似方法，其关键是利用损失函数的负梯度方向在当前模型的值，</p>
+<p>$- [\frac{\partial L(y<em>{i}, f(x))}{\partial f(x)}]</em>{f(x) = f_{m-1}(x)}$</p>
+<p>作为回归提升树算法的残差近似值，拟合一个回归树。</p>
+<h4 id="1-梯度近似"><a href="#1-梯度近似" class="headerlink" title="1. 梯度近似"></a><a href="#1-梯度近似" title="1. 梯度近似"></a>1. 梯度近似</h4><p>贪心法再每次选择最优基函数时仍然困难。<br>将样本带入当前模型，得到 $f<em>{m−1}(x_i)$，从而损失值为 $L(y_i,f</em>{m−1}(x_i)$。<br>此时我们可以求出梯度，然后进行更新：</p>
+<p>$f<em>{m}(x) = f</em>{m-1}(x) - r<em>{m}\sum</em>{i=1}{N}\delta L(y<em>{i}, f</em>{m-1}(x))$</p>
+<p>上式中权值为 $r$ 为梯度下降的步长，使用线性搜索求最优步长。</p>
+<p>$r<em>{m} = arg \underset{r}{min}\sum</em>{i=1}^N L(y<em>{i}, f</em>{m-1}(x) - r<em>{m}\delta L(y</em>{i}, f_{m-1}(x)))$</p>
+<p>GBDT 采用的是数值优化的思维，用的最速下降法去求解 Loss Function 的最优解，其中用 CART 决策树去拟合负梯度，用牛顿法求步长。</p>
+<h4 id="2-衰减（Shrinkage）"><a href="#2-衰减（Shrinkage）" class="headerlink" title="2. 衰减（Shrinkage）"></a><a href="#2-衰减（Shrinkage）" title="2. 衰减（Shrinkage）"></a>2. 衰减（Shrinkage）</h4><p>这个是把学习的大步变小步，即 “真实值 - 预测值”*shrinkage<br>衰减因子：v<br>v = 1 即为原始模型，推荐选择 v&lt;0.1 的小学习率。过小的学习率会造成计算次数增多。</p>
+<h2 id="3-XGBoost-与-GBDT-对比"><a href="#3-XGBoost-与-GBDT-对比" class="headerlink" title="3. XGBoost 与 GBDT 对比"></a><a href="#3-XGBoost与GBDT对比" title="3. XGBoost与GBDT对比"></a>3. XGBoost 与 GBDT 对比</h2><ul>
+<li><p>传统 GBDT 以 CART 作为基分类器，xgboost 还支持线性分类器，这个时候 xgboost 相当于带 L1 和 L2 正则项的逻辑斯蒂回归（分类问题）或者线性回归（回归问题）。</p>
+<ul>
+<li><p>XGBoost:$L(\phi) = \sum<em>{i} l(\hat y</em>{i}, y<em>{i}) + \sum</em>{k}\Omega (f_{k})$</p>
+<p>$Obj^{(t)} = \sum<em>{i=1}^nl(y</em>{i}, \hat y<em>{i}^{(t-1)}+f</em>{t}(x<em>{i})) + \Omega(f</em>{t}) + constant$</p>
+<p>$\Omega(f<em>{t}) = \gamma T + \frac{1}{2}\lambda \sum</em>{j=1}^Tw_{j}^2$</p>
+</li>
+<li><p>GBDT:$L(\phi) = \sum<em>{i} l(\hat y</em>{i}, y_{i}) $</p>
+</li>
+</ul>
+</li>
+<li><p>GBDT 优化时只用到一阶导数信息，xgboost 则对代价函数进行了二阶泰勒展开，同时用到了一阶和二阶导数。xgboost 工具支持自定义代价函数，只要函数可一阶二阶求导。</p>
+</li>
+<li><p>xgboost 在代价函数中引入了正则项，用于控制模型的复杂度。正则项里包含了树的叶子节点个数、每个叶子节点上输出 score 的 L2。使学习出来的模型更加简单，防止过拟合。</p>
+</li>
+<li><p>缩减和列采样：防止过拟合，列采样是从随机森林那边学习来的，防止过拟合的效果比传统的行采样效果还要好，并且有利于后面提到的并行化处理算法。</p>
+</li>
+<li><p>划分点查找算法</p>
+<ul>
+<li>贪心算法获取最优切分点</li>
+<li>近似算法，提出了候选分割点概念，先通过直方图算法获得候选分割点的分布情况</li>
+<li>分布式加权直方图算法</li>
+</ul>
+</li>
+<li><p>对缺失值的处理。对于特征的值有缺失的样本，xgboost 可以自动学习出它的分裂方向。稀疏感知算法。</p>
+</li>
+<li><p>内置交叉验证</p>
+</li>
+<li><p>并行化处理：各个特征的增益计算是可以并行进行的</p>
+</li>
+</ul>
+<h2 id="4-L1-正则化和-L2-正则化的区别"><a href="#4-L1-正则化和-L2-正则化的区别" class="headerlink" title="4. L1 正则化和 L2 正则化的区别"></a><a href="#4-L1正则化和L2正则化的区别" title="4. L1正则化和L2正则化的区别"></a>4. L1 正则化和 L2 正则化的区别</h2><p>比如有以下问题：</p>
+<ol>
+<li>过拟合的解决方式有哪些，l1 和 l2 正则化都有哪些不同，各自有什么优缺点 (爱奇艺)</li>
+<li>L1 和 L2 正则化来避免过拟合是大家都知道的事情，而且我们都知道 L1 正则化可以得到稀疏解，L2 正则化可以得到平滑解，这是为什么呢？</li>
+<li>L1 和 L2 有什么区别，从数学角度解释 L2 为什么能提升模型的泛化能力。（美团）</li>
+<li>L1 和 L2 的区别，以及各自的使用场景（头条）</li>
+</ol>
+<h4 id="1-什么是-L1-正则，L2-正则"><a href="#1-什么是-L1-正则，L2-正则" class="headerlink" title="1. 什么是 L1 正则，L2 正则"></a><a href="#1-什么是L1正则，L2正则" title="1. 什么是L1正则，L2正则"></a>1. 什么是 L1 正则，L2 正则</h4><p>L1 正则即将参数的绝对值之和加入到损失函数中，以二元线性回归为例，损失函数变为：<a href="https://upload-images.jianshu.io/upload_images/4155986-f5c2979afb29c442.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/744/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-f5c2979afb29c442.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/744/format/webp" alt></a></p>
+<p>L2 正则即将参数的平方之和加入到损失函数中，以二元线性回归为例，损失函数变为：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-6468143a030475ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/658/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-6468143a030475ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/658/format/webp" alt></a></p>
+<h4 id="2-L1-正则-amp-L2-正则的区别是什么？"><a href="#2-L1-正则-amp-L2-正则的区别是什么？" class="headerlink" title="2. L1 正则 &amp; L2 正则的区别是什么？"></a><a href="#2-L1正则-amp-L2正则的区别是什么？" title="2. L1正则&amp;L2正则的区别是什么？"></a>2. L1 正则 &amp; L2 正则的区别是什么？</h4><p>二者的区别的话，咱们总结主要有以下两点，最主要的还是第二点：</p>
+<p>1、L1 正则化是指在损失函数中加入权值向量 w 的一范数，即各个元素的绝对值之和，L2 正则化指在损失函数中加入权值向量 w 的平方和。</p>
+<p>2、L1 的功能是使权重稀疏，而 L2 的功能是使权重平滑。</p>
+<h4 id="3、L1-正则为什么可以得到稀疏解？"><a href="#3、L1-正则为什么可以得到稀疏解？" class="headerlink" title="3、L1 正则为什么可以得到稀疏解？"></a><a href="#3、L1正则为什么可以得到稀疏解？" title="3、L1正则为什么可以得到稀疏解？"></a>3、L1 正则为什么可以得到稀疏解？</h4><p>这一道题是面试中最容易考到的，大家一定要理解掌握！这一部分的回答，在《百面机器学习》中给出了三种答案：</p>
+<h5 id="3-1-解空间形状"><a href="#3-1-解空间形状" class="headerlink" title="3.1 解空间形状"></a><a href="#3-1-解空间形状" title="3.1 解空间形状"></a>3.1 解空间形状</h5><p>这是我们最常使用的一种答案，就是给面试官画如下的图：<a href="https://upload-images.jianshu.io/upload_images/4155986-1d309317d2ceb2a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/992/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-1d309317d2ceb2a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/992/format/webp" alt></a></p>
+<p>L2 正则化相当于为参数定义了一个圆形的解空间，而 L1 正则化相当于为参数定义了一个菱形的解空间。L1“棱角分明” 的解空间显然更容易与目标函数等高线在脚点碰撞。从而产生稀疏解。</p>
+<h5 id="3-2-函数叠加"><a href="#3-2-函数叠加" class="headerlink" title="3.2 函数叠加"></a><a href="#3-2-函数叠加" title="3.2 函数叠加"></a>3.2 函数叠加</h5><p>我们考虑一维的情况，横轴是参数的值，纵轴是损失函数，加入正则项之后，损失函数曲线图变化如下：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-646760bb218f4ef4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-646760bb218f4ef4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>可以看到，在加入 L1 正则项后，最小值在红点处，对应的 w 是 0。而加入 L2 正则项后，最小值在黄点处，对应的 w 并不为 0。</p>
+<p>为什么呢？加入 L1 正则项后，目标函数变为 L(w)+C|w|，单就正则项部分求导，原点左边的值为 - C，原点右边的值为 C，因此，只要原目标函数的导数绝对值 | L’(w)|&lt;C, 那么带 L1 正则项的目标函数在原点左边部分始终递减，在原点右边部分始终递增，最小值点自然会出现在原点处。</p>
+<p>加入 L2 正则项后，目标函数变为 L(w)+Cw2，只要原目标函数在原点处的导数不为 0，那么带 L2 正则项的目标函数在原点处的导数就不为 0，那么最小值就不会在原点。因此 L2 正则只有见效 w 绝对值的作用，但并不能产生稀疏解。</p>
+<h5 id="3-3-贝叶斯先验"><a href="#3-3-贝叶斯先验" class="headerlink" title="3.3 贝叶斯先验"></a><a href="#3-3-贝叶斯先验" title="3.3 贝叶斯先验"></a>3.3 贝叶斯先验</h5><p>从贝叶斯角度来看，L1 正则化相当于对模型参数 w 引入了拉普拉斯先验，L2 正则化相当于引入了高斯先验 (为什么我们在后面详细解释)。我们来看一下高斯分布和拉普拉斯分布的形状：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-4334fdf426c430fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-4334fdf426c430fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-80ade329381fa2ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-80ade329381fa2ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>可以看到，当均值为 0 时，高斯分布在极值点处是平滑的，也就是高斯先验分布认为 w 在极值点附近取不同值的可能性是接近的。但对拉普拉斯分布来说，其极值点处是一个尖峰，所以拉普拉斯先验分布中参数 w 取值为 0 的可能性要更高。</p>
+<h4 id="4、从数学角度解释-L2-为什么能提升模型的泛化能力"><a href="#4、从数学角度解释-L2-为什么能提升模型的泛化能力" class="headerlink" title="4、从数学角度解释 L2 为什么能提升模型的泛化能力"></a><a href="#4、从数学角度解释L2为什么能提升模型的泛化能力" title="4、从数学角度解释L2为什么能提升模型的泛化能力"></a>4、从数学角度解释 L2 为什么能提升模型的泛化能力</h4><p>这里主要给出两篇博客作为参考：<br><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fwww.zhihu.com%2Fquestion%2F35508851" target="_blank" rel="noopener">https://www.zhihu.com/question/35508851</a><br><a href="https://links.jianshu.com/go?to=https%3A%2F%2Fblog.csdn.net%2Fzouxy09%2Farticle%2Fdetails%2F24971995" target="_blank" rel="noopener">https://blog.csdn.net/zouxy09/article/details/24971995</a></p>
+<h4 id="5、为什么说-“L1-正则化相当于对模型参数-w-引入了拉普拉斯先验，L2-正则化相当于引入了高斯先验”？"><a href="#5、为什么说-“L1-正则化相当于对模型参数-w-引入了拉普拉斯先验，L2-正则化相当于引入了高斯先验”？" class="headerlink" title="5、为什么说 “L1 正则化相当于对模型参数 w 引入了拉普拉斯先验，L2 正则化相当于引入了高斯先验”？"></a><a href="#5、为什么说“L1正则化相当于对模型参数w引入了拉普拉斯先验，L2正则化相当于引入了高斯先验”？" title="5、为什么说“L1正则化相当于对模型参数w引入了拉普拉斯先验，L2正则化相当于引入了高斯先验”？"></a>5、为什么说 “L1 正则化相当于对模型参数 w 引入了拉普拉斯先验，L2 正则化相当于引入了高斯先验”？</h4><p>这一部分咱们小小推导一下，嘻嘻，如果一看数学就头大的同学，可以跳过此处。</p>
+<p>在贝叶斯估计中，我们要求解的是参数 θ 的后验概率最大化：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-7ef036d61e8d33f1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-7ef036d61e8d33f1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>在最后一项的分子中 P(Xi|θ) 和分母都是一个常数，因此，上式可以继续化简：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-42f4e611892d2776.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-42f4e611892d2776.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>所以贝叶斯学派估计是使下面的式子最小化：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-255c5afe74c4a679.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/920/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-255c5afe74c4a679.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/920/format/webp" alt></a></p>
+<p>关于第一项，假设我们做的是一元线性回归，那么求解过程如下：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-750d52e547f6ca8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-750d52e547f6ca8a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>第二项，咱们就得分类讨论了，如果 θ 服从的是 0 均值的正态分布，为了和上面的方差所区分，这里咱们用 alpha 来表示，那么有：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-c1c777abbf1b6dc6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-c1c777abbf1b6dc6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>所以，最终可以得到：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-a2fc7640daa28bbd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-a2fc7640daa28bbd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<p>我们把与 θ 无关的情况去掉，便得到：</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-a6d143b50c707785.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/776/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-a6d143b50c707785.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/776/format/webp" alt></a></p>
+<p>你可能觉得，alpha 不是 θ 的方差么，请注意，这里是先验分布，我们可以任意指定 alpha 的值，所以去掉也是可以的。</p>
+<p>同理，我们可以得到当先验是拉普拉斯分布时的情况。</p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-23fe5da02137a65a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/932/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-23fe5da02137a65a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/932/format/webp" alt></a></p>
+<p><a href="https://upload-images.jianshu.io/upload_images/4155986-b979c4026bee15d2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" target="_blank" rel="noopener"><img src="https://upload-images.jianshu.io/upload_images/4155986-b979c4026bee15d2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp" alt></a></p>
+<h2 id="1-推荐系统中的评价标准，准确度，AUC，召回率等"><a href="#1-推荐系统中的评价标准，准确度，AUC，召回率等" class="headerlink" title="1. 推荐系统中的评价标准，准确度，AUC，召回率等"></a><a href="#1-推荐系统中的评价标准，准确度，AUC，召回率等" title="1. 推荐系统中的评价标准，准确度，AUC，召回率等"></a>1. 推荐系统中的评价标准，准确度，AUC，召回率等</h2><h2 id="2-RF-和-xgboost-的区别，怎么选特征，判断特征重要度，RF-的层数和深度"><a href="#2-RF-和-xgboost-的区别，怎么选特征，判断特征重要度，RF-的层数和深度" class="headerlink" title="2. RF 和 xgboost 的区别，怎么选特征，判断特征重要度，RF 的层数和深度"></a><a href="#2-RF和xgboost的区别，怎么选特征，判断特征重要度，RF的层数和深度" title="2. RF和xgboost的区别，怎么选特征，判断特征重要度，RF的层数和深度"></a>2. RF 和 xgboost 的区别，怎么选特征，判断特征重要度，RF 的层数和深度</h2><h2 id="3-工业推荐系统架构，召回阶段的责任，多路召回，利用-FM-模型做统一的召回模型"><a href="#3-工业推荐系统架构，召回阶段的责任，多路召回，利用-FM-模型做统一的召回模型" class="headerlink" title="3. 工业推荐系统架构，召回阶段的责任，多路召回，利用 FM 模型做统一的召回模型"></a><a href="#3-工业推荐系统架构，召回阶段的责任，多路召回，利用FM模型做统一的召回模型" title="3. 工业推荐系统架构，召回阶段的责任，多路召回，利用FM模型做统一的召回模型"></a>3. 工业推荐系统架构，召回阶段的责任，多路召回，利用 FM 模型做统一的召回模型</h2><p>强烈推荐阅读<a href="https://zhuanlan.zhihu.com/p/58160982" target="_blank" rel="noopener">张俊林的文章</a></p>
+<h2 id="4-RNN-LSTM-GRU-等详细结构和公式推导"><a href="#4-RNN-LSTM-GRU-等详细结构和公式推导" class="headerlink" title="4. RNN ,LSTM, GRU 等详细结构和公式推导"></a><a href="#4-RNN-LSTM-GRU等详细结构和公式推导" title="4. RNN ,LSTM, GRU等详细结构和公式推导"></a>4. RNN ,LSTM, GRU 等详细结构和公式推导</h2><h2 id="5-GBDT-推导，再来一遍"><a href="#5-GBDT-推导，再来一遍" class="headerlink" title="5. GBDT 推导，再来一遍"></a><a href="#5-GBDT推导，再来一遍" title="5. GBDT推导，再来一遍"></a>5. GBDT 推导，再来一遍</h2><h2 id="6-Xgb-lr-gbdt-rf-优缺点，适用场景"><a href="#6-Xgb-lr-gbdt-rf-优缺点，适用场景" class="headerlink" title="6. Xgb,lr,gbdt,rf 优缺点，适用场景"></a><a href="#6-Xgb-lr-gbdt-rf优缺点，适用场景" title="6. Xgb,lr,gbdt,rf优缺点，适用场景"></a>6. Xgb,lr,gbdt,rf 优缺点，适用场景</h2><h2 id="7-阅读下面"><a href="#7-阅读下面" class="headerlink" title="7. 阅读下面"></a><a href="#7-阅读下面" title="7. 阅读下面"></a>7. 阅读下面</h2><p><a href="https://www.twblogs.net/a/5c0b60d9bd9eee6fb213baca/zh-cn" target="_blank" rel="noopener">链接</a></p>
+<p><a href="https://www.nowcoder.com/discuss/102895?type=2&amp;order=0&amp;pos=112&amp;page=2" target="_blank" rel="noopener">链接二</a></p>
+<h2 id="8-关于-DeepFM-和-Youtube-做召回的笔记"><a href="#8-关于-DeepFM-和-Youtube-做召回的笔记" class="headerlink" title="8. 关于 DeepFM 和 Youtube 做召回的笔记"></a><a href="#8-关于DeepFM和Youtube做召回的笔记" title="8. 关于DeepFM和Youtube做召回的笔记"></a>8. 关于 DeepFM 和 Youtube 做召回的笔记</h2><p><a href="https://zhuanlan.zhihu.com/p/52504407" target="_blank" rel="noopener">王喆的学习笔记</a></p>
+<p>有效链接：</p>
+<ol>
+<li><a href="https://thuang001.github.io/2019/07/02/%E9%97%AE%E9%A2%98%EF%BC%9A/[http://www.dehong.space/XGBoost](http://www.dehong.space/XGBoost" target="_blank" rel="noopener">十分钟入门 XGBoost</a>&gt;)</li>
+<li><a href="https://blog.csdn.net/sb19931201/article/details/52557382" target="_blank" rel="noopener">XGBoost 入门</a></li>
+<li><a href="https://blog.csdn.net/yinyu19950811/article/details/81079192" target="_blank" rel="noopener">XGBoost 原理介绍</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/面试常问问题复习/" title="面试常问问题复习">https://ailab-aida.github.io/2019/10/28/面试常问问题复习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/SVM 支持向量机/" rel="next" title="SVM 支持向量机">
+                  <i class="fa fa-chevron-left"></i> SVM 支持向量机
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/FFM 模型/" rel="prev" title="FFM 模型">
+                  FFM 模型 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-xgboost-原理"><span class="nav-number">1.</span> <span class="nav-text">1. xgboost 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-简介："><span class="nav-number">1.1.</span> <span class="nav-text">1. 简介：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CART-回归树"><span class="nav-number">1.2.</span> <span class="nav-text">2. CART 回归树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Boosting-tree"><span class="nav-number">1.3.</span> <span class="nav-text">3. Boosting tree</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-XGBoost"><span class="nav-number">1.4.</span> <span class="nav-text">4. XGBoost</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-如何学习具体的树结构"><span class="nav-number">1.5.</span> <span class="nav-text">5. 如何学习具体的树结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-节点分裂算法"><span class="nav-number">1.6.</span> <span class="nav-text">6. 节点分裂算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-精确贪婪算法-Basic-Exact-Greedy-Algorithms"><span class="nav-number">1.6.1.</span> <span class="nav-text">6.1 精确贪婪算法 (Basic Exact Greedy Algorithms)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-近似算法-Approximate-Algorithm-for-Split-Finding"><span class="nav-number">1.6.2.</span> <span class="nav-text">6.2 近似算法 (Approximate Algorithm for Split Finding)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-稀疏特征处理-Sparsity-aware-Split-Finding"><span class="nav-number">1.6.3.</span> <span class="nav-text">6.3 稀疏特征处理 (Sparsity-aware Split Finding)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-GBDT-原理"><span class="nav-number">2.</span> <span class="nav-text">2. GBDT 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-决策树"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 决策树</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#特征选择"><span class="nav-number">2.1.1.</span> <span class="nav-text">特征选择</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#决策树的剪枝"><span class="nav-number">2.1.2.</span> <span class="nav-text">决策树的剪枝</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-CART-算法"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 CART 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-分类树构建"><span class="nav-number">2.2.1.</span> <span class="nav-text">1. 分类树构建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-回归树构建"><span class="nav-number">2.2.2.</span> <span class="nav-text">2. 回归树构建</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-提升树模型"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 提升树模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-加法模型-积硅步以至千里"><span class="nav-number">2.3.1.</span> <span class="nav-text">1. 加法模型 - 积硅步以至千里</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-前向分步算法"><span class="nav-number">2.3.2.</span> <span class="nav-text">2. 前向分步算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-回归问题提升树"><span class="nav-number">2.3.3.</span> <span class="nav-text">3. 回归问题提升树</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-GBDT"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 GBDT</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-梯度近似"><span class="nav-number">2.4.1.</span> <span class="nav-text">1. 梯度近似</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-衰减（Shrinkage）"><span class="nav-number">2.4.2.</span> <span class="nav-text">2. 衰减（Shrinkage）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-XGBoost-与-GBDT-对比"><span class="nav-number">3.</span> <span class="nav-text">3. XGBoost 与 GBDT 对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-L1-正则化和-L2-正则化的区别"><span class="nav-number">4.</span> <span class="nav-text">4. L1 正则化和 L2 正则化的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-什么是-L1-正则，L2-正则"><span class="nav-number">4.0.1.</span> <span class="nav-text">1. 什么是 L1 正则，L2 正则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-L1-正则-amp-L2-正则的区别是什么？"><span class="nav-number">4.0.2.</span> <span class="nav-text">2. L1 正则 &amp; L2 正则的区别是什么？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3、L1-正则为什么可以得到稀疏解？"><span class="nav-number">4.0.3.</span> <span class="nav-text">3、L1 正则为什么可以得到稀疏解？</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-解空间形状"><span class="nav-number">4.0.3.1.</span> <span class="nav-text">3.1 解空间形状</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-2-函数叠加"><span class="nav-number">4.0.3.2.</span> <span class="nav-text">3.2 函数叠加</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-贝叶斯先验"><span class="nav-number">4.0.3.3.</span> <span class="nav-text">3.3 贝叶斯先验</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4、从数学角度解释-L2-为什么能提升模型的泛化能力"><span class="nav-number">4.0.4.</span> <span class="nav-text">4、从数学角度解释 L2 为什么能提升模型的泛化能力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5、为什么说-“L1-正则化相当于对模型参数-w-引入了拉普拉斯先验，L2-正则化相当于引入了高斯先验”？"><span class="nav-number">4.0.5.</span> <span class="nav-text">5、为什么说 “L1 正则化相当于对模型参数 w 引入了拉普拉斯先验，L2 正则化相当于引入了高斯先验”？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-推荐系统中的评价标准，准确度，AUC，召回率等"><span class="nav-number">5.</span> <span class="nav-text">1. 推荐系统中的评价标准，准确度，AUC，召回率等</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-RF-和-xgboost-的区别，怎么选特征，判断特征重要度，RF-的层数和深度"><span class="nav-number">6.</span> <span class="nav-text">2. RF 和 xgboost 的区别，怎么选特征，判断特征重要度，RF 的层数和深度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-工业推荐系统架构，召回阶段的责任，多路召回，利用-FM-模型做统一的召回模型"><span class="nav-number">7.</span> <span class="nav-text">3. 工业推荐系统架构，召回阶段的责任，多路召回，利用 FM 模型做统一的召回模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-RNN-LSTM-GRU-等详细结构和公式推导"><span class="nav-number">8.</span> <span class="nav-text">4. RNN ,LSTM, GRU 等详细结构和公式推导</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-GBDT-推导，再来一遍"><span class="nav-number">9.</span> <span class="nav-text">5. GBDT 推导，再来一遍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Xgb-lr-gbdt-rf-优缺点，适用场景"><span class="nav-number">10.</span> <span class="nav-text">6. Xgb,lr,gbdt,rf 优缺点，适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-阅读下面"><span class="nav-number">11.</span> <span class="nav-text">7. 阅读下面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-关于-DeepFM-和-Youtube-做召回的笔记"><span class="nav-number">12.</span> <span class="nav-text">8. 关于 DeepFM 和 Youtube 做召回的笔记</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '42e0899b5d2c96e5f0960dc403972248',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

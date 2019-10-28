@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="基于 icf+als 矩阵分解+gbdt 的推荐现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt可以先后验 ctr  后验 staytime 做 ab ，再先验 ctr (模型) 后验 staytime基于 Word embedding + xgb 的推荐基于 fm+lr 的推荐">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="推荐系统迭代">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/推荐系统迭代/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="基于 icf+als 矩阵分解+gbdt 的推荐现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt可以先后验 ctr  后验 staytime 做 ab ，再先验 ctr (模型) 后验 staytime基于 Word embedding + xgb 的推荐基于 fm+lr 的推荐">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://ailab-aida.github.io/images/ali_rec.png">
+<meta property="og:updated_time" content="2019-10-28T08:40:37.680Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="推荐系统迭代">
+<meta name="twitter:description" content="基于 icf+als 矩阵分解+gbdt 的推荐现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt可以先后验 ctr  后验 staytime 做 ab ，再先验 ctr (模型) 后验 staytime基于 Word embedding + xgb 的推荐基于 fm+lr 的推荐">
+<meta name="twitter:image" content="https://ailab-aida.github.io/images/ali_rec.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/推荐系统迭代/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>推荐系统迭代 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/推荐系统迭代/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">推荐系统迭代
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 14:42:02 / 修改时间：16:40:37" itemprop="dateCreated datePublished" datetime="2019-10-28T14:42:02+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="基于-icf-als-矩阵分解-gbdt-的推荐"><a href="#基于-icf-als-矩阵分解-gbdt-的推荐" class="headerlink" title="基于 icf+als 矩阵分解+gbdt 的推荐"></a><a href="基于icf+als+gbdt的推荐"></a>基于 icf+als 矩阵分解+gbdt 的推荐</h2><hr><p>现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt</p><p>可以先后验 ctr <em> 后验 staytime 做 ab ，再先验 ctr (模型)</em> 后验 staytime</p><h2 id="基于-Word-embedding-xgb-的推荐"><a href="#基于-Word-embedding-xgb-的推荐" class="headerlink" title="基于 Word embedding + xgb 的推荐"></a><a href="基于emb+xgb的推荐"></a>基于 Word embedding + xgb 的推荐</h2><h2 id="基于-fm-lr-的推荐"><a href="#基于-fm-lr-的推荐" class="headerlink" title="基于 fm+lr 的推荐"></a><a href="基于fm+lr的推荐"></a>基于 fm+lr 的推荐</h2><a id="more"></a>
+
+
+<h2 id="基于-GBDT-LR-的推荐"><a href="#基于-GBDT-LR-的推荐" class="headerlink" title="基于 GBDT+LR 的推荐"></a><a href="基于GBDT+LR,的推荐"></a>基于 GBDT+LR 的推荐</h2><h2 id="基于-ItemToVector-的推荐"><a href="#基于-ItemToVector-的推荐" class="headerlink" title="基于 ItemToVector 的推荐"></a><a href="基于ItemToVector的推荐"></a>基于 ItemToVector 的推荐</h2><h2 id="基于-ffm-wide-amp-deep-gt-deepfm-的推荐"><a href="#基于-ffm-wide-amp-deep-gt-deepfm-的推荐" class="headerlink" title="基于 ffm+wide&amp;deep -&gt;deepfm 的推荐"></a><a href="基于ffm+wide&amp;deep的推荐"></a>基于 ffm+wide&amp;deep -&gt;deepfm 的推荐</h2><h2 id="迭代步骤"><a href="#迭代步骤" class="headerlink" title="迭代步骤"></a>迭代步骤</h2><p>1、埋点数据</p>
+<p>2、模型迭代<br>现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt</p>
+<p>整体架构流程图：<br><img src="/images/ali_rec.png" alt></p>
+<h2 id="中青看点离线数据处理"><a href="#中青看点离线数据处理" class="headerlink" title="中青看点离线数据处理"></a>中青看点离线数据处理</h2><p>1，数据探查</p>
+<p>1.1 数据量</p>
+<p>主要是：用以判断整体计算规模，优质用户数和采样准备</p>
+<pre><code>1、用户量：用户总量：3800W
+
+2、文章量：文章总量：1200W
+
+3、每用户平均行为量：日均事件总数：40E
+
+4、用户行为数分布判断：
+
+事件人数分布统计图
+
+![image.png](https://intranetproxy.alipay.com/skylark/lark/0/2019/png/44971/1567748371820-14d54c04-836e-4b5e-91ee-816d0e7bfb3f.png#align=left&amp;display=inline&amp;height=149&amp;name=image.png&amp;originHeight=297&amp;originWidth=758&amp;size=16383&amp;status=done&amp;width=379)
+
+5、每天的行为日志：40E多
+</code></pre><p>1.2 数据质量</p>
+<pre><code>因各个业务系统原始数据上云，数据质量情况需摸排一下，看是否有清洗必要，我这边会提供相应工具(hive类型检查)
+
+工具质量报告
+</code></pre><p>1.3 数据内容</p>
+<pre><code>列级统计
+
+对于各字段内的内容进行一下大体摸排，当前三点：
+
+１，实数类型看最大值,最小值，平均值等（有现成组件）
+
+２，类别型对类别数量和字典进行一下统计
+
+３，日期格式是否统一
+</code></pre><p>原始数据表分为三部分：用户表，文章表和事件表</p>
+<p>事件比例：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>事件数</th>
+<th>人数占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt;=1</td>
+<td>2%</td>
+</tr>
+<tr>
+<td>&lt;=2</td>
+<td>5%</td>
+</tr>
+<tr>
+<td>&lt;=3</td>
+<td>7%</td>
+</tr>
+<tr>
+<td>&lt;=4</td>
+<td>10.3%</td>
+</tr>
+<tr>
+<td>&lt;=100</td>
+<td>51.9%</td>
+</tr>
+<tr>
+<td>&lt;=200</td>
+<td>63.21%</td>
+</tr>
+<tr>
+<td>&lt;=300</td>
+<td>69.84%</td>
+</tr>
+<tr>
+<td>&lt;=400</td>
+<td>74.6%</td>
+</tr>
+<tr>
+<td>&lt;=500</td>
+<td>78.3%</td>
+</tr>
+<tr>
+<td>&lt;=800</td>
+<td>85.3%</td>
+</tr>
+<tr>
+<td>&lt;=900</td>
+<td>86.9%</td>
+</tr>
+<tr>
+<td>&lt;=1000</td>
+<td>88.3%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>更详细的数据分析及字段含义见下表：</p>
+<p>2，特征工程</p>
+<pre><code>用户_ID_
+用户身份特征
+年龄，直接可获取值，归一化
+地域，可能需要转换一下，one hot
+手机类型，可以直接获取到，embedding 
+活跃天数，可以直接获取到，归一化
+性别, 可以直接获取到，one hot
+国家,可以直接获得，embedding
+城市,可直接获得，embedding
+省份,可以直接获得，embedding
+屏幕高度，例如1920
+屏幕宽度，例如1080 ,先不做了
+</code></pre><p>网络类型，可直接获取，one hot<br>渠道来源（备选）</p>
+<p>事件类特征</p>
+<pre><code>7，15，30天浏览类型统计，需要统计计算，取top5的类型,one hot类别，数可以先不用
+7，15，30天观看地域统计，需要统计计算，取top3的类型,one hot类别
+7，15，30天观看时间段的统计，需要统计计算，24小时分割one hot
+</code></pre><p>2、文章特征</p>
+<pre><code>文章ID，区分使用
+发布日期，日期分段1，3，7，15，30，180， 1年以上,one hot表达
+文章类别（新的表会有，频道），可直接获得，one hot
+文章所有人平均阅读时长，需要统计计算，先直接输入数值
+文章阅读率，需要统计计算，先直接输入数值
+文章点击率，需要统计计算，先直接输入数值
+分享率，可以直接获得
+二分率，（待确认确定一下）
+点击率，需要统计计算一下
+阅读量，可以直接获取
+点赞量，可直接获取
+评论量，可直接获取
+收藏量，可直接获取
+分享量，可直接获取
+是否机构文章，可直接获取
+是否作者文章，可直接获取
+作者id，可直接获取
+文章时效性，可直接获取
+关键词embedding ，需要另外一个全量语料库，得到标签的embedding
+</code></pre><p>3，样本生成</p>
+<pre><code>当前选取文章为推荐的第一阶段目标，样本生成策略：
+1，为了排除极端用户的事件情况，同时覆盖大多数用户的行为，所以，根据1中事件统计信息选择事件大于4小于1000的用户，站全部用户比78%
+2，为了排除羊毛党的影响，过滤掉数美和腾讯云安全检测的非正常用户
+3，事件类型根据事件稀缺程度排序为：
+contentshow(内容展现）
+contentClick(内容点击）
+(阅读完成度)
+veiwFullContent（查看你内容全文）
+contentOperatorion(内容操作，收藏，写评论，分享）
+shareSucess（分享成功，微信，朋友圈，QQ好友）
+
+
+其中正样本的定义为：contentShow 同时 contentClick事件出现，默认为1倍权重
+其中负样本的定义为：contentShow 同时 contentClick事件没有出现，默认为1倍权重
+
+
+对于正反馈权重加权的定义为阅读完成度100%或者viewFullContent事件发生，定义为2倍权重，contentOperation出现收藏，分享为3倍权重，暂时不考虑其他激励
+对于负反馈权重加权的定义为（安卓用户）阅读没有完成100%或者viewFullContent事件发生，定义为2倍负权重，暂时不考虑其他负激励
+因为安卓用户和ios用户事件定义不一样，负激励处理要根据用户比例再确认，如果ios用户较少，可以至用安卓用户。
+正负样本如果比例不均衡的情况下，以削减剩余过剩样本，或随机增加，看具体数据情况。所有样本以样本出现倍数为激励，样本label为0和1
+
+
+召回训练集。用户历史七天点击文章列表，统计一下7天的事件量人群分布，如果某用户7天内事件不够丰富，向前推一段时间窗口，如果事件比较丰富，可以部分筛检一些
+
+
+先样本用户生成，再做事件处理的样本拼接。
+</code></pre><h2 id="中青看点线上数据处理"><a href="#中青看点线上数据处理" class="headerlink" title="中青看点线上数据处理"></a>中青看点线上数据处理</h2><h3 id="特征工程"><a href="#特征工程" class="headerlink" title="特征工程"></a>特征工程</h3><p>1、用户特征表</p>
+<pre><code>1.0 用户基础特征
+用户 id user_id
+性别 wx_user.sex user_sex
+用户积分 wx_user.total_score user_total_score
+注册时间 wx_user.reg_time user_reg_time
+总活跃天数 wx_user.active_days user_active_days
+会员状态 wx_user.status user_satus
+数美风险等级 wx_user.sm_level user_sm_levl
+腾讯云风险等级-手机 wx_user.iphone_status user_iphone_satus
+腾讯云风险等级-微信 wx_user.wechat_status user_wechat_status
+是否绑定身份证 wx_user.is_bind_card user_bind_card
+
+1.1 用户统计特征
+APP元素点击_1天统计    $AppClick    user_AppClick _1_days
+APP退出_1天统计    $AppEnd    user_AppEnd_1_days
+APP启动_1天统计    $AppStart    user_AppStart_1_days
+APP浏览页面_1天统计    $AppViewScreen    user_AppViewScreen_1_days
+H5元素点击_1天统计    $WebClick    user_WebClick_1_days
+H5热力图_1天统计    $WebStay    user_WebStay_1_days
+H5浏览页面_1天统计    $pageview    user_pageview_1_days
+内容评论操作_1天统计    ContentCommentOperation    user_ContentCommentOperation_1_days
+广告点击_1天统计    adClick    user_adClick_1_days
+广告展现_1天统计    adShow    user_adShow_1_days
+输入手机号_1天统计    bindphone1    user_bindphone1_1_days
+手机绑定_1天统计    bindphone2    user_bindphone2_1_days
+点击频道ICON_1天统计    clickChannel    user_clickChannel_1_days
+浏览内容详情_1天统计    contentClick    user_contentClick_1_days
+内容加载成功_1天统计    contentDownloadSuccess    user_contentDownloadSuccess_1_days
+内容操作_1天统计    contentOperation    user_contentOperation_1_days
+内容展现_1天统计    contentShow    user_contentShow_1_days
+完整播放视频_1天统计    endPlayVideo    user_endPlayVideo_1_days
+进入TAB页_1天统计    enterTab    user_enterTab_1_days
+提现_1天统计    exchangeResult    user_exchangeResult_1_days
+退出内容详情页_1天统计    exitContentDetail    user_exitContentDetail_1_days
+获得验证码_1天统计    getCode    user_getCode_1_days
+APP登录_1天统计    login    user_login_1_days
+应用外push点击_1天统计    outerPushClick    user_outerPushClick_1_days
+提交评论_1天统计    postContentComment    user_postContentComment_1_days
+搜索_1天统计    search    user_search_1_days
+点击搜索框_1天统计    searchClick    user_searchClick_1_days
+点击搜索结果_1天统计    searchResult    user_searchResult_1_days
+分享_1天统计    share    user_share_1_days
+分享方式选择_1天统计    shareMethodChoose    user_shareMethodChoose_1_days
+签到_1天统计    signIn    user_signIn_1_days
+开始播放视频_1天统计    startPlayVideo    user_startPlayVideo_1_days
+APP元素点击_3天统计    $AppClick    user_AppClick _3_days
+APP退出_3天统计    $AppEnd    user_AppEnd_3_days
+APP启动_3天统计    $AppStart    user_AppStart_3_days
+APP浏览页面_3天统计    $AppViewScreen    user_AppViewScreen_3_days
+H5元素点击_3天统计    $WebClick    user_WebClick_3_days
+H5热力图_3天统计    $WebStay    user_WebStay_3_days
+H5浏览页面_3天统计    $pageview    user_pageview_3_days
+内容评论操作_3天统计    ContentCommentOperation    user_ContentCommentOperation_3_days
+广告点击_3天统计    adClick    user_adClick_3_days
+广告展现_3天统计    adShow    user_adShow_3_days
+输入手机号_3天统计    bindphone1    user_bindphone3_3_days
+手机绑定_3天统计    bindphone2    user_bindphone2_3_days
+点击频道ICON_3天统计    clickChannel    user_clickChannel_3_days
+浏览内容详情_3天统计    contentClick    user_contentClick_3_days
+内容加载成功_3天统计    contentDownloadSuccess    user_contentDownloadSuccess_3_days
+内容操作_3天统计    contentOperation    user_contentOperation_3_days
+内容展现_3天统计    contentShow    user_contentShow_3_days
+完整播放视频_3天统计    endPlayVideo    user_endPlayVideo_3_days
+进入TAB页_3天统计    enterTab    user_enterTab_3_days
+提现_3天统计    exchangeResult    user_exchangeResult_3_days
+退出内容详情页_3天统计    exitContentDetail    user_exitContentDetail_3_days
+获得验证码_3天统计    getCode    user_getCode_3_days
+APP登录_3天统计    login    user_login_3_days
+应用外push点击_3天统计    outerPushClick    user_outerPushClick_3_days
+提交评论_3天统计    postContentComment    user_postContentComment_3_days
+搜索_3天统计    search    user_search_3_days
+点击搜索框_3天统计    searchClick    user_searchClick_3_days
+点击搜索结果_3天统计    searchResult    user_searchResult_3_days
+分享_3天统计    share    user_share_3_days
+分享方式选择_3天统计    shareMethodChoose    user_shareMethodChoose_3_days
+签到_3天统计    signIn    user_signIn_3_days
+开始播放视频_3天统计    startPlayVideo    user_startPlayVideo_3_days
+APP元素点击_7天统计    $AppClick    user_AppClick _7_days
+APP退出_7天统计    $AppEnd    user_AppEnd_7_days
+APP启动_7天统计    $AppStart    user_AppStart_7_days
+APP浏览页面_7天统计    $AppViewScreen    user_AppViewScreen_7_days
+H5元素点击_7天统计    $WebClick    user_WebClick_7_days
+H5热力图_7天统计    $WebStay    user_WebStay_7_days
+H5浏览页面_7天统计    $pageview    user_pageview_7_days
+内容评论操作_7天统计    ContentCommentOperation    user_ContentCommentOperation_7_days
+广告点击_7天统计    adClick    user_adClick_7_days
+广告展现_7天统计    adShow    user_adShow_7_days
+输入手机号_7天统计    bindphone1    user_bindphone7_7_days
+手机绑定_7天统计    bindphone2    user_bindphone2_7_days
+点击频道ICON_7天统计    clickChannel    user_clickChannel_7_days
+浏览内容详情_7天统计    contentClick    user_contentClick_7_days
+内容加载成功_7天统计    contentDownloadSuccess    user_contentDownloadSuccess_7_days
+内容操作_7天统计    contentOperation    user_contentOperation_7_days
+内容展现_7天统计    contentShow    user_contentShow_7_days
+完整播放视频_7天统计    endPlayVideo    user_endPlayVideo_7_days
+进入TAB页_7天统计    enterTab    user_enterTab_7_days
+提现_7天统计    exchangeResult    user_exchangeResult_7_days
+退出内容详情页_7天统计    exitContentDetail    user_exitContentDetail_7_days
+获得验证码_7天统计    getCode    user_getCode_7_days
+APP登录_7天统计    login    user_login_7_days
+应用外push点击_7天统计    outerPushClick    user_outerPushClick_7_days
+提交评论_7天统计    postContentComment    user_postContentComment_7_days
+搜索_7天统计    search    user_search_7_days
+点击搜索框_7天统计    searchClick    user_searchClick_7_days
+点击搜索结果_7天统计    searchResult    user_searchResult_7_days
+分享_7天统计    share    user_share_7_days
+分享方式选择_7天统计    shareMethodChoose    user_shareMethodChoose_7_days
+签到_7天统计    signIn    user_signIn_7_days
+开始播放视频_7天统    startPlayVideo    user_startPlayVideo_7_days
+</code></pre><p>2、文章特征表</p>
+<pre><code>文章 id wx_feed.id article_id
+文章发布时间 wx_feed.publish_time article_publish_time
+文章类型 wx_feed.type article_type
+文章标题 wx_feed.title article_title
+关键字 wx_feed.keywords article_keywords
+标签类型 wx_feed.tagid article_tagid
+文章统计特征
+内容评论操作\_1 天统计 ContentCommentOperation article_ContentCommentOperation_1_days
+浏览内容详情\_1 天统计 contentClick article_contentClick_1_days
+内容加载成功\_1 天统计 contentDownloadSuccess article_contentDownloadSuccess_1_days
+内容操作\_1 天统计 contentOperation article_contentOperation_1_days
+内容展现\_1 天统计 contentShow article_contentShow_1_days
+完整播放视频\_1 天统计 endPlayVideo article_endPlayVideo_1_days
+退出内容详情页\_1 天统计 exitContentDetail article_exitContentDetail_1_days
+提交评论\_1 天统计 postContentComment article_postContentComment_1_days
+分享\_1 天统计 share article_share_1_days
+分享方式选择\_1 天统计 shareMethodChoose article_shareMethodChoose_1_days
+开始播放视频\_1 天统计 startPlayVideo article_startPlayVideo_1_days
+内容评论操作\_3 天统计 ContentCommentOperation article_ContentCommentOperation_3_days
+浏览内容详情\_3 天统计 contentClick article_contentClick_3_days
+内容加载成功\_3 天统计 contentDownloadSuccess article_contentDownloadSuccess_3_days
+内容操作\_3 天统计 contentOperation article_contentOperation_3_days
+内容展现\_3 天统计 contentShow article_contentShow_3_days
+完整播放视频\_3 天统计 endPlayVideo article_endPlayVideo_3_days
+退出内容详情页\_3 天统计 exitContentDetail article_exitContentDetail_3_days
+提交评论\_3 天统计 postContentComment article_postContentComment_3_days
+分享\_3 天统计 share article_share_3_days
+分享方式选择\_3 天统计 shareMethodChoose article_shareMethodChoose_3_days
+开始播放视频\_3 天统计 startPlayVideo article_startPlayVideo_3_days
+内容评论操作\_7 天统计 ContentCommentOperation article_ContentCommentOperation_7_days
+浏览内容详情\_7 天统计 contentClick article_contentClick_7_days
+内容加载成功\_7 天统计 contentDownloadSuccess article_contentDownloadSuccess_7_days
+内容操作\_7 天统计 contentOperation article_contentOperation_7_days
+内容展现\_7 天统计 contentShow article_contentShow_7_days
+完整播放视频\_7 天统计 endPlayVideo article_endPlayVideo_7_days
+退出内容详情页\_7 天统计 exitContentDetail article_exitContentDetail_7_days
+提交评论\_7 天统计 postContentComment article_postContentComment_7_days
+分享\_7 天统计 share article_share_7_days
+分享方式选择\_7 天统计 shareMethodChoose article_shareMethodChoose_7_days
+开始播放视频\_7 天统计 startPlayVideo article_startPlayVideo_7_days
+</code></pre><p>3、事件表</p>
+<pre><code>用户 id org_event_topic.$.distinct_id    user_id
+文章id org_event_topic.$properties.contentID article_id
+国家 org_event_topic.$properties.$country event_country
+省份 org_event_topic.$properties.$province event_province
+城市 org_event_topic.$properties.$city event_city
+手机型号 org_event_topic.$properties.$model event_phone_model
+网络类型 org_event_topic.$properties.$network_type event_network_type
+事件类型 org_event_topic.$.event    event_type
+事件时间 org_event_topic.$.time event_time
+</code></pre><p>排序升级为 XGB 排序<br>召回升级为 fm，用户特征存在 Redis，item 特征存在 faiss，向量之间做乘积<br>开发工具为 TF<br>作者张俊林</p>
+<p>3、流式计算<br>基于 flink 的实时推荐</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/推荐系统迭代/" title="推荐系统迭代">https://ailab-aida.github.io/2019/10/28/推荐系统迭代/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/Logistic Regression 适用性/" rel="next" title="Logistic Regression 适用性">
+                  <i class="fa fa-chevron-left"></i> Logistic Regression 适用性
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/深度学习调参总结/" rel="prev" title="深度学习调参总结">
+                  深度学习调参总结 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-icf-als-矩阵分解-gbdt-的推荐"><span class="nav-number">1.</span> <span class="nav-text">基于 icf+als 矩阵分解+gbdt 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-Word-embedding-xgb-的推荐"><span class="nav-number">2.</span> <span class="nav-text">基于 Word embedding + xgb 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-fm-lr-的推荐"><span class="nav-number">3.</span> <span class="nav-text">基于 fm+lr 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-GBDT-LR-的推荐"><span class="nav-number">4.</span> <span class="nav-text">基于 GBDT+LR 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-ItemToVector-的推荐"><span class="nav-number">5.</span> <span class="nav-text">基于 ItemToVector 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于-ffm-wide-amp-deep-gt-deepfm-的推荐"><span class="nav-number">6.</span> <span class="nav-text">基于 ffm+wide&amp;deep -&gt;deepfm 的推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迭代步骤"><span class="nav-number">7.</span> <span class="nav-text">迭代步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中青看点离线数据处理"><span class="nav-number">8.</span> <span class="nav-text">中青看点离线数据处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中青看点线上数据处理"><span class="nav-number">9.</span> <span class="nav-text">中青看点线上数据处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#特征工程"><span class="nav-number">9.1.</span> <span class="nav-text">特征工程</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'e0342be8314c4259b82f09fb967d14e8',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

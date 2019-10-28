@@ -272,7 +272,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/ernie/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -286,7 +286,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/18/ernie/" class="post-title-link" itemprop="url">ernie研究</a>
+            <a href="/2019/10/28/PythonLib - 机器学习库专题/" class="post-title-link" itemprop="url">PythonLib - 机器学习库专题</a>
           
         </h1>
 
@@ -301,7 +301,7 @@
                 
               
 
-              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:35:40" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+              <time title="创建时间：2019-10-28 16:03:18 / 修改时间：17:07:13" itemprop="dateCreated datePublished" datetime="2019-10-28T16:03:18+08:00">2019-10-28</time>
             </span>
           
             
@@ -314,7 +314,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
 
                 
                 
@@ -333,13 +333,110 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文假定读者已经阅读过 BERT 与 ERNIE 的论文。</p><h2 id="ERNIE-掩蔽策略"><a href="#ERNIE-掩蔽策略" class="headerlink" title="ERNIE 掩蔽策略"></a>ERNIE 掩蔽策略</h2><p>ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略：</p><blockquote>
-<p>我们将一个短语或一个实体作为一个单元，通常由多个单词组成。<strong>在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽</strong>。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。</p>
+          <p>Posted on 2019-02-22 | Modified: 2019-03-17 | In <a href="https://vel.life/categories/Notes/" target="_blank" rel="noopener">Notes</a> | <a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/#comments" target="_blank" rel="noopener">0</a> |</p><p>Words count in article: 1,347 | Reading time ≈ 6</p><p><a href="https://vel.life/Intro-to-Python-Libs/PythonLib.png" target="_blank" rel="noopener"><img src="https://vel.life/Intro-to-Python-Libs/PythonLib.png" alt></a></p><p>Python 库简介 - 机器学习库专题。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#回归</span><br><span class="line">from sklearn.linear_model import LinearRegression #线性回归</span><br><span class="line">from sklearn.linear_model import Ridge #岭回归，可选alpha=.5</span><br><span class="line">from sklearn.linear_model import BayesianRidge #贝叶斯岭回归</span><br><span class="line">from sklearn.linear_model import Lasso #Lasso回归</span><br><span class="line">from sklearn.tree import DecisionTreeRegressor #决策树回归</span><br><span class="line">from sklearn.ensemble import RandomForestRegressor #随机森林回归</span><br><span class="line">#分类</span><br><span class="line">from sklearn.linear_model import LogisticRegression #逻辑回归</span><br><span class="line">from sklearn.svm import SVC, LinearSVC #支持向量机</span><br><span class="line">from sklearn.ensemble import RandomForestClassifier #随机森林分类器</span><br><span class="line">from sklearn.neighbors import KNeighborsClassifier #K近邻</span><br><span class="line">from sklearn.naive_bayes import GaussianNB</span><br><span class="line">from sklearn.linear_model import Perceptron #感知机</span><br><span class="line">from sklearn.linear_model import SGDClassifier #随机梯度下降分类器</span><br><span class="line">from sklearn.tree import DecisionTreeClassifier #决策树分类器</span><br><span class="line">#特征工程</span><br><span class="line">import sklearn.preprocessing as preprocessing</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/28/PythonLib - 机器学习库专题/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/Python库使用简介/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/28/Python库使用简介/" class="post-title-link" itemprop="url">Python库使用简介</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 16:03:03 / 修改时间：17:04:06" itemprop="dateCreated datePublished" datetime="2019-10-28T16:03:03+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><a href="https://vel.life/Intro-to-Python-Libs/PythonLib.png" target="_blank" rel="noopener"><img src="https://vel.life/Intro-to-Python-Libs/PythonLib.png" alt></a></p><p>基于 Python3。多多练习。</p><p>Python 常用库的示意图。（提供 <a href="https://vel.life/Intro-to-Python-Libs/PythonLib.xmind" target="_blank" rel="noopener">Xmind 格式下载</a>）</p><p><a href="https://vel.life/Intro-to-Python-Libs/PythonLib.png" target="_blank" rel="noopener"><img src="https://vel.life/Intro-to-Python-Libs/PythonLib.png" alt></a></p><blockquote>
+<p><a href="https://docs.python.org/zh-cn/3.7/library/index.html" target="_blank" rel="noopener">Python 标准库</a>。</p>
+<p><a href="https://github.com/vinta/awesome-python" target="_blank" rel="noopener">Awesome Python</a>。</p>
+<p><a href="https://kite.com/" target="_blank" rel="noopener">kite</a> 智能编程工具，AI-Powered Python Copilot，<a href="https://kite.com/blog" target="_blank" rel="noopener">Kite_blog</a>（暂时不太好用）<br>sulime 插件，参见 <a href="https://www.cnblogs.com/bananaplan/p/Sublime-Text-3-Powerful.html" target="_blank" rel="noopener">Sublime Text 3 绝对神器</a>，<a href="https://www.zhihu.com/question/24736400" target="_blank" rel="noopener">sublime text 3 插件推荐？</a>，<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=6&amp;ved=2ahUKEwjE54CxrLzgAhXKc3AKHSUwDPkQFjAFegQIDBAB&amp;url=http%3A%2F%2Fyanxyz.github.io%2Femmet-docs%2F&amp;usg=AOvVaw01Bq70VixIyU5kmmroWoG6" target="_blank" rel="noopener">Emmet 文档</a>，<a href="http://bubkoo.com/2014/01/04/emmet-a-toolkit-for-improving-html-css-workflow/" target="_blank" rel="noopener">HTML/CSS 速写神器：Emmet | bubkoo</a>，<a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;ved=2ahUKEwjE54CxrLzgAhXKc3AKHSUwDPkQFjABegQICxAB&amp;url=https%3A%2F%2Fwww.w3cplus.com%2Ftools%2Femmet-cheat-sheet.html&amp;usg=AOvVaw0Us4fYQpqxs0OsEZZ1EZ9v" target="_blank" rel="noopener">前端开发必备！Emmet 使用手册_Emmet 教程_w3cplus</a>，<a href="http://www.xuanfengge.com/practical-collection-of-sublime-plug-in.html" target="_blank" rel="noopener"><strong>实用的 sublime 插件集合 – sublime 推荐必备插件</strong></a></p>
+<p><a href="https://juejin.im/post/5b3864a5f265da59af40a72c" target="_blank" rel="noopener">入门 Python 数据分析最好的实战项目（一）</a>，<a href="https://juejin.im/post/5b46fcde5188251b193d3c56" target="_blank" rel="noopener">（二）</a></p>
 </blockquote>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/18/ernie/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/Python库使用简介/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -368,7 +465,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/BERT/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -382,7 +479,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/18/BERT/" class="post-title-link" itemprop="url">BERT研究</a>
+            <a href="/2019/10/28/XGBoost 参数说明/" class="post-title-link" itemprop="url">XGBoost 参数说明</a>
           
         </h1>
 
@@ -397,7 +494,7 @@
                 
               
 
-              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:31:04" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+              <time title="创建时间：2019-10-28 15:54:19 / 修改时间：19:56:24" itemprop="dateCreated datePublished" datetime="2019-10-28T15:54:19+08:00">2019-10-28</time>
             </span>
           
             
@@ -410,7 +507,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
 
                 
                 
@@ -429,14 +526,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。</p><h2 id="预训练辅助任务"><a href="#预训练辅助任务" class="headerlink" title="预训练辅助任务"></a>预训练辅助任务</h2><p>BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。</p><ul>
-<li>MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。</li>
-<li>NSP：随机生成句子对，模型需要判断句子对是否连续（next sentence）。</li>
+          <p><a href="https://xgboost.readthedocs.io/en/latest//parameter.html" target="_blank" rel="noopener">XGBoost 官方参数说明文档</a>，XGBoost 版本：0.72。</p><p>在运行 XGBoost 之前，必须设置三种类型参数：通用参数 (General Parameters)、提升参数(Booster Parameters) 和任务参数(Task Parameters)。</p><ul>
+<li>通用参数 (General Parameters)：设置整体功能，参数控制在提升(boosting) 过程中使用哪种 booster，常用的 booster 有树模型 (tree model) 和线性模型(linear model)。</li>
+<li>提升参数 (Booster Parameters)：这取决于使用哪种 booster(树 or 回归)。</li>
+<li>任务参数 (Task Parameters)：控制学习的场景，例如在回归问题中会使用不同的参数控制排序。</li>
 </ul>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/18/BERT/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/XGBoost 参数说明/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -465,7 +563,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/youtube_net/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/深度学习在 CTR 预估中的应用之 Attention FM/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -479,7 +577,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/17/youtube_net/" class="post-title-link" itemprop="url">未命名</a>
+            <a href="/2019/10/28/深度学习在 CTR 预估中的应用之 Attention FM/" class="post-title-link" itemprop="url">深度学习在 CTR 预估中的应用之 Attention FM</a>
           
         </h1>
 
@@ -494,191 +592,11 @@
                 
               
 
-              <time title="创建时间：2019-10-17 20:46:22" itemprop="dateCreated datePublished" datetime="2019-10-17T20:46:22+08:00">2019-10-17</time>
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/协同过滤推荐算法与应用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/10/17/协同过滤推荐算法与应用/" class="post-title-link" itemprop="url">协同过滤推荐算法</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-10-17 20:03:54" itemprop="dateCreated datePublished" datetime="2019-10-17T20:03:54+08:00">2019-10-17</time>
+              <time title="创建时间：2019-10-28 15:15:36 / 修改时间：20:03:20" itemprop="dateCreated datePublished" datetime="2019-10-28T15:15:36+08:00">2019-10-28</time>
             </span>
           
             
 
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-23 11:44:26" itemprop="dateModified" datetime="2019-10-23T11:44:26+08:00">2019-10-23</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li>CF 协同过滤推荐算法原理<br>1.1 概述<br>什么是协同过滤 (Collaborative Filtering, 简称 CF)？<br>首先想一个简单的问题，如果你现在想看个电影，但你不知道具体看哪部，你会怎么做？<br>大部分的人会问问周围的朋友，看看最近有什么好看的电影推荐，而我们一般更倾向于从口味比较类似的朋友那里得到推荐。这就是协同过滤的核心思想。</li>
-</ol>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/10/17/协同过滤推荐算法与应用/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/推荐算法整理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/10/17/推荐算法整理/" class="post-title-link" itemprop="url">推荐算法整理</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-10-17 18:55:37" itemprop="dateCreated datePublished" datetime="2019-10-17T18:55:37+08:00">2019-10-17</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-23 10:30:10" itemprop="dateModified" datetime="2019-10-23T10:30:10+08:00">2019-10-23</time>
-              </span>
             
           
             <span class="post-meta-item">
@@ -706,11 +624,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="推荐系统整体架构图"><a href="#推荐系统整体架构图" class="headerlink" title="推荐系统整体架构图"></a><a href="推荐系统整体架构图"></a>推荐系统整体架构图</h2><hr><p><img src="/images/ai0.png" alt></p><h2 id="基于内容的推荐"><a href="#基于内容的推荐" class="headerlink" title="基于内容的推荐"></a><a href="基于内容的推荐"></a>基于内容的推荐</h2><hr><p>基于内容的推荐是基础的推荐策略。如果你浏览或购买过某种类型的内容，则给你推荐这种类型下的其他内容。</p><p>以电影推荐为例。比如你之前看过《盗梦空间》，则系统会关联数据库中盗梦空间的信息。系统会推荐克里斯托弗 · 诺兰导演的其他作品，比如《致命魔术》；系统会推荐主演里昂纳多的其他作品，比如《第十一小时》。</p>
+          <h1 id="1-背景说明"><a href="#1-背景说明" class="headerlink" title="1 背景说明"></a><a href="#1-背景说明" title="1 背景说明"></a>1 背景说明</h1><p>Attention，也叫注意力模型，关于 Attention，<a href="http://xdrush.github.io/2017/10/23/Attention%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%9C%A8%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_blank" rel="noopener">这篇文章中有详细的描述</a>。Attention 在计算机视觉、自然语言处理中都有典型的应用。因为 Attention 能够学习到不同特征对于目标的重要程度，目前的研究结果表明，Attention 在绝大多数场景中都能发挥积极作用。</p><p>Attention FM（后文简称 AFM）正是在原有 FM 基础上，考虑了不同二阶交叉特征对于目标的重要程度，实验结果表明，AFM 性能明显要优于 FM 及 FM 的衍生版本。下面我们就来探索下 AFM 原理。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/17/推荐算法整理/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/深度学习在 CTR 预估中的应用之 Attention FM/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -739,7 +657,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/热度算法/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/AUC 及其理解/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -753,7 +671,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/17/热度算法/" class="post-title-link" itemprop="url">热度算法</a>
+            <a href="/2019/10/28/AUC 及其理解/" class="post-title-link" itemprop="url">AUC 及其理解</a>
           
         </h1>
 
@@ -768,7 +686,7 @@
                 
               
 
-              <time title="创建时间：2019-10-17 17:23:05 / 修改时间：19:39:21" itemprop="dateCreated datePublished" datetime="2019-10-17T17:23:05+08:00">2019-10-17</time>
+              <time title="创建时间：2019-10-28 15:15:24 / 修改时间：20:01:11" itemprop="dateCreated datePublished" datetime="2019-10-28T15:15:24+08:00">2019-10-28</time>
             </span>
           
             
@@ -800,11 +718,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="热度算法"><a href="#热度算法" class="headerlink" title="热度算法"></a><a href="热度算法"></a>热度算法</h2><h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>在产品、运营这次做社区改版的过程中，我们 AILAB 部门结合具体的业务细节，通过研究、讨论与试错，最终设计了一个基本符合需求的内容热度值算法，本文就简述其设计方法。</p><h4 id="他山之石"><a href="#他山之石" class="headerlink" title="他山之石"></a>他山之石</h4><p>有为数很少的几家外国公司开源或公开说明了自家的内容热度值算法，包括 Hacker News、Reddit、Stack Overflow/Stack Exchange、StumbleUpon 等。我们在设计自己的算法之前，参考了他们的一些理念。为了节省篇幅，就不再重复讲一遍了，直接将 reference 传送门放在下面：</p>
+          <p>在互联网精准广告中，可以从多个角度来评估一个 CTR 模型的性能，但通常以 AUC 作为模型评估的最直接指标，直观上讲，AUC 是从排序能力的角度来对模型进行评估。下面将详细解释 AUC 的含义及其计算方式，</p><h2 id="2-1-ROC-曲线理解"><a href="#2-1-ROC-曲线理解" class="headerlink" title="2.1 ROC 曲线理解"></a><a href="#2-1-ROC曲线理解" title="2.1 ROC曲线理解"></a>2.1 ROC 曲线理解</h2><p>ROC（Receiver Operating Characteristic）曲线和 AUC 常被用来评价一个二值分类器的优劣，分类器算法，常用的评价指标主要有 precision，recall，F-score；<br>一个典型的 ROC 曲线如下图所示：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/ROC%E6%9B%B2%E7%BA%BF.png" alt></a></p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/17/热度算法/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/AUC 及其理解/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -833,7 +751,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/08/flutter provider基础使用/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/RNN 原理详解以及 tensorflow 中的 RNN 实现/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -847,7 +765,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/08/flutter provider基础使用/" class="post-title-link" itemprop="url">flutter provider基础使用</a>
+            <a href="/2019/10/28/RNN 原理详解以及 tensorflow 中的 RNN 实现/" class="post-title-link" itemprop="url">RNN 原理详解以及 tensorflow 中的 RNN 实现</a>
           
         </h1>
 
@@ -862,121 +780,11 @@
                 
               
 
-              <time title="创建时间：2019-10-08 18:12:47" itemprop="dateCreated datePublished" datetime="2019-10-08T18:12:47+08:00">2019-10-08</time>
+              <time title="创建时间：2019-10-28 15:15:16 / 修改时间：19:58:00" itemprop="dateCreated datePublished" datetime="2019-10-28T15:15:16+08:00">2019-10-28</time>
             </span>
           
             
 
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 17:57:18" itemprop="dateModified" datetime="2019-10-12T17:57:18+08:00">2019-10-12</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="main-dart"><a href="#main-dart" class="headerlink" title="main.dart"></a>main.dart</h2><p>废话不多说 直接上代码 😃</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line">import &apos;package:flutter/material.dart&apos;;</span><br><span class="line">import &apos;package:flutter_demo/provider/main_provider.dart&apos;;</span><br><span class="line">import &apos;package:provider/provider.dart&apos;;</span><br><span class="line"></span><br><span class="line">void main() &#123;</span><br><span class="line">  runApp(MaterialApp(</span><br><span class="line">    title: &apos;demo&apos;,</span><br><span class="line">    theme: ThemeData(</span><br><span class="line">      primarySwatch: Colors.blue,</span><br><span class="line">    ),</span><br><span class="line">    //定义作用区间 只绘制顶层home</span><br><span class="line">    home: MultiProvider(</span><br><span class="line">      providers: [</span><br><span class="line">        ChangeNotifierProvider(builder: (_) =&gt; MainProvider()),</span><br><span class="line">      ],</span><br><span class="line">      child: Home(),</span><br><span class="line">    ),</span><br><span class="line">  ));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Home extends StatefulWidget &#123;</span><br><span class="line">  @override</span><br><span class="line">  _HomeState createState() =&gt; new _HomeState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class _HomeState extends State&lt;Home&gt; &#123;</span><br><span class="line">//  int curNum = 0;</span><br><span class="line">  int curNum;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  void initState() &#123;</span><br><span class="line">    super.initState();</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void add() &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      curNum += 1;</span><br><span class="line">    &#125;);</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void minus() &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      curNum -= 1;</span><br><span class="line">    &#125;);</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    //定义provider 实例化</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    curNum = provider.curNum;</span><br><span class="line">    return new Scaffold(</span><br><span class="line">      appBar: new AppBar(</span><br><span class="line">        title: new Text(&apos;demo&apos;),</span><br><span class="line">      ),</span><br><span class="line">      body: Column(</span><br><span class="line">        children: &lt;Widget&gt;[</span><br><span class="line">          Add(),</span><br><span class="line">//           Add(</span><br><span class="line">//             add: add,</span><br><span class="line">//           ),</span><br><span class="line">          Container(</span><br><span class="line">            child: Text(</span><br><span class="line">              &apos;$curNum&apos;,</span><br><span class="line">              style: TextStyle(fontSize: 30),</span><br><span class="line">            ),</span><br><span class="line">          ),</span><br><span class="line">          Minus(),</span><br><span class="line">          // Minus(</span><br><span class="line">          //   minus: minus,</span><br><span class="line">          // ),</span><br><span class="line">        ],</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Minus extends StatelessWidget &#123;</span><br><span class="line">  const Minus(&#123;</span><br><span class="line">    Key key,</span><br><span class="line">    // this.minus,</span><br><span class="line">  &#125;) : super(key: key);</span><br><span class="line">  // final int curNum;</span><br><span class="line">  // final VoidCallback minus;</span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    return Container(</span><br><span class="line">      child: Container(</span><br><span class="line">        child: FlatButton(</span><br><span class="line">          child: Text(</span><br><span class="line">            &apos;-&apos;,</span><br><span class="line">            style: TextStyle(fontSize: 30),</span><br><span class="line">          ),</span><br><span class="line">          onPressed: () &#123;</span><br><span class="line">            provider.minus();</span><br><span class="line">          &#125;,</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Add extends StatelessWidget &#123;</span><br><span class="line">  const Add(&#123;</span><br><span class="line">    Key key,</span><br><span class="line">    // this.add,</span><br><span class="line">  &#125;) : super(key: key);</span><br><span class="line">  // final int curNum;</span><br><span class="line">  // final VoidCallback add;</span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    return Container(</span><br><span class="line">      child: Container(</span><br><span class="line">        child: FlatButton(</span><br><span class="line">          child: Text(</span><br><span class="line">            &apos;+&apos;,</span><br><span class="line">            style: TextStyle(fontSize: 30),</span><br><span class="line">          ),</span><br><span class="line">          onPressed: () &#123;</span><br><span class="line">            provider.add();</span><br><span class="line">          &#125;,</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/10/08/flutter provider基础使用/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/基于分词标签的中文短文本相似度/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/29/基于分词标签的中文短文本相似度/" class="post-title-link" itemprop="url">基于分词标签的中文短文本相似度</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 14:42:44" itemprop="dateModified" datetime="2019-10-12T14:42:44+08:00">2019-10-12</time>
-              </span>
             
           
             <span class="post-meta-item">
@@ -1004,15 +812,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="基于分词标签的中文短文本相似度"><a href="#基于分词标签的中文短文本相似度" class="headerlink" title="基于分词标签的中文短文本相似度"></a>基于分词标签的中文短文本相似度</h3><p>最近接触到了一些关于中文短文本相似度的算法，将它们总结在此：</p><ul>
-<li><strong>中文编辑距离</strong></li>
-<li><strong>基于词频的余弦相似度</strong></li>
-<li><strong>simhash</strong></li>
-</ul><hr><h4 id="1-0-在相似度算法之前的分词处理"><a href="#1-0-在相似度算法之前的分词处理" class="headerlink" title="1.0 在相似度算法之前的分词处理"></a>1.0 在相似度算法之前的分词处理</h4><p>在比较两个字符串 str1 和 str2 之前，我们需要对它们进行分词处理，分词后变成两组标签（我认为分词后的标签具有原子性，不可再分），基于标签，我们可以很容易地进行两组数据的相似度比较。<br>优点：标签的频率以及相对的位置关系确实一定程度可以表示出重要性和时序关系。<br>缺点：中文编辑距离（时序关系），余弦相似度（标签重要性）, 他们没有直接的连接。<br>本项目基于 jieba 分词。</p>
+          <h1 id="1-RNN-原理"><a href="#1-RNN-原理" class="headerlink" title="1 RNN 原理"></a><a href="#1-RNN原理" title="1 RNN原理"></a>1 RNN 原理</h1><h2 id="1-1-RNN-的时序反向传播原理"><a href="#1-1-RNN-的时序反向传播原理" class="headerlink" title="1.1 RNN 的时序反向传播原理"></a><a href="#1-1-RNN的时序反向传播原理" title="1.1 RNN的时序反向传播原理"></a>1.1 RNN 的时序反向传播原理</h2><p>RNN 中采用时序反向传播算法（BPTT）对参数更新，下面将简单介绍下 BPTT 原理，并解释其与传统反向传播的区别。我们还将了解梯度消失问题，这也是推动 LSTM 和 GRU 发展的原因。</p><h3 id="1-1-1-时序反向传播算法"><a href="#1-1-1-时序反向传播算法" class="headerlink" title="1.1.1 时序反向传播算法"></a><a href="#1-1-1-时序反向传播算法" title="1.1.1 时序反向传播算法"></a>1.1.1 时序反向传播算法</h3><p>我们以基本 RNN 结构来说明 BPTT 算法的原理：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E5%9F%BA%E6%9C%ACRNN%E7%BB%93%E6%9E%84%E5%9B%BE.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E5%9F%BA%E6%9C%ACRNN%E7%BB%93%E6%9E%84%E5%9B%BE.png" alt></a></p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/基于分词标签的中文短文本相似度/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/RNN 原理详解以及 tensorflow 中的 RNN 实现/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1041,7 +845,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/UIAutomator2的使用/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -1055,7 +859,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/29/UIAutomator2的使用/" class="post-title-link" itemprop="url">UIAutomator2的使用</a>
+            <a href="/2019/10/28/局部敏感哈希算法原理及其应用/" class="post-title-link" itemprop="url">局部敏感哈希算法原理及其应用</a>
           
         </h1>
 
@@ -1070,19 +874,11 @@
                 
               
 
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
+              <time title="创建时间：2019-10-28 15:13:51 / 修改时间：20:04:41" itemprop="dateCreated datePublished" datetime="2019-10-28T15:13:51+08:00">2019-10-28</time>
             </span>
           
             
 
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 13:27:18" itemprop="dateModified" datetime="2019-10-12T13:27:18+08:00">2019-10-12</time>
-              </span>
             
           
             <span class="post-meta-item">
@@ -1091,7 +887,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
 
                 
                 
@@ -1110,11 +906,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>uiautomator2 是一个 python 库，用于 Android 的 UI 自动化测试，其底层基于 Google uiautomator，Google 提供的 uiautomator 库可以获取屏幕上任意一个 APP 的任意一个控件属性，并对其进行任意操作</p><p>python-uiautomator2 封装了谷歌自带的 uiautomator2 测试框架，提供便利的 python 接口。他允许测试人员直接在 PC 上编写 Python 的测试代码，操作手机应用，完成自动化，大大提高了自动化代码编写的效率。</p>
+          <h1 id="1-应用背景"><a href="#1-应用背景" class="headerlink" title="1 应用背景"></a><a href="#1-应用背景" title="1 应用背景"></a>1 应用背景</h1><p>最近在计算 word2vec 中的相似性的时候，遇到了计算量特别巨大的情况，大到计算在 hadoop 集群上也计算了好几个小时，在本机上初步估计了下，基本上是不可能算出来的（规模是几十万候选集，维度是 100）。</p><p>在跟我组一个博士交流这个问题时，他给我推荐了 LSH（局部敏感哈希）算法，用这个算法之后，发现计算量瞬间降低了近千倍（这里顺带鄙视下自己的知识面）。后来查了下资料，发现 LSH 在相似性计算方面，已经有大量应用了（特别是处理海量数据）。下面将详细梳理下 LSH 的原理及其应用。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/UIAutomator2的使用/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/局部敏感哈希算法原理及其应用/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1143,7 +939,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/深度学习在文本分类中的应用之 CNN/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -1157,7 +953,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/" class="post-title-link" itemprop="url">Ubuntu faiss安装并利用flask提供向量搜索服务API</a>
+            <a href="/2019/10/28/深度学习在文本分类中的应用之 CNN/" class="post-title-link" itemprop="url">深度学习在文本分类中的应用之 CNN</a>
           
         </h1>
 
@@ -1172,19 +968,11 @@
                 
               
 
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
+              <time title="创建时间：2019-10-28 15:13:23 / 修改时间：20:02:56" itemprop="dateCreated datePublished" datetime="2019-10-28T15:13:23+08:00">2019-10-28</time>
             </span>
           
             
 
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-17 17:21:08" itemprop="dateModified" datetime="2019-10-17T17:21:08+08:00">2019-10-17</time>
-              </span>
             
           
             <span class="post-meta-item">
@@ -1212,11 +1000,199 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="前言-faiss-简介"><a href="#前言-faiss-简介" class="headerlink" title="前言 faiss 简介"></a><a href="#前言-faiss-简介"></a>前言 faiss 简介</h2><p>三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带有可选的通过 CUDA 提供的 GPU 支持，以及一个可选的 Python 接口。</p>
+          <h1 id="1-背景说明"><a href="#1-背景说明" class="headerlink" title="1 背景说明"></a><a href="#1-背景说明" title="1 背景说明"></a>1 背景说明</h1><h2 id="1-1-行文缘由"><a href="#1-1-行文缘由" class="headerlink" title="1.1 行文缘由"></a><a href="#1-1-行文缘由" title="1.1 行文缘由"></a>1.1 行文缘由</h2><p>最近因为工作上的原因，接触到较多的文本分类相关的领域：比如在信息流广告或者搜索广告中，对关键词、广告创意进行行业分类等。于是，对传统的文本分类方法和目前比较流行的用深度学习进行文本分类做了一个归纳总结，这篇文章就是讲 CNN 在文本分类中的应用，也是行业中的一篇非常经典的文章。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/#more" rel="contents">
+              <a class="btn" href="/2019/10/28/深度学习在文本分类中的应用之 CNN/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/深度学习中的 Batch Normalization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/28/深度学习中的 Batch Normalization/" class="post-title-link" itemprop="url">深度学习中的 Batch Normalization</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:11:33 / 修改时间：20:02:31" itemprop="dateCreated datePublished" datetime="2019-10-28T15:11:33+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="1-背景说明"><a href="#1-背景说明" class="headerlink" title="1 背景说明"></a><a href="#1-背景说明" title="1 背景说明"></a>1 背景说明</h1><p>本文是同组中一位同学的组内技术分享，觉得很有意思，就暂且拿过来总结一下。涉及到的可能并不止 Batch Normalization（下文简称 BN），而是以 BN 为代表的深度学习中的网络标准化方法。</p><p>为什么深度学习网络需要标准化呢？主要原因在于输入数据的不确定性，随着训练过程的进行，导致参数震荡。网络标准化的好处主要体现在以下两个方面：</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/28/深度学习中的 Batch Normalization/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/深度学习调参总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/28/深度学习调参总结/" class="post-title-link" itemprop="url">深度学习调参总结</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:10:57 / 修改时间：20:03:46" itemprop="dateCreated datePublished" datetime="2019-10-28T15:10:57+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="1-说明"><a href="#1-说明" class="headerlink" title="1 说明"></a><a href="#1-说明" title="1 说明"></a>1 说明</h1><p>调参基本上是每个深度学习从业者的日常之一，就是吃饭一样，甚至有些时候每天的工作就只是改动一两个参数然后等着分析结果（这让我想起了研二时候，每周就只是改动几个参数，竟然也能整好几页 ppt 给老板汇报）。</p><p>这篇文章在自己工作的基础上，再结合同事以及网上一些牛人的经验，汇总成一篇调参总结，以供自己后续查阅。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/28/深度学习调参总结/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1244,7 +1220,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1292,7 +1268,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1305,7 +1281,7 @@
             <a href="/categories/">
           
         
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span>
         </a>
       </div>
@@ -1318,7 +1294,7 @@
             <a href="/tags/">
           
         
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span>
         </a>
       </div>

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="XGBoost 官方参数说明文档，XGBoost 版本：0.72。在运行 XGBoost 之前，必须设置三种类型参数：通用参数 (General Parameters)、提升参数(Booster Parameters) 和任务参数(Task Parameters)。 通用参数 (General Parameters)：设置整体功能，参数控制在提升(boosting) 过程中使用哪种 booster">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XGBoost 参数说明">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="XGBoost 官方参数说明文档，XGBoost 版本：0.72。在运行 XGBoost 之前，必须设置三种类型参数：通用参数 (General Parameters)、提升参数(Booster Parameters) 和任务参数(Task Parameters)。 通用参数 (General Parameters)：设置整体功能，参数控制在提升(boosting) 过程中使用哪种 booster">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-28T11:56:24.511Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="XGBoost 参数说明">
+<meta name="twitter:description" content="XGBoost 官方参数说明文档，XGBoost 版本：0.72。在运行 XGBoost 之前，必须设置三种类型参数：通用参数 (General Parameters)、提升参数(Booster Parameters) 和任务参数(Task Parameters)。 通用参数 (General Parameters)：设置整体功能，参数控制在提升(boosting) 过程中使用哪种 booster">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>XGBoost 参数说明 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">XGBoost 参数说明
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:54:19 / 修改时间：19:56:24" itemprop="dateCreated datePublished" datetime="2019-10-28T15:54:19+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a href="https://xgboost.readthedocs.io/en/latest//parameter.html" target="_blank" rel="noopener">XGBoost 官方参数说明文档</a>，XGBoost 版本：0.72。</p><p>在运行 XGBoost 之前，必须设置三种类型参数：通用参数 (General Parameters)、提升参数(Booster Parameters) 和任务参数(Task Parameters)。</p><ul>
+<li>通用参数 (General Parameters)：设置整体功能，参数控制在提升(boosting) 过程中使用哪种 booster，常用的 booster 有树模型 (tree model) 和线性模型(linear model)。</li>
+<li>提升参数 (Booster Parameters)：这取决于使用哪种 booster(树 or 回归)。</li>
+<li>任务参数 (Task Parameters)：控制学习的场景，例如在回归问题中会使用不同的参数控制排序。</li>
+</ul><a id="more"></a>
+
+
+<h2 id="通用参数-General-Parameters"><a href="#通用参数-General-Parameters" class="headerlink" title="通用参数 (General Parameters)"></a><a href="#通用参数-General-Parameters" title="通用参数(General Parameters)"></a>通用参数 (General Parameters)</h2><p>下面这些参数定义了 XGBoost 的总体功能：</p>
+<ul>
+<li><p>booster [default=gbtree]</p>
+<ul>
+<li>选择每次迭代过程中需要运行的模型，一共有两种模型可以选择：</li>
+<li>gbtree：使用基于树的模型进行提升计算；</li>
+<li>gblinear：使用线性模型进行提升计算；</li>
+</ul>
+</li>
+<li><p>silent [default=0]</p>
+<ul>
+<li>设置模型是否打印运行时信息：</li>
+<li>0：打印出运行时信息</li>
+<li>1：不打印出运行时信息</li>
+</ul>
+</li>
+<li><p>nthread [default = 可用的最大线程数]</p>
+<ul>
+<li>XGBoost 运行时的线程数，默认值为当前系统可以获得的最大线程数。</li>
+</ul>
+</li>
+<li><p>num_pbuffer [由 XGBoost 自动设置，不需要用户设置]</p>
+<ul>
+<li>预测缓冲区的大小，通常设置为训练实例的数目。缓冲区用于保存最后一次升压步骤的预测结果。</li>
+</ul>
+</li>
+<li><p>num_feature [由 XGBoost 自动设置，不需要用户设置]</p>
+<ul>
+<li>boosting 过程中用到的特征维数，设置为特征个数。</li>
+</ul>
+</li>
+</ul>
+<h2 id="提升参数-Booster-Parameters"><a href="#提升参数-Booster-Parameters" class="headerlink" title="提升参数 (Booster Parameters)"></a><a href="#提升参数-Booster-Parameters" title="提升参数(Booster Parameters)"></a>提升参数 (Booster Parameters)</h2><h3 id="树模型-Booster-参数"><a href="#树模型-Booster-参数" class="headerlink" title="树模型 Booster 参数"></a><a href="#树模型-Booster-参数" title="树模型 Booster 参数"></a>树模型 Booster 参数</h3><ul>
+<li><p>eta [default=0.3，别名: learning_rate]</p>
+<ul>
+<li>为了防止过拟合，更新过程中用到的收缩步长。在每次提升计算之后，算法会直接获得新特征的权重。eta 通过缩减每一步特征的权重使提升计算过程更加保守，使得模型更加健壮。</li>
+<li>取值范围：[0，1]。典型值一般设置为：0.01~0.2。</li>
+</ul>
+</li>
+<li><p>gamma [default=0，别名：min_split_loss]</p>
+<ul>
+<li>在树的叶子节点上进行进一步分割，所需要的最小损失函数减少的大小。越大，算法就越保守。<br>这个值一般来说需要根据损失函数来调整。</li>
+<li>取值范围：[0,∞]</li>
+</ul>
+</li>
+<li><p>max_depth [default=6]</p>
+<ul>
+<li>树的最大深度，值越大，树越复杂。可以用来控制过拟合。</li>
+<li>取值范围：[1,∞]。典型值是 3-10。</li>
+</ul>
+</li>
+<li><p>min_child_weight [default=1]</p>
+<ul>
+<li>孩子节点中最小的样本权重 (hessian) 和。如果一个叶子节点的样本权重和小于 min_child_weight，则拆分过程将放弃进一步的划分。在线性回归任务中，这个参数是指建立每个模型所需要的最小样本数。该参数越大算法越保守。这个参数可以用来减少过拟合，但是过高的值也会导致欠拟合，因此可以通过交叉验证来调。</li>
+<li>取值范围: [0,∞]</li>
+</ul>
+</li>
+<li><p>max_delta_step [default=0]</p>
+<ul>
+<li>最大增量步骤，我们允许每个叶子输出。如果该值设置为 0，则意味着没有约束。如果它被设置为正值，有助于更新步骤更加保守。通常不需要这个参数，当类是非常不平衡的时，它可能有助于 logistic 回归。将其设置为 1~10 的值可能有助于控制更新。</li>
+<li>取值范围：[0,∞]</li>
+</ul>
+</li>
+<li><p>subsample [default=1]</p>
+<ul>
+<li>用于训练模型的子样本占整个样本集合的比例。如果设置为 0.5 则意味着 XGBoost 将随机的从整个样本集合中随机的抽取出 50% 的子样本建立树模型，这能够防止过拟合。</li>
+<li>取值范围为：(0,1]</li>
+</ul>
+</li>
+<li><p>colsample_bytree [default=1]</p>
+<ul>
+<li>在构建每棵树时，列的采样比 (一般是特征采样比)。在每次 boosting 迭代中都会出现一次采样。</li>
+<li>取值范围：(0,1]</li>
+</ul>
+</li>
+<li><p>colsample_bylevel [default=1]</p>
+<ul>
+<li>在每个级别上，每个样本的子样本比。每次进行新的分割时，都会出现次采样。<br>当 tree_method 设置为 hist 时，此参数没有任何影响。这个一般很少用，subsample 和 colsample_bytree 参数调节就足够了。</li>
+</ul>
+</li>
+<li><p>lambda [default=1, 别名: reg_lambda]</p>
+<ul>
+<li>权重的 L2 正则化项，增加这个值会使模型更保守。这个其实用的很少。</li>
+</ul>
+</li>
+<li><p>alpha [default=0, 别名: reg_alpha]</p>
+<ul>
+<li>权重的 L1 正则化项，增加这个值会使模型更保守。这个主要是用在数据维度很高的情况下，可以提高运行速度。</li>
+</ul>
+</li>
+<li><p>tree_method [default=auto]</p>
+<ul>
+<li>XGBoost 中使用的树构造算法。参见<a href="https://arxiv.org/abs/1603.02754" target="_blank" rel="noopener">参考文献</a>中的描述。</li>
+<li>分布式和外存版本只支持近似算法 (tree_method=approx)。</li>
+<li>选项: ‘auto’、’approx’、’exact’、’hist’、’gpu_exact’、’gpu_hist’。<ul>
+<li>‘auto’: 用启发式方法去选择最快的一个。<ul>
+<li>对于小到中数据集，将使用精确的贪心算法。</li>
+<li>对于大数据集，会选择近似算法。</li>
+<li>由于之前总是在单台机器上使用精确的贪心算法，所以当选择近似算法时，用户会得到一条消息来通知这个选择。</li>
+</ul>
+</li>
+<li>‘exact’: 使用贪心算法</li>
+<li>‘approx’: 使用草图和直方图的近似贪心算法</li>
+<li>‘hist’: 快速直方图优化近似贪婪算法。它使用了一些性能改进，比如垃圾箱缓存。</li>
+<li>‘gpu_exact’: 使用 gpu 执行 exact 算法</li>
+<li>‘gpu_hist’: 使用 gpu 执行 hist 算法</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>sketch_eps [default=0.03]</p>
+<ul>
+<li>这个选项适用于近似贪心算法。</li>
+<li>这大概可以理解为 O(1/sketcheps) 数量的箱子。与直接选择的箱数相比，该方法具有一定的理论保证和梗概精度。</li>
+<li>通常用户不需要调整这个参数，但是使用一个较低的值唯一获得更多的精确的列举。</li>
+<li>取值范围：(0,1)</li>
+</ul>
+</li>
+<li><p>scale_pos_weight [default=1]</p>
+<ul>
+<li>用于类别不平衡的情况下，控制正负权重的平衡。将参数设置大于 0，可以加快收敛。</li>
+</ul>
+</li>
+<li><p>updater [default=grow_colmaker,prune]</p>
+<ul>
+<li>一个逗号分隔的字符串，定义了要运行的树更新器的序列，提供了一种构造和修改树的模块化方法。这是一个高级的参数通常设置为自动的，取决于其他参数。它也可以被用户明确的定义。有下列的更新器插件:<ul>
+<li>‘grow_colmaker’: 非分布的基于列的树结构。</li>
+<li>‘discol’: 采用基于列的数据分割模式的分布式树结构。</li>
+<li>‘grow_histmaker’: 基于基于直方图计数的全局建议的基于行的数据分割的分布式树结构。</li>
+<li>‘grow_local_histmaker’: 基于局部直方图计数。</li>
+<li>‘grow_skmaker’: 使用近似的草图算法。</li>
+<li>‘refresh’: 根据当前数据刷新树的统计和 / 或叶值。注意，不执行任何随机的数据行子抽样。</li>
+<li>‘prune’: 在损失小于 min_split_loss (or gamma) 的情况下修剪。</li>
+</ul>
+</li>
+<li>在分布式设置中，updater 序列应该调整为’grow_histmaker,prune’</li>
+</ul>
+</li>
+<li><p>refresh_leaf [default=1]</p>
+<ul>
+<li>设置一个刷新 updater 插件的参数。当标志为 1 时，树叶和树节点的统计信息都更新了。当标志为 0 时，只更新节点属性。</li>
+</ul>
+</li>
+<li><p>process_type [default=default]</p>
+<ul>
+<li>一种可运行的 boosting 过程</li>
+<li>选项: {‘default’，’update’}<ul>
+<li>‘default’: 普通的 boosting 过程来创建新的树。</li>
+<li>‘update’: 从一个已经存在的模型并且仅仅更新它的树。在每一次 boosting 迭代，从初始模型得到的树，一个指定序列的 updater 插件为这些树运行，修改后的树被添加到新的模型。新的模型可能有相同或者更少的树，取决于 boosting 迭代的次数。目前，以下内置的 updater 插件可以与此过程类型有意义的使用:’refresh’, ‘prune’。如果 process_type=update，你就不能使用 updater 插件来创建新的树。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>grow_policy [default=depthwise]</p>
+<ul>
+<li>控制节点被添加到树的方式</li>
+<li>目前仅仅支持 tree_method=hist 时的设置。</li>
+<li>选项: {‘depthwise’, ‘lossguide’}<ul>
+<li>‘depthwise’: 在离根最近的节点处分割</li>
+<li>‘lossguide’: 在最大的 loss 改变出分割</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>max_leaves [default=0]</p>
+<ul>
+<li>最多添加的节点数量。仅当 grow_policy=lossguide 时相关。</li>
+</ul>
+</li>
+<li><p>max_bin [default=256]</p>
+<ul>
+<li>仅当 tree_method=hist 时有用。</li>
+<li>最大的离散箱数，以存储连续的特性。</li>
+<li>增加这个数字可以减少计算时间成本。</li>
+</ul>
+</li>
+<li><p>predictor [default=cpu_predictor]</p>
+<ul>
+<li>选择预测算法的类型。提供同样的结果但是可以选择使用 CPU 或者 GPU。<ul>
+<li>cpu_predictor: 使用多核 CPU 预测算法。</li>
+<li>gpu_predictor: 使用 gpu 预测。如果 tree_method 设置为 gpu_exact 或者 gpu_hist，那么这个就是默认选项。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Dart-Booster-额外的参数-booster-dart"><a href="#Dart-Booster-额外的参数-booster-dart" class="headerlink" title="Dart Booster 额外的参数 (booster=dart)"></a><a href="#Dart-Booster-额外的参数-booster-dart" title="Dart Booster 额外的参数(booster=dart)"></a>Dart Booster 额外的参数 (booster=dart)</h3><p>Dart Booster 将 dropout 引入模型，这里的 dropout 不是直接扔掉，而是变权值。</p>
+<ul>
+<li><p>sample_type [default=uniform]</p>
+<ul>
+<li>算法抽样的类型<ul>
+<li>uniform: 均匀选择树 dropped。</li>
+<li>weighted: 按照权重来选择树 dropped。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>normalize_type [default=tree]</p>
+<ul>
+<li>归一化算法的类型<ul>
+<li>tree: 新的树和每一个 dropped 树有同样的权重。<ul>
+<li>新的树的权重为 1 / (k + learning_rate)。</li>
+<li>dropped 树乘以一个系数 k / (k + learning_rate)。</li>
+</ul>
+</li>
+<li>forest: 新的树和所有 dropped 树的和有相同的权重。<ul>
+<li>新的树的权重为 1 / (1 + learning_rate)。</li>
+<li>dropped 树乘以一个系数 1 / (1 + learning_rate)。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>rate_drop [default=0.0]</p>
+<ul>
+<li>dropout 的概率 (在生成的树中 dropped 一部分)。</li>
+<li>取值范围: [0.0, 1.0]</li>
+</ul>
+</li>
+<li><p>one_drop [default=0]</p>
+<ul>
+<li>当这个被设置时，至少有一个树始终会被 dropped（支持原始 DART 论文中的 Binomial-plus-one 或 epsilon-dropout）.</li>
+</ul>
+</li>
+<li><p>skip_drop [default=0.0]</p>
+<ul>
+<li>在 boosting 迭代的过程中略过 dropout 过程的概率。<ul>
+<li>如果一次 dropout 被略过，新的树被添加进 model 用和 gbtree 一样的方式。</li>
+<li>非 0 的 skip_drop 比 rate_drop 和 one_drop 有更高的优先级。</li>
+</ul>
+</li>
+<li>取值范围: [0.0, 1.0]</li>
+</ul>
+</li>
+</ul>
+<h3 id="线性-Booster-的参数-booster-gblinear"><a href="#线性-Booster-的参数-booster-gblinear" class="headerlink" title="线性 Booster 的参数 (booster=gblinear)"></a><a href="#线性Booster的参数-booster-gblinear" title="线性Booster的参数(booster=gblinear)"></a>线性 Booster 的参数 (booster=gblinear)</h3><ul>
+<li><p>lambda [default=0, 别名: reg_lambda]</p>
+<ul>
+<li>L2 正则化的权重，增加该参数的值会让模型更保守</li>
+</ul>
+</li>
+<li><p>alpha [default=0, 别名: reg_alpha]</p>
+<ul>
+<li>L1 正则化的权重，增加这个值会让模型更保守。归一化到训练实例的数量。</li>
+</ul>
+</li>
+<li><p>updater [default=shotgun]</p>
+<ul>
+<li>选择算法拟合线性模型<ul>
+<li>shotgun: 基于 shotgun 算法的并行坐标下降算法。使用 ‘HOGRAVE’ 并行性，因此在每次运行时产生一个非确定性的解决方案。</li>
+<li>coord_descent: 普通坐标下降算法。而且多线程下仍然产生确定性的解决方案。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Tweedie-Regression-的参数-objective-reg-tweedie"><a href="#Tweedie-Regression-的参数-objective-reg-tweedie" class="headerlink" title="Tweedie Regression 的参数 (objective=reg:tweedie)"></a><a href="#Tweedie-Regression-的参数-objective-reg-tweedie" title="Tweedie Regression 的参数(objective=reg:tweedie)"></a>Tweedie Regression 的参数 (objective=reg:tweedie)</h3><ul>
+<li>tweedie_variance_power [default=1.5]<ul>
+<li>在 Tweedie 分布上控制方差的参数<ul>
+<li>var(y)~E(y)^tweedie_variance_power</li>
+</ul>
+</li>
+<li>取值范围: (1,2)</li>
+<li>值越接近 2 越接近 gamma 分布</li>
+<li>值越接近 1 越接近 Poisson 分布</li>
+</ul>
+</li>
+</ul>
+<h2 id="学习任务参数-Learning-Task-Parameters"><a href="#学习任务参数-Learning-Task-Parameters" class="headerlink" title="学习任务参数 (Learning Task Parameters)"></a><a href="#学习任务参数-Learning-Task-Parameters" title="学习任务参数(Learning Task Parameters)"></a>学习任务参数 (Learning Task Parameters)</h2><p>指定学习任务和相应的学习目标。下面的目标选项如下:</p>
+<ul>
+<li><p>objective [default=reg:linear]</p>
+<ul>
+<li>‘reg:linear’：线性回归。</li>
+<li>‘reg:logistic’：逻辑回归。</li>
+<li>‘binary:logistic’：二分类的逻辑回归，输出概率。</li>
+<li>‘binary:logitraw’：二分类的逻辑回归，在逻辑变换前输出得分。</li>
+<li>‘binary:hinge’：二分类的 hinge loss。使得预测结果为 0 或 1，而不是产生概率。</li>
+<li>‘gpu:reg:linear, gpu:reg:logistic, gpu:binary:logistic, gpu:binary:logitraw’: 对应在 GPU 上评价的目标函数版本。注意，像 GPU 直方图算法一样，它们只能在整个训练期间使用相同数据集时使用。</li>
+<li>‘count:poisson’：用于统计数据的 poisson 回归，输出 poisson 分布均值。<ul>
+<li>max_delta_step：在 poisson 回归中默认值设置为 0.7(用于维护优化)。</li>
+</ul>
+</li>
+<li>‘survival:cox’：用于正确删除的生存时间数据的 Cox 回归 (被正确删除的作为负例)。注意，预测是按危害比表中的值返回。(例如：在比例风险函数 h(t) = h0(t) * HR 中，HR = exp(marginal_prediction)。</li>
+<li>‘multi:softmax’：设置 XGBoost 做多分类任务用 softmax 目标，你需要指定 num_class。</li>
+<li>‘multi:softprob’：和 softmax 一样，但是输出的是一个 ndata <em>nclass 的向量，可以进一步变形为 ndata</em> nclass 的矩阵。结果包含预测的每个数据属于每个类的概率值。</li>
+<li>‘rank:pairwise’：通过最小化 pairwise loss，设置 XGBoost 用于排序任务。</li>
+<li>‘reg:gamma’：用 log-link 的 gamma 回归。输出是 gamma 分布的均值。他是有用的，例如：为了模拟保险索赔的严谨性，或者任何输出结果可能是 gamma 分布的。</li>
+<li>‘reg:tweedie’：用 log-link 的 Tweedie 回归。他是有用的，例如：模拟保险全损，或者任何输出结果可能是 Tweedie 分布的。</li>
+</ul>
+</li>
+<li><p>base_score [default=0.5]</p>
+<ul>
+<li>初始化的所有例子的越策得分，全局 bias</li>
+<li>对于足够多的迭代次数，改变这个值不会有太大的效果</li>
+</ul>
+</li>
+<li><p>eval_metric [default according to objective]</p>
+<ul>
+<li>对于验证集的评测指标，一个默认的指标是根据目标分配的 (对于回归任务用 rmse，对于分类任务用 error，mean average precision for ranking)</li>
+<li>用户可以添加多个评测指标，对于 python 用户，记得将这些指标存入一个参数对的 list 而不是 map，不然后面的指标将会失效。</li>
+<li>可选项如下:<ul>
+<li>rmse：root mean square error(均方根误差)。</li>
+<li>mae：mean absolute error(绝对值误差)。</li>
+<li>logloss：negative log-likelihood(负对数似然)。</li>
+<li>error：二分类错误率。他可以用公式 #(wrong cases)/#(all cases) 计算。对于预测，指标会把预测结果大于 0.5 的当做正类，其他当做负类。</li>
+<li>error@t：与阈值为 0.5 的二分类不同，可以通过 t 设置阈值。</li>
+<li>merror：多分类错误率，可以用公式 #(wrong cases)/#(all cases) 计算。</li>
+<li>mlogloss：Multiclass logloss(多分类对数似然)。</li>
+<li>auc：Area under the curve(曲线下面积)。</li>
+<li>ndcg：Normalized Discounted Cumulative Gain(归一化累积获得收益)</li>
+<li>map：Mean average precision(平均准确率，排名任务)。</li>
+<li>ndcg@n,map@n：n 可以设置为整数，以切断列表中的顶部位置进行评估。</li>
+<li>ndcg-,map-,ndcg@n-,map@n-：在 XGBoost，NDCG 和 MAP 将评估没有任何正例样本的列表的得分为 1。通过在评价度量中添加 “-”，XGBoost 将在某些条件下将这些分数评估为 0，反复训练。</li>
+<li>poisson-nloglik：Poisson 回归的负对数似然。</li>
+<li>gamma-nloglik：gamma 回归的负对数似然。</li>
+<li>gamma-deviance：gamma 回归中的差残差</li>
+<li>tweedie-nloglik：Tweedie 回归的负对数似然 (在 tweedie_variance_power 参数为特定值)。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>seed [default=0]</p>
+<ul>
+<li>随机数种子</li>
+</ul>
+</li>
+</ul>
+<h2 id="命令行参数"><a href="#命令行参数" class="headerlink" title="命令行参数"></a><a href="#命令行参数" title="命令行参数"></a>命令行参数</h2><p>下列的参数仅仅被用在命令行版本的 xgboost 中</p>
+<ul>
+<li><p>use_buffer [default=1]</p>
+<ul>
+<li>是否创建一个二进制缓冲从输入文本中。这样做通常会加快加载时间。</li>
+</ul>
+</li>
+<li><p>num_round</p>
+<ul>
+<li>boosting 的轮数</li>
+</ul>
+</li>
+<li><p>data</p>
+<ul>
+<li>训练集的路径</li>
+</ul>
+</li>
+<li><p>test:data</p>
+<ul>
+<li>要预测的测试集的路径</li>
+</ul>
+</li>
+<li><p>save_period [default=0]</p>
+<ul>
+<li>保存模型的周期，设置 save_period=10 表示每 10 次 boosting 就会保存一次模型，设置为 0 表示在训练期间不保存任何模型。</li>
+</ul>
+</li>
+<li><p>task [default=train] 选项: train、pred、eval、dump</p>
+<ul>
+<li>train：用数据训练</li>
+<li>pred：预测 test:data</li>
+<li>eval：设置 eval[name]=filename，评估指定的统计数据</li>
+<li>dump：将学习到的模型转换为文本形式</li>
+</ul>
+</li>
+<li><p>model_in [default=NULL]</p>
+<ul>
+<li>输入模型的路径，用于 task 为 test、eval、dump ，如果被明确地指明训练，xgboost 会从输入模型继续训练。</li>
+</ul>
+</li>
+<li><p>model_out [default=NULL]</p>
+<ul>
+<li>在训练结束后输出模型的路径，如果不知名，会输出 0003.model，这里的 0003 是 boosting 的轮数。</li>
+</ul>
+</li>
+<li><p>model_dir [default=models/]</p>
+<ul>
+<li>用保存训练期间的模型输出的目录。</li>
+</ul>
+</li>
+<li><p>fmap</p>
+<ul>
+<li>特征图，用于转换模型。</li>
+</ul>
+</li>
+<li><p>name_dump [default=dump.txt]</p>
+<ul>
+<li>模型转储文件的名称。</li>
+</ul>
+</li>
+<li><p>name_pred [default=pred.txt]</p>
+<ul>
+<li>预测文件的名字，用于预测模式。</li>
+</ul>
+</li>
+<li><p>pred_margin [default=0]</p>
+<ul>
+<li>预测 margin 而不是转换概率。</li>
+</ul>
+</li>
+</ul>
+<p>——————- 本文结束感谢您的阅读 ——————-</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/" title="XGBoost 参数说明">https://ailab-aida.github.io/2019/10/28/XGBoost 参数说明/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/深度学习在 CTR 预估中的应用之 Attention FM/" rel="next" title="深度学习在 CTR 预估中的应用之 Attention FM">
+                  <i class="fa fa-chevron-left"></i> 深度学习在 CTR 预估中的应用之 Attention FM
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/Python库使用简介/" rel="prev" title="Python库使用简介">
+                  Python库使用简介 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#通用参数-General-Parameters"><span class="nav-number">1.</span> <span class="nav-text">通用参数 (General Parameters)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提升参数-Booster-Parameters"><span class="nav-number">2.</span> <span class="nav-text">提升参数 (Booster Parameters)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#树模型-Booster-参数"><span class="nav-number">2.1.</span> <span class="nav-text">树模型 Booster 参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dart-Booster-额外的参数-booster-dart"><span class="nav-number">2.2.</span> <span class="nav-text">Dart Booster 额外的参数 (booster=dart)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线性-Booster-的参数-booster-gblinear"><span class="nav-number">2.3.</span> <span class="nav-text">线性 Booster 的参数 (booster=gblinear)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tweedie-Regression-的参数-objective-reg-tweedie"><span class="nav-number">2.4.</span> <span class="nav-text">Tweedie Regression 的参数 (objective=reg:tweedie)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#学习任务参数-Learning-Task-Parameters"><span class="nav-number">3.</span> <span class="nav-text">学习任务参数 (Learning Task Parameters)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令行参数"><span class="nav-number">4.</span> <span class="nav-text">命令行参数</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '9cb5090e2916d27dd892914003814898',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

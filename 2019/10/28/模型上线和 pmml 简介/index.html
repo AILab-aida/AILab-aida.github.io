@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1、R+pmml+spark+airflow 调度其他团队用 R 语言训练模型并转为 pmml 文件，然后我们使用 spark 将这个 pmml 文件封装为 jar，使用 airflow 提交到 yarn。 val is: InputStream = fs.open(path) val pmml: PMML = PMMLUtil.unmarshal(is) modelEvaluator = Mod">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模型上线和 pmml 简介">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1、R+pmml+spark+airflow 调度其他团队用 R 语言训练模型并转为 pmml 文件，然后我们使用 spark 将这个 pmml 文件封装为 jar，使用 airflow 提交到 yarn。 val is: InputStream = fs.open(path) val pmml: PMML = PMMLUtil.unmarshal(is) modelEvaluator = Mod">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2018/07/a.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2018/07/aa-1.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2018/07/aaa.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2018/07/aaaa.png">
+<meta property="og:updated_time" content="2019-10-28T12:04:13.819Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="模型上线和 pmml 简介">
+<meta name="twitter:description" content="1、R+pmml+spark+airflow 调度其他团队用 R 语言训练模型并转为 pmml 文件，然后我们使用 spark 将这个 pmml 文件封装为 jar，使用 airflow 提交到 yarn。 val is: InputStream = fs.open(path) val pmml: PMML = PMMLUtil.unmarshal(is) modelEvaluator = Mod">
+<meta name="twitter:image" content="http://tech.dianwoda.com/content/images/2018/07/a.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>模型上线和 pmml 简介 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">模型上线和 pmml 简介
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 19:36:02 / 修改时间：20:04:13" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:02+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>1、R+pmml+spark+airflow 调度<br>其他团队用 R 语言训练模型并转为 pmml 文件，然后我们使用 spark 将这个 pmml 文件封装为 jar，使用 airflow 提交到 yarn。 <code>val is: InputStream = fs.open(path) val pmml: PMML = PMMLUtil.unmarshal(is) modelEvaluator = ModelEvaluatorFactory.newInstance.newModelEvaluator(pmml)</code></p><a id="more"></a>
+<p>2、python+sklearn+airflow 调度<br>其他团队使用 python 训练好 sklearn 模型，并 joblib.dumps() 保存，然后我们在 python 文件中 joblib.load() 加载改文件，使用 airflow 离线调度。</p>
+<p>3、xgboost+spark+xgb4j<br>我们使用的是分布式的 spark 版的 xgboost，训练好的模型直接保存为二进制文件 model.booster.saveModel(hdfsOutStream)，然后 xgboost4j 加载该文件 XGBoost.loadModel(is) 实现线上实时预测。</p>
+<p>4、tensorflow+tensorflow 的 java 库<br>ft 模型先转为 protobuf 协议的模型，<br><code>frozen_graph = freeze_session(get_session(), output_names=[&quot;output&quot;]) tf.train.write_graph(frozen_graph, &quot;./&quot;, &quot;model.pb&quot;, as_text=False)</code>然后使用 tf 的 java 库加载改 pb 模型，在线预测 <code>try (Graph graph = new Graph()) { graph.importGraphDef(Files.readAllBytes(Paths.get(&quot;xxx/model.pb&quot;))); try (Session sess = new Session(graph)) { float[][] input = xxx; try (Tensor x = Tensor.create(input); Tensor y = sess.runner().feed(&quot;input&quot;, x).fetch(&quot;output&quot;).run().get(0)) { float[][] result = new float[1][y.shape[1]]; y.copyTo(result); System.out.println(Arrays.toString(y.shape())); System.out.println(Arrays.toString(result[0])); } } } ...</code></p>
+<p>5、keras+Flask<br>python 环境先将 keras 模型保存为 hdf5 文件 model.save(model.h5)，然后在轻量级的 web 框架 flask 中加载实现线上预测。</p>
+<p>1、离线预测 + 不跨语言<br>这种最简单，就是用什么语言训练的就用什么语言预测，而且不用考虑多并发和响应时间等问题，例如方式 2。</p>
+<p>2、离线预测 + 跨语言<br>用一种语言训练，另一种语言预测，但是不用考虑多并发和响应时间等问题，例如方式 1。</p>
+<p>3、在线预测 + 不跨语言<br>用同一种语言训练和预测，同时要考虑多并发和响应时间等问题，例如方式 3、4、5。像 scala 和 java 这种都是跑在 jvm 上的，以及 tf 自己实现了 java 库的，我们这里认为是同一种语言，</p>
+<p>4、在线预测 + 跨语言<br>用不同的语言训练和预测，同时要考虑多并发和响应时间等问题，我们目前还没有这种。但是类型 2 和 3 变一下就是在线 + 跨语言。</p>
+<p>不跨平台的，即当训练和预测使用同一种开发语言的时候，PMML 就没有必要使用了，因为任何中间格式都会牺牲掉独有的优化。 而其他跨平台的模型要转为 java 能使用的类（因为我们的业务大部分是 java 实现的），这个工具就是 jpmml-evaluator。</p>
+<p>Java Evaluator API for Predictive Model Markup Language (PMML).<br>它可以加载以下模型： <img src="http://tech.dianwoda.com/content/images/2018/07/a.png" alt></p>
+<p>PMML:Predictive Model Markup Language 预测模型标记语言。<br>data mining group 推出的，有十多年的历史了。是一种可以呈现预测分析模型的事实标准语言。标准东西的好处就是，各种开发语言都可以使用相应的包，把模型文件转成这种中间格式，而另外一种开发语言，可以使用相应的包导入该文件做线上预测。</p>
+<p>PMML 是基于 XML 的，看个例子<br><img src="http://tech.dianwoda.com/content/images/2018/07/aa-1.png" alt></p>
+<p>一般的结构是 <img src="http://tech.dianwoda.com/content/images/2018/07/aaa.png" alt></p>
+<p>pmml 支持的 model 有<br><img src="http://tech.dianwoda.com/content/images/2018/07/aaaa.png" alt></p>
+<p>1、生成 pmml 文件<br>sklearn:<br><code>pipeline = PMMLPipeline([ (&#39;mapper&#39;, mapper), (&quot;classifier&quot;, linear_model.LinearRegression()) ]) pipeline.fit(heart_data[heart_data.columns.difference([&quot;chd&quot;])], heart_data[&quot;chd&quot;]) sklearn2pmml(pipeline, &quot;lrHeart.xml&quot;, with_repr = True)</code>R: 类似 使用 r2pmml<br>Spark MLlib: 这个库有一些模型已经自带了保存 PMML 模型的方法，可惜不全</p>
+<p>2、jpmml 加载 pmml 文件<br>先添加 maven 依赖，</p>
+<p><code>&lt;dependency&gt; &lt;groupId&gt;org.jpmml&lt;/groupId&gt; &lt;artifactId&gt;pmml-evaluator&lt;/artifactId&gt; &lt;version&gt;1.4.2&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.jpmml&lt;/groupId&gt; &lt;artifactId&gt;pmml-evaluator-extension&lt;/artifactId&gt; &lt;version&gt;1.4.2&lt;/version&gt; &lt;/dependency&gt;</code>然后加载 pmml 模型和调用</p>
+<p><code>PMML pmml; try(InputStream is = ...){ pmml = org.jpmml.model.PMMLUtil.unmarshal(is); }</code></p>
+<p>1、PMML 为了满足跨平台，牺牲了很多平台独有的优化。所以很多时候我们用算法库自己的 api 保存得到的模型文件要比转为 PMML 的模型文件小很多。同时 PMML 模型文件加载也要比算法自己独有的格式文件慢很多。<br>2、用 PMML 模型文件预测的结果跟算法自身预测的结果会有一点点偏差，尽管不大。<br>3、对于复杂的模型如 xgboost、tensorflow 等，生成的 PMML 模型文件会很大，加载和预测会慢很多。</p>
+<p><a href="https://github.com/jpmml/jpmml-evaluator" target="_blank" rel="noopener">https://github.com/jpmml/jpmml-evaluator</a><br><a href="http://dmg.org/pmml/v4-3/GeneralStructure.html" target="_blank" rel="noopener">http://dmg.org/pmml/v4-3/GeneralStructure.html</a><br><a href="https://zhuanlan.zhihu.com/p/23382412" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/23382412</a><br><a href="https://www.jianshu.com/p/0016a34c82c8" target="_blank" rel="noopener">https://www.jianshu.com/p/0016a34c82c8</a><br><a href="https://blog.csdn.net/fansy1990/article/details/53293024" target="_blank" rel="noopener">https://blog.csdn.net/fansy1990/article/details/53293024</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/" title="模型上线和 pmml 简介">https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/FM 模型/" rel="next" title="FM 模型">
+                  <i class="fa fa-chevron-left"></i> FM 模型
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/特征工程/" rel="prev" title="特征工程">
+                  特征工程 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'b22bf8059a819770a6827f5100333ba4',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

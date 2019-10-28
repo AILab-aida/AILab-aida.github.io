@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1 应用背景最近在计算 word2vec 中的相似性的时候，遇到了计算量特别巨大的情况，大到计算在 hadoop 集群上也计算了好几个小时，在本机上初步估计了下，基本上是不可能算出来的（规模是几十万候选集，维度是 100）。在跟我组一个博士交流这个问题时，他给我推荐了 LSH（局部敏感哈希）算法，用这个算法之后，发现计算量瞬间降低了近千倍（这里顺带鄙视下自己的知识面）。后来查了下资料，发现 LSH">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="局部敏感哈希算法原理及其应用">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1 应用背景最近在计算 word2vec 中的相似性的时候，遇到了计算量特别巨大的情况，大到计算在 hadoop 集群上也计算了好几个小时，在本机上初步估计了下，基本上是不可能算出来的（规模是几十万候选集，维度是 100）。在跟我组一个博士交流这个问题时，他给我推荐了 LSH（局部敏感哈希）算法，用这个算法之后，发现计算量瞬间降低了近千倍（这里顺带鄙视下自己的知识面）。后来查了下资料，发现 LSH">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/Jaccard%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E6%96%87%E6%A1%A3%E7%9F%A9%E9%98%B5%E8%A1%A8%E7%A4%BA.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E7%89%B9%E5%BE%81%E7%9F%A9%E9%98%B5%E9%9A%8F%E6%9C%BA%E6%8C%89%E5%88%97%E6%8E%92%E5%88%97.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E7%AD%BE%E5%90%8D%E7%9F%A9%E9%98%B5%E5%88%86%E7%BB%84.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E5%80%BC.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E6%9B%B2%E7%BA%BF.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E9%9A%8F%E6%9C%BA%E8%B6%85%E5%B9%B3%E9%9D%A2.png">
+<meta property="og:image" content="http://7xtapc.com2.z0.glb.clouddn.com/%E5%B1%80%E9%83%A8%E6%95%8F%E6%84%9F%E5%93%88%E5%B8%8C-cosine.png">
+<meta property="og:updated_time" content="2019-10-28T12:04:41.550Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="局部敏感哈希算法原理及其应用">
+<meta name="twitter:description" content="1 应用背景最近在计算 word2vec 中的相似性的时候，遇到了计算量特别巨大的情况，大到计算在 hadoop 集群上也计算了好几个小时，在本机上初步估计了下，基本上是不可能算出来的（规模是几十万候选集，维度是 100）。在跟我组一个博士交流这个问题时，他给我推荐了 LSH（局部敏感哈希）算法，用这个算法之后，发现计算量瞬间降低了近千倍（这里顺带鄙视下自己的知识面）。后来查了下资料，发现 LSH">
+<meta name="twitter:image" content="http://7xtapc.com2.z0.glb.clouddn.com/Jaccard%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>局部敏感哈希算法原理及其应用 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">局部敏感哈希算法原理及其应用
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 15:13:51 / 修改时间：20:04:41" itemprop="dateCreated datePublished" datetime="2019-10-28T15:13:51+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-应用背景"><a href="#1-应用背景" class="headerlink" title="1 应用背景"></a><a href="#1-应用背景" title="1 应用背景"></a>1 应用背景</h1><p>最近在计算 word2vec 中的相似性的时候，遇到了计算量特别巨大的情况，大到计算在 hadoop 集群上也计算了好几个小时，在本机上初步估计了下，基本上是不可能算出来的（规模是几十万候选集，维度是 100）。</p><p>在跟我组一个博士交流这个问题时，他给我推荐了 LSH（局部敏感哈希）算法，用这个算法之后，发现计算量瞬间降低了近千倍（这里顺带鄙视下自己的知识面）。后来查了下资料，发现 LSH 在相似性计算方面，已经有大量应用了（特别是处理海量数据）。下面将详细梳理下 LSH 的原理及其应用。</p><a id="more"></a>
+
+<h1 id="2-LSH-基本原理"><a href="#2-LSH-基本原理" class="headerlink" title="2 LSH 基本原理"></a><a href="#2-LSH基本原理" title="2 LSH基本原理"></a>2 LSH 基本原理</h1><h2 id="2-1-LSH-初探"><a href="#2-1-LSH-初探" class="headerlink" title="2.1 LSH 初探"></a><a href="#2-1-LSH初探" title="2.1 LSH初探"></a>2.1 LSH 初探</h2><p>首先来举个例子，比如说要从海量的网页中，找一个和特定网页相似的其他网页，最简单的办法就是去遍历整个数据集，一个一个页面去比较，看看哪个网页和当前页面最相似，计算相似的方法一般是 cosine 距离或者 Jaccard 距离，假设抽取的特征就是网页中出现的单词，给每个网页构造一个向量（特征），那么现在的问题转化为：给定一个向量，如何快速的从海量的向量中找到和这个特征相似的一个向量呢？这时候 LSH 就派上用场啦。哈希大家都知道，它的查找时间复杂度为 O(1)O(1)O(1)，有着极高的查找性能，那什么叫做 “局部敏感哈希” 呢？它的意思就是：如果原来的数据相似，那么 hash 以后的数据也保持一定的相似性，这就是 <strong>LSH</strong>。为什么说是保持一定的相似性？这主要是由于哈希冲突造成的。</p>
+<p>先来看看通常情况下的 hash，比如有一个 hash 函数：$f(x)=(x<em>7)\%10，有两个数据，有两个数据，有两个数据x_1=123，，，x_2=124，那么经过 hash 函数之后，，那么经过 hash 函数之后，，那么经过hash函数之后，f(x_1)=1,f(x_2)=8$，这表明什么呢？\</em>* 原来的数据很相似，然而 hash 之后的数据，就差得很远了！__说明这个哈希函数并没有保持相似性，也就不是局部敏感哈希。</p>
+<p>可以用一句话总结 LSH 的思想：<strong>它是用 hash 的方法把数据从原空间经过哈希映射到一个新的空间，使得在原空间相似的数据，在新的空间中也相似的概率很大，而在原始空间不相似的数据，在新的空间中相似的概率很小。</strong></p>
+<h2 id="2-2-文档相似度计算"><a href="#2-2-文档相似度计算" class="headerlink" title="2.2 文档相似度计算"></a><a href="#2-2-文档相似度计算" title="2.2 文档相似度计算"></a>2.2 文档相似度计算</h2><p>按照文本处理的术语，将一个网页当做一篇文档，度量 2 篇文档相似度有多重方法，欧氏距离、编辑距离、余弦距离、Jaccard 距离等，这里就简单的用 Jaccard 距离为例，集合 SSS 和集合 TTT 的 Jaccard 相似度计算公式为：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/Jaccard%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/Jaccard%E8%B7%9D%E7%A6%BB%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F.png" alt></a></p>
+<p>当不考虑文档中重复出现的单词时，一篇文档就可以看成一个集合，集合中的元素是一个个分词之后的词：</p>
+<table><tbody><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>s1 = '''从 决心 减肥 的 这 一刻 起 请 做 如下 小 改变 你 做 得 到 么'''
+s2 = '''从 决心 减肥 的 这 一刻 起 请 做 如下 小 改变'''
+</pre></td></tr></tbody></table>
+
+<p>那么，按照上面 Jaccard 计算公式，</p>
+<p>sim(s1,s2)=11/16=0.69sim(s1,s2)=11/16=0.69sim(s_1,s_2)=11/16=0.69</p>
+<h2 id="2-3-文档矩阵表示"><a href="#2-3-文档矩阵表示" class="headerlink" title="2.3 文档矩阵表示"></a><a href="#2-3-文档矩阵表示" title="2.3 文档矩阵表示"></a>2.3 文档矩阵表示</h2><p>假设我们有 4 篇文档，分词之后的表示如下：</p>
+<table><tbody><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre>s1 = "我 减肥"
+s2= "要"
+s3 = "他 减肥 成功"
+s4 = "我 要 减肥"
+</pre></td></tr></tbody></table>
+
+<p>那么整个 vocabulary 集合为 {我，他，要，减肥，成功}，将文档表示成矩阵向量，行代表 vocabulary 集合中的元素，列表示文档，只有文档 j 出现元素 i 时，对应的矩阵 M[i][i]=1M[i][i]=1M[i][i]=1，否则 M[i][i]=0M[i][i]=0M[i][i]=0，按照这种方式将上面 4 篇文档组织成如下形式：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E6%96%87%E6%A1%A3%E7%9F%A9%E9%98%B5%E8%A1%A8%E7%A4%BA.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E6%96%87%E6%A1%A3%E7%9F%A9%E9%98%B5%E8%A1%A8%E7%A4%BA.png" alt></a></p>
+<h2 id="2-3-最小哈希-min-hashing-定义"><a href="#2-3-最小哈希-min-hashing-定义" class="headerlink" title="2.3 最小哈希 (min-hashing) 定义"></a><a href="#2-3-最小哈希-min-hashing-定义" title="2.3 最小哈希(min-hashing)定义"></a>2.3 最小哈希 (min-hashing) 定义</h2><p>我们将最小 hash 的定义如下：<strong>特征矩阵按行进行一个随机的排列之后，第一个列值为 1 的行的行号</strong>。举例说明如下，假设之前的一个特征矩阵按行进行一次随机排列之后的结果如下：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E7%89%B9%E5%BE%81%E7%9F%A9%E9%98%B5%E9%9A%8F%E6%9C%BA%E6%8C%89%E5%88%97%E6%8E%92%E5%88%97.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E7%89%B9%E5%BE%81%E7%9F%A9%E9%98%B5%E9%9A%8F%E6%9C%BA%E6%8C%89%E5%88%97%E6%8E%92%E5%88%97.png" alt></a></p>
+<p>那么按照最小哈希的定义，以上 4 篇文档的最小哈希值分别为：<br>h(S1)=3,h(S2)=5,h(S3)=1,h(S4)=3h(S1)=3,h(S2)=5,h(S3)=1,h(S4)=3h(S_1)=3, h(S_2)=5, h(S_3)=1, h(S_4)=3</p>
+<p>那么为什么要定义最小哈希呢？实际上，<strong>两列的最小哈希最就是这两列的 Jaccard 相似度的一个估计，换句话说，两列最小 hash 值相同的概率与其相似度相等</strong>，也就是 Prob(h(Si)=h(Sj))=sim(Si,Sj)Prob(h(Si)=h(Sj))=sim(Si,Sj)Prob(h(S_i)=h(S_j)) = sim(S_i, S_j)。</p>
+<p>为什么会相等呢？我们来单独考虑 SiSiS_i 和 SjSjS_j 这两列，它们形成特征矩阵对应的行所有可能的结果可以分为以下三种情况：</p>
+<blockquote>
+<ul>
+<li>A 类：两列的值都为 1</li>
+<li>B 类：一列的值为 1，另一列的值为 0</li>
+<li>C 类：两列的值都为 0</li>
+</ul>
+</blockquote>
+<p>一般情况下，特征矩阵比较稀疏，这就导致大部分的行都是属于 C 类，只有少数行数据 A 类和 B 类，但也只有 A 类和 B 类的行决定了 sim(Si,Sj)sim(Si,Sj)sim(S_i,S_j)，假设 A 类的行有 a 个，B 类的行有 b 个，那么 sim(Si,Sj)=a/(a+b)sim(Si,Sj)=a/(a+b)sim(S_i,S_j)=a/(a+b)。</p>
+<p>现在，只需要证明对矩阵进行随机的行变换，两个的最小哈希值相等的概率 Prob(h(Si)=h(Sj))=a/(a+b)Prob(h(Si)=h(Sj))=a/(a+b)Prob(h(S_i)=h(S_j)) = a/(a+b)即可。因为 C 类对计算相似性没有用，可以将所有的 C 类全部删除，那么第一行不是 A 类就是 B 类，如果第一行是 A 类，那么 h(Si)=h(Sj)h(Si)=h(Sj)h(S_i)=h(S_j)，因此 Prob(h(Si)=h(Sj))=Prob(删掉 C 类行之后，第一行为 A 类)=A 类行的数目 /(所有行的数目)=a/(a+b)Prob(h(Si)=h(Sj))=Prob(删掉 C 类行之后，第一行为 A 类)=A 类行的数目 /(所有行的数目)=a/(a+b)Prob(h(S_i)=h(S_j)) = Prob(删掉 C 类行之后，第一行为 A 类)=A 类行的数目/(所有行的数目) = a/(a+b)，这就是最小哈希的神奇之处。</p>
+<h2 id="2-4-最小-hash-签名"><a href="#2-4-最小-hash-签名" class="headerlink" title="2.4 最小 hash 签名"></a><a href="#2-4-最小hash签名" title="2.4 最小hash签名"></a>2.4 最小 hash 签名</h2><p>有了最小 hash 还不够，因为一次最小 hash 只是一次独立的随机事件，大数定理告诉我们，只有多次重复随机事件才能造就必然。选择 n 个随机排列作用于特征矩阵，得到 n 个最小哈希值，h1,h2,…,hnh1,h2,…,hnh_1,h_2,…,h_n，这 n 个最下 hash 值组成一个 n 维向量，称之为<strong>最小 hash 签名</strong>，两列的最小 hash 签名的相似度即为两列的 Jaccard 相似度的估计。</p>
+<h2 id="2-5-基于最小-hash-的局部敏感哈希"><a href="#2-5-基于最小-hash-的局部敏感哈希" class="headerlink" title="2.5 基于最小 hash 的局部敏感哈希"></a><a href="#2-5-基于最小hash的局部敏感哈希" title="2.5 基于最小hash的局部敏感哈希"></a>2.5 基于最小 hash 的局部敏感哈希</h2><p>假设前面的工作中，我们已经将一个文档的集合转化为一个最小签名，虽然这个签名已经大大的压缩了集合的空间，但要计算两列的相似度还是需要两两计算签名矩阵两列的相似度，如果有 n 篇文档，两两比较的次数为 n∗(n−1)/2n∗(n−1)/2n*(n-1)/2，当 n 较大时，计算的复杂度依旧很高。接下来就看局部敏感哈希怎么个做法。</p>
+<p>我们对签名矩阵按行进行分组，将矩阵分成 b 组，每组由 r 行组成，下面的实例将一个签名矩阵分成 6 组，每组由 3 行组成：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E7%AD%BE%E5%90%8D%E7%9F%A9%E9%98%B5%E5%88%86%E7%BB%84.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E7%AD%BE%E5%90%8D%E7%9F%A9%E9%98%B5%E5%88%86%E7%BB%84.png" alt></a></p>
+<p>上面每一个分组中，每一列表示一个文档经过最小 hash 签名之后对应的向量。分组之后，对最小签名向量的每一组进行 hash，各个组设置不一样的桶空间，只要两列有一组的最小签名部分相同，那么这两列就会 hash 到同一个桶中而成为候选相似项。上面签名的分析我们知道，对于某个具体的行，两个签名相同的概率 p = 两列的相似度 =sim(Si,Sj)sim(Si,Sj)sim(S_i,S_j)，并且有：</p>
+<blockquote>
+<ul>
+<li>在某个组中所有行的两个签名都相同的概率是 prprp^r</li>
+<li>在某个组中至少有一对签名不相等的概率是 1−pr1−pr1-p^r</li>
+<li>在每一组中至少有一对签名不相等的概率是 (1−pr)b(1−pr)b(1-p^r)^b</li>
+<li>至少有一个组的所有对签名相等的概率是 1−(1−pr)b1−(1−pr)b1-(1-p^r)^b</li>
+</ul>
+</blockquote>
+<p>于是，两列称为候选相似对的概率是 1−(1−pr)b1−(1−pr)b1-(1-p^r)^b，它的采样值以及曲线如下图所示：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E5%80%BC.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E5%80%BC.png" alt></a><br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E6%9B%B2%E7%BA%BF.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E9%87%87%E6%A0%B7%E6%9B%B2%E7%BA%BF.png" alt></a></p>
+<p>可以看到，当两篇文档的相似度为 0.8 时，它们 hash 到同一个桶而成为候选对的概率为 0.9996，而当他们的相似度为 0.3 时，它们成为候选对的概率为 0.0475；因此，局部敏感哈希解决了让相似的对以高概率 hash 到同一个桶中，而不相似的项 hash 到不同的桶的问题。</p>
+<h1 id="3-在-cosine-距离中应用-LSH"><a href="#3-在-cosine-距离中应用-LSH" class="headerlink" title="3 在 cosine 距离中应用 LSH"></a><a href="#3-在cosine距离中应用LSH" title="3 在cosine距离中应用LSH"></a>3 在 cosine 距离中应用 LSH</h1><p>上面的章节介绍完了 LSH 的核心思想，但是在实际应用中，在计算距离时，cosine 距离应用相对更广泛一些，那么当相似度是 cosine 相似性时，hash 函数是什么呢？</p>
+<p><strong>它用了一个叫随机超平面的概念。</strong>就是随机的生成一些超平面，哈希方法是看一个特征向量对应的点，是在平面的哪一侧：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E9%9A%8F%E6%9C%BA%E8%B6%85%E5%B9%B3%E9%9D%A2.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E9%9A%8F%E6%9C%BA%E8%B6%85%E5%B9%B3%E9%9D%A2.png" alt></a></p>
+<p>下图示例了 LSH 应用于 cosine 的一个例子：<br><a href="http://7xtapc.com2.z0.glb.clouddn.com/%E5%B1%80%E9%83%A8%E6%95%8F%E6%84%9F%E5%93%88%E5%B8%8C-cosine.png" target="_blank" rel="noopener"><img src="http://7xtapc.com2.z0.glb.clouddn.com/%E5%B1%80%E9%83%A8%E6%95%8F%E6%84%9F%E5%93%88%E5%B8%8C-cosine.png" alt></a></p>
+<p>随机生成 3 个超平面 {y1, y2, y3}，在平面上有 2 个点 A 和 B，根据上面的定义，很容易知道 A 对应的值为 [1, 1, 1]，B 对应的向量为 [-1, -1, 1]，再以 A，B 的向量来计算 A,B 之间的相似性就更简单了。</p>
+<p>下面以一段代码来进一步说明 LSH 在计算 cosine 距离上的应用：</p>
+<table><tbody><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+</pre></td><td class="code"><pre>#_*_coding:utf-8_*_
+import numpy as np
+import math
+## 获取签名
+def get_signature(user_vector, rand_proj):
+    res = 0
+    for p in rand_proj:
+        res = res &lt;&lt; 1
+        val = np.dot(p, user_vector)
+        if val &gt;= 0:
+            res |= 1
+    return res
+## 获取输入数字中二进制值中1的个数
+def nnz(num):
+    if num == 0:
+        return 0
+    res = 1
+    while num:
+        res += 1
+        num = num &amp; (num - 1)
+    return res
+## 获取真正的cosine距离
+def angular_similarity(a, b):
+    dot_prod = np.dot(a, b)
+    sum_a = sum(a**2) **.5
+    sum_b = sum(b**2) **.5
+    cosine = dot_prod/(sum_a * sum_b)
+    theta = math.acos(cosine)
+    return 1.0 - (theta/math.pi)
+if __name__ == "__main__":
+    dim = 200
+    d = 2 ** 10
+    nruns = 24
+    avg = 0
+    for run in xrange(nruns):
+        user1 = np.random.randn(dim)
+        user2 = np.random.randn(dim)
+        ## 生成随机超平面
+        randv = np.random.rand(d, dim)
+        r1 = get_signature(user1, randv)
+        r2 = get_signature(user2, randv)
+        xor = r1^r2
+        true_sim, hash_sim = (angular_similarity(user1, user2), (d - nnz(xor))/float(d))
+        diff = abs(hash_sim - true_sim)/true_sim
+        avg += diff
+        print "true: %.4f, hash: %.4f, diff: %.4f" % (true_sim, hash_sim, diff)
+    print "avg diff: ", avg / nruns
+</pre></td></tr></tbody></table>
+
+<p>如上面代码所示，采用局部敏感哈希算法，将大大降低计算复杂度。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/" title="局部敏感哈希算法原理及其应用">https://ailab-aida.github.io/2019/10/28/局部敏感哈希算法原理及其应用/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/深度学习在文本分类中的应用之 CNN/" rel="next" title="深度学习在文本分类中的应用之 CNN">
+                  <i class="fa fa-chevron-left"></i> 深度学习在文本分类中的应用之 CNN
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/RNN 原理详解以及 tensorflow 中的 RNN 实现/" rel="prev" title="RNN 原理详解以及 tensorflow 中的 RNN 实现">
+                  RNN 原理详解以及 tensorflow 中的 RNN 实现 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-应用背景"><span class="nav-number">1.</span> <span class="nav-text">1 应用背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-LSH-基本原理"><span class="nav-number">2.</span> <span class="nav-text">2 LSH 基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-LSH-初探"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 LSH 初探</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-文档相似度计算"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 文档相似度计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-文档矩阵表示"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 文档矩阵表示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-最小哈希-min-hashing-定义"><span class="nav-number">2.4.</span> <span class="nav-text">2.3 最小哈希 (min-hashing) 定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-最小-hash-签名"><span class="nav-number">2.5.</span> <span class="nav-text">2.4 最小 hash 签名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-基于最小-hash-的局部敏感哈希"><span class="nav-number">2.6.</span> <span class="nav-text">2.5 基于最小 hash 的局部敏感哈希</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-在-cosine-距离中应用-LSH"><span class="nav-number">3.</span> <span class="nav-text">3 在 cosine 距离中应用 LSH</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '419c8eca84fb11e5be7cea44268fd0e5',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1点我达大数据团队初创于2015年，随着公司业务发展，大数据对于公司的业务发展发挥了越来越大的作用，目前服务的用户/团队包含BI、产品运营、运力中心以及技术内部应用的数据服务等目前大数据主要的结构如下： 从最下面一层往上依次为：一、接入层1、DataXa) dataX 是一个 ETL 工具，阿里出品b) 采用 Framework + plugin 架构构建，幸运的是自带了常用的插件，比如 Mysq">
+<meta name="keywords" content="大数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大数据业务介绍">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/28/大数据业务介绍/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1点我达大数据团队初创于2015年，随着公司业务发展，大数据对于公司的业务发展发挥了越来越大的作用，目前服务的用户/团队包含BI、产品运营、运力中心以及技术内部应用的数据服务等目前大数据主要的结构如下： 从最下面一层往上依次为：一、接入层1、DataXa) dataX 是一个 ETL 工具，阿里出品b) 采用 Framework + plugin 架构构建，幸运的是自带了常用的插件，比如 Mysq">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/newstructure-7.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/datax-1.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/logstash.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/node.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/1502286064-1-.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/airflow.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/hive-structure.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/cube.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/1502257646-1-.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/dubbo-2.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/ha-2.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/1502269388-1-.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/warning.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/1502332615-1-.png">
+<meta property="og:image" content="http://tech.dianwoda.com/content/images/2017/08/-----1-.png">
+<meta property="og:updated_time" content="2019-10-28T12:06:16.534Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="大数据业务介绍">
+<meta name="twitter:description" content="1点我达大数据团队初创于2015年，随着公司业务发展，大数据对于公司的业务发展发挥了越来越大的作用，目前服务的用户/团队包含BI、产品运营、运力中心以及技术内部应用的数据服务等目前大数据主要的结构如下： 从最下面一层往上依次为：一、接入层1、DataXa) dataX 是一个 ETL 工具，阿里出品b) 采用 Framework + plugin 架构构建，幸运的是自带了常用的插件，比如 Mysq">
+<meta name="twitter:image" content="http://tech.dianwoda.com/content/images/2017/08/newstructure-7.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/28/大数据业务介绍/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>大数据业务介绍 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/大数据业务介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">大数据业务介绍
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-28 19:36:51 / 修改时间：20:06:16" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:51+08:00">2019-10-28</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大数据/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">点我达大数据团队初创于2015年，随着公司业务发展，大数据对于公司的业务发展发挥了越来越大的作用，目前服务的用户/团队包含BI、产品运营、运力中心以及技术内部应用的数据服务等</span><br></pre></td></tr></table></figure><p>目前大数据主要的结构如下：</p><p><img src="http://tech.dianwoda.com/content/images/2017/08/newstructure-7.png" alt> 从最下面一层往上依次为：</p><p><strong>一、接入层</strong></p><p><strong>1、DataX</strong></p><p>a) dataX 是一个 ETL 工具，阿里出品<br>b) 采用 Framework + plugin 架构构建，幸运的是自带了常用的插件，比如 MysqlReader、HdfsWriter 等<br>c) Standalone，无中心，每个实例之间无关联<br>d) 性能强劲、相对于 sqoop，配置更简单<br>e) 稳定高效，我们引入 DataX 以来，从来没有在数据传输上出过问题<br><img src="http://tech.dianwoda.com/content/images/2017/08/datax-1.png" alt></p><a id="more"></a>
+
+
+
+
+
+<p><strong>2、DTS/Canal</strong></p>
+<p>a) Canal 是基于 Mysql binlog 变动，实时同步数据变化的工具<br>b) DTS 是阿里云提供的一套数据产品，原理和 Canal 类似，我们想监听某个表的变动，只需订阅，就可以获取到数据的实时变化<br>c) 迁云之后，主要使用 DTS<br>d) 数据落地我们使用 kafka，topic 一般是 schema.table_name<br>e) 消费方一般是 streaming、airflow 调度的 spark 作业等，计算后的数据二次落地在 redis、hbase、es 等数据集群中</p>
+<p><strong>3、Logstash</strong></p>
+<p>a) 因为配置相对于 flume 简单，并且和 elasticsearch、kibana 紧密结合，我们的应用日志大部分使用 logstash 进行收集<br>b) logstash 将日志落地到 kafka，我们的计算引擎进行计算<br><img src="http://tech.dianwoda.com/content/images/2017/08/logstash.png" alt></p>
+<p><strong>4、Flume</strong></p>
+<p>a) flume 主要是采集了移动端的 track log，用于计算骑手的轨迹<br>b) app 和 flume 之间我们搭建了一个 nodejs 写的 web 应用，示意如下：<br><img src="http://tech.dianwoda.com/content/images/2017/08/node.png" alt></p>
+<p><strong>二、存储层</strong></p>
+<p>存储层包含 hdfs、kafka、hbase、redis 和 elasticsearch 等，其中 redis、hbase、es 作为数据二次落地（最终计算结果）的存储介质。**</p>
+<p>1、redis</p>
+<p><strong>　　首先如果数据结构符合 kv 结构，首选 redis，因为 redis 非常快，毫秒级别，哪怕 mget 一万个 key。</strong></p>
+<p>2、hbase</p>
+<p><strong>　　其次对于需要多个查询条件进行检索的数据，我们一般放到 hbase 中，应用通过 phoenix 引擎读取 hbase，hbase 如果 rowkey 设计合理，几十毫秒的 rt 是可以满足的，但是如果设计不合理，那是非常缓慢的，设计 rowkey 时，可以把能够过滤最多记录的 key 放在 rowkey 最前面，依次类推。</strong></p>
+<p>3、elasticsearch</p>
+<p>**　　对于写少读多的数据，而且检索条件非常丰富，我们放到 elasticsearch 中，比如历史订单查询。</p>
+<p><strong>三、计算层</strong></p>
+<p><strong>1、Hive(MR)</strong></p>
+<p>a) hive 主要用于离线数据分析<br>b) hql 能实现大部分场景的数据统计，复杂处理逻辑使用 hive udf，hql 中调用 udf 函数就可以了<br>c) 分区方案采用按日分区的，部分表使用日期 + 小时 + 分钟的分区方案</p>
+<p><strong>2、Spark</strong></p>
+<p>a) spark 我们主要使用 spark sql 和 spark streaming（当然包含 spark core），前者主要处理批处理和交互式查询，后者用于实时计算，spark mllib 暂时没用到<br>b) 大部分实时处理使用 spark streaming，吞吐量高，并不需要纯实时和高可靠地事务机制，<br>c) 为了便于管理，和 hive mr 一样，统一使用 yarn 调度，后续可能考虑部分小内存的 spark job 使用 standalone 调度</p>
+<p><strong>3、Storm</strong></p>
+<p>a) storm 用得不多<br>b) 主要是云上的 dts 任务和云下仪表盘的 influxdb writer</p>
+<p><strong>四、调度层</strong></p>
+<p><strong>1、Yarn</strong></p>
+<p>Yarn(MR2) 上面跑了两种作业：hive 和 spark 作业<br><img src="http://tech.dianwoda.com/content/images/2017/08/1502286064-1-.png" alt></p>
+<p>a) hive(mr) job</p>
+<p>hive 作业一般是 airflow 调度的每日例行作业，或者是数据分析人员（技术、bi、运力、运营等部门）通过 hive cli、hue 等工具提交的离线作业，运行在 root.default 队列上。可以自定义 Map/Reduce Container 的资源大小，如在 hive 中分别指定：<br><code>set mapreduce.map.memory.mb=4096; set mapreduce.reduce.memory.mb=4096;</code></p>
+<p>b) spark on yarn</p>
+<p>在 yarn 上运行的 spark 作业分为 streaming 作业和 spark 批处理作业，分别运行在 root.spark 和 root.airflow 队列上。可指定 driver、executor 占用资源：<br><code>$SPARK_HOME/bin/spark-submit --master yarn --deploy-mode cluster --queue spark --executor-cores 1 --executor-memory 2g --num-executors 1 --driver-memory 1g --driver-cores 1</code></p>
+<p><strong>2、Airflow</strong></p>
+<p><img src="http://tech.dianwoda.com/content/images/2017/08/airflow.png" alt> a) 我们的 daily 任务、5/15/30min 任务都靠 airflow 调度<br>b) 一个支持 dag（有向无环图）的任务调度工具<br>c) 一个任务失败了，它的所有 downstream 任务都是失败的，都不会运行，保证了数据的正确性<br>d) python 编写，配置比 oozie 简单</p>
+<p><strong>五、OLAP 层</strong></p>
+<p><strong>1、hive 数据仓库</strong></p>
+<p>hive 数据仓库是任何大数据平台中基础的基础，任何业务数据都按照某种分区规则存放在此，是各种计算引擎的数据基础。我们在设计 hive 仓库时，根据 hive 表的作用范围划分为几个命名空间，分别是：<br><img src="http://tech.dianwoda.com/content/images/2017/08/hive-structure.png" alt> a) <strong>ODS</strong><br>ODS(Operational Data Store) 代表记录层面，在我们这里代表 etl 拉过来的基础数据，通俗地说，就是 datax 拉的数据表<br>b) <strong>DW</strong><br>DW 是根据业务分析需求，在 ods 的基础上进行最基础的聚合，是所有统计分析数据的基础<br>c) <strong>DWS/Report</strong><br>DWS/Report 是 DW 的基础上进行聚合，面向某一统计主题的、对调用者而言无需再进行 join 的</p>
+<p><strong>2、Presto</strong></p>
+<p>Presto 集群可以拉取 hive 表，到内存中计算，比 hive 快很多，支持 Ad-hoc，没有引入 Presto 之前，cube 的数据源是 hive 计算后通过 datax 将结果导入到 mysql。<br>　　但是随着业务的发展，一个报表需求的查询维度是任意维度的，也就是通常所说的 ad-hoc，这样一来，我们要为每一个查询维度生成一张 hive 表，然后 hive 表导入到 mysql，这样既给数仓层的设计造成了不便，同时 mysql 也保存了所有维度的大量数据，mysql 表只保存最终统计结果的目标也就失去了意义，引入 presto 后，解决了我们这些棘手的问题。 <img src="http://tech.dianwoda.com/content/images/2017/08/cube.png" alt></p>
+<p><strong>3、Cube</strong></p>
+<p>Cube 是一个数据呈现平台，主要用于公司业务人员和分析部门的数据需求，所有数据从 Presto 中读取，目前分为 PC 端和移动端，经过产品上线以来的运营情况，移动端的数据需求占比越来越高。</p>
+<p><strong>4、数据大屏</strong></p>
+<p>数据大屏用来展示点我达规模、质量等服务运营指标，为公司内部和外部相关人群提供运营指标参考。数据大屏采用阿里云的 datav 数据可视化产品搭建，非本地部署方式，我们采购了 4 个显示大屏用于展示我们创建的 4 个 datav 屏幕，具体工作方式为：<br>　　 a) 登录 datav 控制台，创建 “可视化屏幕”<br>　　 b) 设置屏幕的数据来源 url、展示数据的格式和布局<br>　　 c) 发布屏幕<br>　　 d) 将配置完成的 4 张屏幕投放到大屏显示器中</p>
+<p><strong>5、hive 元数据管理 warden</strong></p>
+<p>对于 bi 分析人员，如果没有一个便捷的工具，在庞大的 hive 数据仓库中找到想要的指标是意见很困难的事情，为此，我们开发了一套 hive 元数据查询系统，比如，我关心订单妥投情况，我直接在全文检索搜索框中输入 “妥投”，就会找到有哪些 hive 表包含了这个信息，截图如下： <img src="http://tech.dianwoda.com/content/images/2017/08/1502257646-1-.png" alt></p>
+<p><strong>六、OLTP 层</strong></p>
+<p>用于内部系统的数据服务调用，使用 dubbo rpc 提供服务，每一个 dubbo 服务，后面都有一个或者多个 streaming 任务进行计算 <img src="http://tech.dianwoda.com/content/images/2017/08/dubbo-2.png" alt> 数据服务简单列举几个：<br>POI 服务：经纬度相关兴趣点服务<br>商家交易：商家通过 app 可以查看交易、账户等<br>骑手交易：骑手通过 app 查看交易、账户等<br>fft、fat：预测订单完成时间、预测骑手到店时间<br>天气服务：天气影响骑手考核和补贴<br>骑手轨迹：后台 crm 可以查看骑手的轨迹和到店、完成时点情况<br>历史订单查询：我们的业务库一般保留当天数据，ES 提供历史订单的全文检索功能<br>订单压力（热力图）：根据传递的经纬度，获取所覆盖的所有小方格的 geohash 及其订单压力情况，后台 streaming 算好了每个 geohash 的压力值，存储于 redis 中</p>
+<p><strong>七、高可靠性保证</strong></p>
+<p>对于大数据团队内部产品而言，OLAP 应用一般是离线的或者使用者是内部用户，容许一定的延时，但 OLTP 服务一般处于整个 OLTP 系统的调用链中，需要高可靠性服务保证，我们从服务降级和监控报警处理两个层面实现服务的可靠性。</p>
+<p><strong>1、服务降级</strong></p>
+<p>比如压力服务，当我们的 streaming 任务挂掉或者处理缓慢怎么办，这时候我们起了一个每 5 分钟执行一次的备份 job，当 dubbo 服务执行时，它首先检查 streaming 任务的最后写入 redis key 的时间，当此时间与当前时间差距超过我们设定的阈值时，就判定 streaming 任务异常，这时候就获取备份 job 的数据，极大地保证了压力服务的可靠性，示意图如下： <img src="http://tech.dianwoda.com/content/images/2017/08/ha-2.png" alt></p>
+<p><strong>2、监控报警体系</strong></p>
+<p>a) 基础平台告警（仪表盘）<br>　　仪表盘是点我达通用的一套监控报警系统，可以设定阈值，如果某个监控的标的超过阈值，可以邮件、短信息实时告警，可以在第一时间处理。比如我们的 dubbo 服务，最起码的一个监控指标是执行时长，我们做了一个注解 “@Monitor” 和处理此注解的切面程序，如何方法只要加入了这个注解，会把这个方法的执行时长加入到监控系统中，在仪表盘监控页面中就可以看到这个方法的监控项（当然需要自己添加 graph 和 influxdb mesurement） <img src="http://tech.dianwoda.com/content/images/2017/08/1502269388-1-.png" alt> 对于另外个性化指标的监控，则每个服务自己去控制。</p>
+<p>b) 大数据报警体系</p>
+<p>大数据自身的报警体系如下图所示： <img src="http://tech.dianwoda.com/content/images/2017/08/warning.png" alt></p>
+<p><strong>八、踩坑记录</strong></p>
+<p>大数据团队发展至今，遇到过很多问题，有大有小，不一而足，以下列举几个：</p>
+<p><strong>1、phoenix 版本不匹配</strong></p>
+<p>查询和建表使用的 phoenix 版本不一致导致的数据重复的问题。phoenix 表是使用 4.9 建的，dubbo 里面用的是 phoenix4.7，读取的时候发现读取到的数据有重复，后来升级 dubbo 服务的 phoenix 版本到 4.9，解决了此问题</p>
+<p><strong>2、spark2.1.1 的 bug</strong></p>
+<p>代码示例：</p>
+<p><code>val df = spark.sql( &quot;&quot;&quot;select user_id, timestamp, order_id, user_name, lng, lat, status, leave_tm from ( select cast(user_id as bigint) user_id, cast(timestamp as bigint) timestamp, cast(coalesce(get_json_object(args,&#39;$.orderId&#39;),&#39;0&#39;) as int) order_id, user_name, cast(longitude as int) lng, cast(latitude as int) lat, get_json_object(args,&#39;$.status&#39;) status, cast(get_json_object(args,&#39;$.leaveTm&#39;) as bigint) leave_tm from logs where event=&#39;rider_trace&#39;) t where user_id is not null and timestamp is not null and order_id is not null and status is not null &quot;&quot;&quot;)</code></p>
+<p>这段代码是从 logs 数据源中读取和解析数据，其中 <strong>get</strong>json_<strong>object_</strong> <em>一直报错，提示<code>java.io.CharConversionException: Invalid UTF-32 character 0x7b2265(above 10ffff) at char #192, byte #771) at com.fasterxml.jackson.core.io.UTF32Reader.reportInvalid(UTF32Reader.java:189) at com.fasterxml.jackson.core.io.UTF32Reader.read(UTF32Reader.java:150) at com.fasterxml.jackson.core.json.ReaderBasedJsonParser.loadMore(ReaderBasedJsonParser.java:153) at com.fasterxml.jackson.core.json.ReaderBasedJsonParser._skipWSOrEnd(ReaderBasedJsonParser.java:1855) at com.fasterxml.jackson.core.json.ReaderBasedJsonParser.nextToken(ReaderBasedJsonParser.java:571) at org.apache.spark.sql.catalyst.expressions.GetJsonObject$$anonfun$eval$2$$anonfun$4.apply(jsonExpressions.scala:142)</code>提示是说某些非法字符，因为我们没有捕获异常，报错了程序也不退出，反复处理这一条脏数据，后来临时改一下代码，把 <strong>get</strong></em>*<strong>*json</strong>object** 去掉，绕过了这一条数据，再把程序改回来，后来在网上搜索了一下，发现是 spark2.1.1 的 bug，已经在 spark2.2.0 之后的版本修复了。 <img src="http://tech.dianwoda.com/content/images/2017/08/1502332615-1-.png" alt></p>
+<p><strong>3、yarn 资源设置不当引起离线 dag 处理失败</strong></p>
+<p>为了提高作业的并发量，我们减少了单个 map/reduce container 的内存大小，结果某个订单的大作业无足够资源，运行失败，导致当日离线报表无数据。其实也是一个权衡，过大浪费资源、并发作业少；过小则大作业无法运行，需要我们对比较耗费资源的作业做到心里有数，对大作业单独指定资源</p>
+<p><strong>九、集群部署结构</strong></p>
+<p>附录点我达大数据服务集群部署结构如图示 <img src="http://tech.dianwoda.com/content/images/2017/08/-----1-.png" alt></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/28/大数据业务介绍/" title="大数据业务介绍">https://ailab-aida.github.io/2019/10/28/大数据业务介绍/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/大数据/" rel="tag"># 大数据</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/XGBoost 在线出餐预测服务介绍/" rel="next" title="XGBoost 在线出餐预测服务介绍">
+                  <i class="fa fa-chevron-left"></i> XGBoost 在线出餐预测服务介绍
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/28/xgboost 算法和工程/" rel="prev" title="XGBoost 算法和工程">
+                  XGBoost 算法和工程 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '3e21de0d81e3258343ca700f050586e2',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
