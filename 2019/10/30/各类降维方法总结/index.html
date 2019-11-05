@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="在现实生活中很多机器学习问题有上千维，甚至上万维特征，这不仅影响了训练速度，通常还很难找到比较好的解。这样的问题成为维数灾难（curse of dimensionality）幸运的是，理论上降低维度是可行的。比如 MNIST 数据集大部分的像素总是白的，因此可以去掉这些特征；相邻的像素之间是高度相关的，如果变为一个像素，相差也并不大。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="各类降维方法总结">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/30/各类降维方法总结/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="在现实生活中很多机器学习问题有上千维，甚至上万维特征，这不仅影响了训练速度，通常还很难找到比较好的解。这样的问题成为维数灾难（curse of dimensionality）幸运的是，理论上降低维度是可行的。比如 MNIST 数据集大部分的像素总是白的，因此可以去掉这些特征；相邻的像素之间是高度相关的，如果变为一个像素，相差也并不大。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-df5f9b2a364da191.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-bea670bd50cb7a8d.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-1dfe727a5b898795.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-f312199b7735dcc0.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-cf513be8fe31178e.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-f3e04bdb9dd0a243.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-5f82e5ac57cb56c8.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-3e96408edb4890ac.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-8498c38845931396.png">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/6006099-7b559a04edfd3511.png">
+<meta property="og:updated_time" content="2019-10-30T11:11:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="各类降维方法总结">
+<meta name="twitter:description" content="在现实生活中很多机器学习问题有上千维，甚至上万维特征，这不仅影响了训练速度，通常还很难找到比较好的解。这样的问题成为维数灾难（curse of dimensionality）幸运的是，理论上降低维度是可行的。比如 MNIST 数据集大部分的像素总是白的，因此可以去掉这些特征；相邻的像素之间是高度相关的，如果变为一个像素，相差也并不大。">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/6006099-df5f9b2a364da191.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/30/各类降维方法总结/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>各类降维方法总结 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/30/各类降维方法总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">各类降维方法总结
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-30 17:25:47 / 修改时间：19:11:52" itemprop="dateCreated datePublished" datetime="2019-10-30T17:25:47+08:00">2019-10-30</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在现实生活中很多机器学习问题有上千维，甚至上万维特征，这不仅影响了训练速度，通常还很难找到比较好的解。这样的问题成为维数灾难（curse of dimensionality）</p><p>幸运的是，理论上降低维度是可行的。比如 MNIST 数据集大部分的像素总是白的，因此可以去掉这些特征；相邻的像素之间是高度相关的，如果变为一个像素，相差也并不大。</p><a id="more"></a>
+
+<p>需要注意：降低维度肯定会损失一些信息，这可能会让表现稍微变差。因此应该先在原维度训练一次，如果训练速度太慢再选择降维。虽然有时候降为能去除噪声和一些不必要的细节，但通常不会，主要是能加快训练速度。</p>
+<p>降维除了能提高训练速度以外，还能用于数据可视化。把高维数据降到 2 维或 3 维，然后就能把特征在 2 维空间（3 维空间）表示出来，能直观地发现一些规则。</p>
+<p>降维的方法主要为两种：projection 和 Manifold Learning。</p>
+<h3 id="1-1-投影（Projection）"><a href="#1-1-投影（Projection）" class="headerlink" title="1.1 投影（Projection）"></a>1.1 投影（Projection）</h3><p>在大多数的真实问题，训练样例都不是均匀分散在所有的维度，许多特征都是固定的，同时还有一些特征是强相关的。因此所有的训练样例实际上可以投影在高维空间中的低维子空间中，下面看一个例子。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-df5f9b2a364da191.png" alt></p>
+<p>可以看到 3 维空间中的训练样例其实都分布在同一个 2 维平面，因此我们能够将所有样例都投影在 2 维平面。对于更高维的空间可能能投影到低维的子空间中。</p>
+<p>然而投影（projection）不总是降维最好的方法在，比如许多情况下，空间可以扭转，如著名的瑞士卷（Swiss roll）数据。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-bea670bd50cb7a8d.png" alt></p>
+<p>如果简单的使用投影（project）降维（例如通过压平第 3 维），那么会变成如下左图的样子，不同类别的样例都混在了一起，而我们的预想是变成右下图的形式。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-1dfe727a5b898795.png" alt></p>
+<h3 id="1-2-流形学习（Manifold-Learning）"><a href="#1-2-流形学习（Manifold-Learning）" class="headerlink" title="1.2 流形学习（Manifold Learning）"></a>1.2 流形学习（Manifold Learning）</h3><p>瑞士卷（Swiss roll）是二维流形的例子。它可以在高维空间中弯曲。更一般地，一个 d 维流形在 n 维空间弯曲（其中 d ＜ n）。在瑞士卷的情况下，D ＝ 2 和 n ＝ 3。</p>
+<p>基于流行数据进行建模的降维算法称为流形学习（Manifold Learning）。它假设大多数现实世界的高维数据集接近于一个低维流形。</p>
+<p>流行假设通常隐含着另一个假设：通过流形在低维空间中表达，任务（例如分类或回归）应该变得简单。如下图第一行，Swiss roll 分为两类，在 3D 的空间看起来很复杂，但通过流行假设到 2D 就能变得简单。</p>
+<p>但是这个假设并不总是能成立，比如下图第二行，决策线为 x=5，2D 的的决策线明显比 3D 的要复杂。因此在训练模型之前先降维能够加快训练速度，但是效果可能会又增有减，这取决于数据的形式。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-f312199b7735dcc0.png" alt></p>
+<p>下面介绍几种降维方法</p>
+<h2 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h2><p>PCA 是一个线性方法，由于 PCA 只是简单对输入数据进行变换，所以它既可以用在分类问题，也可以用在回归问题。非线性的情况可以使用核方法 kernelized PCA，但是由于 PCA 有良好的数学性质、发现转换后特征空间的速度、以及再原始和变换后特征间相互转换的能力，在降维或者说特征抽取时，它已经可以满足大部分情况。<br>给定原始空间，PCA 会找到一个到更低维度空间的线性映射。因为需要使所有样本的投影尽可能分开，则需要最大化投影点的方差。<br>它具有如下性质：</p>
+<ol>
+<li>保留方差是最大的</li>
+<li>最终的重构误差（从变换后回到原始情况）是最小的</li>
+</ol>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-cf513be8fe31178e.jpg" alt></p>
+<p>PCA</p>
+<p>图片来自：</p>
+<p><a href="https://links.jianshu.com/go?to=http%3A%2F%2Fmarkus.com%2Fdeep-learning-101%2F" target="_blank" rel="noopener">http://markus.com/deep-learning-101/</a></p>
+<p>保留最大方差：<br>   首先需要选择一个好的超平面。先看下图的例子，需要将 2D 降为 1D，选择不同的平面得到右图不一样的结果，第 1 个投影以后方差最大，第 3 个方差最小，选择最大方差的一个感觉上应该是比较合理的，因为这样能保留更多的信息。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-f3e04bdb9dd0a243.png" alt></p>
+<p>另外一种判断的方式是：通过最小化原数据和投影后的数据之间的均方误差。</p>
+<h3 id="2-1-流程："><a href="#2-1-流程：" class="headerlink" title="2.1 流程："></a>2.1 流程：</h3><ol>
+<li>去除平均值（每个元素减去自己特征的平均值）</li>
+<li>计算协方差矩阵</li>
+</ol>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-5f82e5ac57cb56c8.png" alt></p>
+<p>协方差. png</p>
+<p>协方差介绍（摘自百度百科）：<br>协方差表示的是两个变量的总体的误差，这与只表示一个变量误差的方差不同。 如果两个变量的变化趋势一致，也就是说如果其中一个大于自身的期望值，另外一个也大于自身的期望值，那么两个变量之间的协方差就是正值。 如果两个变量的变化趋势相反，即其中一个大于自身的期望值，另外一个却小于自身的期望值，那么两个变量之间的协方差就是负值。</p>
+<p>协方差可以理解判断成两条线的趋势是否一致，线 a 线 b，线 a 变大时线 b 也变大，线 a 变小是线 b 也变小，协方差则为正（可以理解成正相关）。协方差的值大小代表相关性的强弱。线 a 和自己的协方差即自己本身的方差。</p>
+<p>两个特征的协方差计算例子：<br>Xi 1.1 1.9 3<br>Yi 5.0 10.4 14.6<br>E(X) = (1.1+1.9+3)/3=2<br>E(Y) = (5.0+10.4+14.6)/3=10<br>E(XY)=(1.1×5.0+1.9×10.4+3×14.6)/3=23.02<br>Cov(X,Y)=E(XY)-E(X)E(Y)=23.02-2×10=3.02</p>
+<ol>
+<li>计算协方差矩阵的特征值和特征向量<br>一个向量 v 是方阵 A 的特征向量，将一定可以表示成下面的形式：</li>
+</ol>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-3e96408edb4890ac.png" alt></p>
+<p>特征分解. png</p>
+<p>其中 A 为方阵，V 是特征向量，lambda 是特征值。<br>λ 为特征向量 v 对应的特征值。特征值分解是将一个矩阵分解为如下形式：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-8498c38845931396.png" alt></p>
+<p>特征分解</p>
+<p>Q 是这个矩阵 A 的特征向量组成的矩阵，Σ 是一个对角矩阵，每一个对角线元素就是一个特征值，里面的特征值是由大到小排列。</p>
+<p>特征值表示的是这个特征到底有多重要，而特征向量表示这个特征是什么</p>
+<ol>
+<li>将特征值从大到小排列</li>
+<li>保留最上面的 N 个特征向量</li>
+<li>将数据转换到上述 N 个特征向量构建的新的空间中</li>
+</ol>
+<h2 id="2-2-numpy-中实现-PCA（【机器学习实战】）："><a href="#2-2-numpy-中实现-PCA（【机器学习实战】）：" class="headerlink" title="2.2 numpy 中实现 PCA（【机器学习实战】）："></a>2.2 numpy 中实现 PCA（【机器学习实战】）：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line">def loadDataSet(fileName, delim=&apos;\t&apos;):</span><br><span class="line">    fr = open(fileName)</span><br><span class="line">    stringArr = [line.strip().split(delim) for line in fr.readlines()]</span><br><span class="line">    datArr = [map(float,line) for line in stringArr]</span><br><span class="line">    return mat(datArr)</span><br><span class="line"></span><br><span class="line">def pca(dataMat, topNfeat=n):</span><br><span class="line">    meanVals = np.mean(dataMat, axis=0)</span><br><span class="line"></span><br><span class="line">    meanRemoved = dataMat - meanVals</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    covMat = np.cov(meanRemoved, rowvar=0)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    eigVals,eigVects = np.linalg.eig(mat(covMat))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    eigValInd = np.argsort(eigVals)</span><br><span class="line"></span><br><span class="line">    eigValInd = eigValInd[:-(topNfeat+1):-1]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    redEigVects = eigVects[:,eigValInd]</span><br><span class="line"></span><br><span class="line">    lowDDataMat = meanRemoved * redEigVects</span><br><span class="line"></span><br><span class="line">    reconMat = (lowDDataMat * redEigVects.T) + meanVals</span><br><span class="line"></span><br><span class="line">    return lowDDataMat, reconMat</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-使用-sklearn-中的-PCA："><a href="#2-3-使用-sklearn-中的-PCA：" class="headerlink" title="2.3 使用 sklearn 中的 PCA："></a>2.3 使用 sklearn 中的 PCA：</h3><h6 id="2-3-1-参数说明："><a href="#2-3-1-参数说明：" class="headerlink" title="2.3.1. 参数说明："></a>2.3.1. 参数说明：</h6><p>n_components:<br>意义：PCA 算法中所要保留的主成分个数 n，也即保留下来的特征个数 n<br>类型：int 或者 string，缺省时默认为 None，所有成分被保留。</p>
+<p>copy:<br>类型：bool，True 或者 False，默认为 True。意义：表示是否在运行算法时，将原始训练数据复制一份。若为 True，则运行 PCA 算法后，原始训练数据的值不会有任何改变，因为是在原始数据的副本上进行运算；若为 False，则运行 PCA 算法后，原始训练数据的值会改，因为是在原始数据上进行降维计算。</p>
+<p>whiten:<br>类型：bool，默认为 False<br>意义：白化，使得每个特征具有相同的方差。就是对降维后的数据的每个特征进行归一化，一般不需要白化。</p>
+<h6 id="2-3-2-PCA-对象的属性"><a href="#2-3-2-PCA-对象的属性" class="headerlink" title="2.3.2.PCA 对象的属性"></a>2.3.2.PCA 对象的属性</h6><p>components<em> ：返回具有最大方差的成分。<br>explained_variance</em>：所保留的 n 个成分各自的方差<br>explained<em>variance_ratio</em>：返回 所保留的 n 个成分各自的方差百分比。<br>n<em>components</em>：返回所保留的成分个数 n。<br>noise variance：噪声方差大小<br>mean_: 特征均值</p>
+<h6 id="2-3-3-PCA-对象的方法"><a href="#2-3-3-PCA-对象的方法" class="headerlink" title="2.3.3.PCA 对象的方法"></a>2.3.3.PCA 对象的方法</h6><p>fit(X,y=None)<br>fit() 是 scikit-learn 中通用的方法。因为 PCA 是无监督学习算法，此处 y 等于 None。</p>
+<p>fit(X)，表示用数据 X 来训练 PCA 模型。</p>
+<p>fit_transform(X)<br>用 X 来训练 PCA 模型，同时返回降维后的数据。</p>
+<p>inverse_transform()<br>将降维后的数据转换成原始数据，X=pca.inverse_transform(newX)</p>
+<p>transform(X)<br>将数据 X 转换成降维后的数据。</p>
+<h6 id="2-3-4-使用"><a href="#2-3-4-使用" class="headerlink" title="2.3.4. 使用"></a>2.3.4. 使用</h6><p>这里只挑几个比较重要的参数进行说明。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sklearn.decomposition.PCA(n_components=None, copy=True, whiten=False)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>n_components: int, float, None 或 string，PCA 算法中所要保留的主成分个数，也即保留下来的特征个数，如果 n_components = 1，将把原始数据降到一维；如果赋值为 string，如 n_components=’mle’，将自动选取特征个数，使得满足所要求的方差百分比；如果没有赋值，默认为 None，特征个数不会改变（特征数据本身会改变）。</li>
+<li>copy：True 或 False，默认为 True，即是否需要将原始训练数据复制。</li>
+<li>whiten：True 或 False，默认为 False，即是否白化，使得每个特征具有相同的方差。</li>
+</ul>
+<ul>
+<li>explained<em>variance_ratio</em>：返回所保留各个特征的方差百分比，如果 n_components 没有赋值，则所有特征都会返回一个数值且解释方差之和等于 1。</li>
+<li>n<em>components</em>：返回所保留的特征个数。</li>
+</ul>
+<ul>
+<li>fit(X): 用数据 X 来训练 PCA 模型。</li>
+<li>fit_transform(X)：用 X 来训练 PCA 模型，同时返回降维后的数据。</li>
+<li>inverse_transform(newData) ：将降维后的数据转换成原始数据，但可能不会完全一样，会有些许差别。</li>
+<li>transform(X)：将数据 X 转换成降维后的数据，当模型训练好后，对于新输入的数据，也可以用 transform 方法来降维。</li>
+</ul>
+<p>code</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">from sklearn.decomposition import PCA</span><br><span class="line">X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])</span><br><span class="line">pca = PCA(n_components=2)</span><br><span class="line">newX = pca.fit_transform(X)</span><br><span class="line">print(X)</span><br><span class="line">Out[365]:</span><br><span class="line">[[-1 -1]</span><br><span class="line"> [-2 -1]</span><br><span class="line"> [-3 -2]</span><br><span class="line"> [ 1  1]</span><br><span class="line"> [ 2  1]</span><br><span class="line"> [ 3  2]]</span><br><span class="line">print(newX)</span><br><span class="line">Out[366]:</span><br><span class="line">array([[ 1.38340578,  0.2935787 ],</span><br><span class="line">       [ 2.22189802, -0.25133484],</span><br><span class="line">       [ 3.6053038 ,  0.04224385],</span><br><span class="line">       [-1.38340578, -0.2935787 ],</span><br><span class="line">       [-2.22189802,  0.25133484],</span><br><span class="line">       [-3.6053038 , -0.04224385]])</span><br><span class="line">print(pca.explained_variance_ratio_)</span><br><span class="line">[ 0.99244289  0.00755711]</span><br></pre></td></tr></table></figure>
+<p>可以发现第一个特征可以 99.24% 表达整个数据集，因此我们可以降到 1 维：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pca = PCA(n_components=1)</span><br><span class="line">newX = pca.fit_transform(X)</span><br><span class="line">print(pca.explained_variance_ratio_)</span><br><span class="line">[ 0.99244289]</span><br></pre></td></tr></table></figure>
+<p>通常来说使用 PCA 降维以后需要保留 95% 以上的方差，因此 sklearn 中的 PCA 有三种种使用方式：<br>第一种：手动设置维度 int 类型，即降维后的维度，查看保留的方差百分比（explained<em>variance_ratio</em>）来调整合适的 n_components，此时 n_components 大于 1。<br>第二种：手动设置保留的方差百分比 int 类型，系统会自动选择维度，此时 n_components 范围在（0,1], 例如 0.95。<br>第三种：还可以将参数设置为 string 类型 “mle”, 此时 PCA 类会用 MLE 最大似然算法根据特征的方差分布情况自己去选择一定数量的主成分特征来降维。</p>
+<p>通常使用 pandas 读取数据的时候得到的 dataframe 可能需要处理一下, 变成 array 格式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import pandas as pd</span><br><span class="line"></span><br><span class="line">df =pd.read_excel(&apos;data&apos;)</span><br><span class="line"></span><br><span class="line">matrix1 = df.values</span><br><span class="line">matrix2 = df.as_matrix()</span><br><span class="line">matrix3 = np.array(df)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">from sklearn.decomposition import PCA</span><br><span class="line">pca1 = PCA(n_components=30)</span><br><span class="line">pca2 = PCA(n_components=0.3)</span><br><span class="line">pca3= PCA(n_components=&quot;mle&quot;)</span><br><span class="line">matrix_pca = pca.fit_transform(matrix)</span><br><span class="line">print (explained_variance_ratio_)</span><br><span class="line">variance_pca = pca.explained_variance_ratio_.sum()</span><br><span class="line"></span><br><span class="line">print (variance_pca)</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-PCA-的一些变种以及-KPCA（Kernel-PCA）的小例子"><a href="#2-4-PCA-的一些变种以及-KPCA（Kernel-PCA）的小例子" class="headerlink" title="2.4 PCA 的一些变种以及 KPCA（Kernel PCA）的小例子"></a>2.4 PCA 的一些变种以及 KPCA（Kernel PCA）的小例子</h3><h5 id="2-4-1-增量-PCA（IPCA）"><a href="#2-4-1-增量-PCA（IPCA）" class="headerlink" title="2.4.1 增量 PCA（IPCA）"></a>2.4.1 增量 PCA（IPCA）</h5><p>当数据量较大时，使用 SVD 分解会耗费很大的内存以及运算速度较慢。幸运的是，可以使用 IPCA 算法来解决。先将训练样本分为 mini-batches，每次给 IPCA 算法一个 mini-batch，这样就能处理大量的数据，也能实现在线学习（当有新的数据加入时）。</p>
+<p>下面是使用 Numpy 的 array_split() 方法将 MNIST 数据集分为 100 份，再分别喂给 IPCA，将数据降到 154 维。需要注意，这里对于 mini-batch 使用 partial_fit() 方法，而不是对于整个数据集的 fit() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.datasets import fetch_mldata</span><br><span class="line">mnist = fetch_mldata(&apos;MNIST original&apos;)</span><br><span class="line">X = mnist[&quot;data&quot;]</span><br><span class="line"></span><br><span class="line">from sklearn.decomposition import IncrementalPCA</span><br><span class="line">n_batches = 100</span><br><span class="line">inc_pca = IncrementalPCA(n_components=154)</span><br><span class="line">for X_batch in np.array_split(X, n_batches):</span><br><span class="line">    inc_pca.partial_fit(X_batch)</span><br><span class="line">X_mnist_reduced = inc_pca.transform(X)</span><br></pre></td></tr></table></figure>
+<p>还可以使用 Numpy 的 memmap 类来操纵储存在硬盘上的二进制编码的大型数据，只有当数据被用到的时候才会将数据放入内存。由于 IPCA 每次只需将一部分数据，因此能通过 memmap 来控制内存。由于使用的是输入的是整个数据集，因此使用的是 fit() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">X_mm = np.memmap(filename, dtype=&quot;float32&quot;, mode=&quot;readonly&quot;, shape=(m, n))</span><br><span class="line">batch_size = m</span><br><span class="line">inc_pca = IncrementalPCA(n_components=154, batch_size=batch_size)</span><br><span class="line">inc_pca.fit(X_mm)</span><br></pre></td></tr></table></figure>
+<h5 id="2-4-2-随机-PCA"><a href="#2-4-2-随机-PCA" class="headerlink" title="2.4.2 随机 PCA"></a>2.4.2 随机 PCA</h5><p>随机 PCA 是个随机算法，能快速找到接近前 d 个主成分, 它的计算复杂度与 d 相关而不与 n 相关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rnd_pca = PCA(n_components=154, svd_solver=&quot;randomized&quot;)</span><br><span class="line">X_reduced = rnd_pca.fit_transform(X_mnist)</span><br></pre></td></tr></table></figure>
+<h5 id="2-4-3-核-PCA-Kernel-PCA"><a href="#2-4-3-核-PCA-Kernel-PCA" class="headerlink" title="2.4.3 核 PCA(Kernel PCA)"></a>2.4.3 核 PCA(Kernel PCA)</h5><p>了解 SVM 都应该知道核技巧，即通过数学方法达到增加特征类似的功能来实现非线性分类。类似的技巧还能用在 PCA 上，使得可以实现复杂的非线性投影降维，称为 KPCA。该算法善于保持聚类后的集群 (clusters) 后投影，有时展开数据接近于扭曲的流形。下面是使用 RBF 核的例子。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.datasets import make_swiss_roll</span><br><span class="line">data=make_swiss_roll(n_samples=1000, noise=0.0, random_state=None)</span><br><span class="line">X=data[0]</span><br><span class="line">y=data[1]</span><br><span class="line"></span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line">from mpl_toolkits.mplot3d import Axes3D</span><br><span class="line">ax = plt.subplot(111, projection=&apos;3d&apos;)</span><br><span class="line">ax.scatter(X[:,0], X[:,1], X[:,2],c=y)</span><br><span class="line">plt.show()</span><br><span class="line"></span><br><span class="line">from sklearn.decomposition import KernelPCA</span><br><span class="line">rbf_pca = KernelPCA(n_components = 2, kernel=&quot;rbf&quot;, gamma=0.04)</span><br><span class="line">X_reduced = rbf_pca.fit_transform(X)</span><br></pre></td></tr></table></figure>
+<p>需要注意，此方法要使用大量内存，可能会使内存溢出。</p>
+<h6 id="选择合适的核与参数"><a href="#选择合适的核与参数" class="headerlink" title="选择合适的核与参数"></a>选择合适的核与参数</h6><p>由于 kPCA 是非监督算法，因此无法判断性能的好坏，因此需要结合分类或回归问题来判断。通过 GridSearch 来选择合适的核与参数，下面是一个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.datasets import fetch_mldata</span><br><span class="line">mnist = fetch_mldata(&apos;MNIST original&apos;)</span><br><span class="line">X,y = mnist[&quot;data&quot;],mnist[&quot;target&quot;]</span><br><span class="line"></span><br><span class="line">from sklearn.decomposition import KernelPCA</span><br><span class="line">from sklearn.model_selection import GridSearchCV</span><br><span class="line">from sklearn.linear_model import LogisticRegression</span><br><span class="line">from sklearn.pipeline import Pipeline</span><br><span class="line">clf = Pipeline([</span><br><span class="line">(&quot;kpca&quot;, KernelPCA(n_components=2)),</span><br><span class="line">(&quot;log_reg&quot;, LogisticRegression())</span><br><span class="line">])</span><br><span class="line">param_grid = [&#123;</span><br><span class="line">&quot;kpca__gamma&quot;: np.linspace(0.03, 0.05, 10),</span><br><span class="line">&quot;kpca__kernel&quot;: [&quot;rbf&quot;, &quot;sigmoid&quot;]</span><br><span class="line">&#125;]</span><br><span class="line">grid_search = GridSearchCV(clf, param_grid, cv=3)</span><br><span class="line">grid_search.fit(X, y)</span><br><span class="line">print(grid_search.best_params_)</span><br></pre></td></tr></table></figure>
+<h3 id="3-1-基本原理（【t-SNE-完整笔记】）"><a href="#3-1-基本原理（【t-SNE-完整笔记】）" class="headerlink" title="3.1 基本原理（【t-SNE 完整笔记】）"></a>3.1 基本原理（【t-SNE 完整笔记】）</h3><p>SNE 是通过仿射 (affinitie) 变换将数据点映射到概率分布上，主要包括两个步骤：<br>SNE 构建一个高维对象之间的概率分布，使得相似的对象有更高的概率被选择，而不相似的对象有较低的概率被选择。<br>SNE 在低维空间里在构建这些点的概率分布，使得这两个概率分布之间尽可能的相似。<br>我们看到 t-SNE 模型是非监督的降维，他跟 kmeans 等不同，他不能通过训练得到一些东西之后再用于其它数据（比如 kmeans 可以通过训练得到 k 个点，再用于其它数据集，而 t-SNE 只能单独的对数据做操作，也就是说他只有 fit_transform，而没有 fit 操作）</p>
+<h2 id="3-2-T-SNE-算法流程："><a href="#3-2-T-SNE-算法流程：" class="headerlink" title="3.2 T-SNE 算法流程："></a>3.2 T-SNE 算法流程：</h2><p>有空再补</p>
+<h2 id="3-3-PCA-和-T-SNE："><a href="#3-3-PCA-和-T-SNE：" class="headerlink" title="3.3 PCA 和 T-SNE："></a>3.3 PCA 和 T-SNE：</h2><p>PCA 和 T-SNE 同为降维工具，主要区别在于：<br>机制和原理不同，所以不在同一个包内</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.decomposition import PCA</span><br><span class="line">from sklearn.manifold import TSNE</span><br></pre></td></tr></table></figure>
+<p>因为原理不同，导致，tsne 保留下的属性信息，更具代表性，也即最能体现样本间的差异；<br>T-SNE 运行极慢，PCA 则相对较快；<br>因此通常来说，T-SNE 只能用于展示（可视化）高维数据，由于速度慢常常先用 PCA 进行降维，再使用 tsne：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.manifold import TSNE</span><br><span class="line">from sklearn.decomposition import PCA</span><br><span class="line">data_pca = PCA(n_components=50).fit_transform(data)</span><br><span class="line">data_pca_tsne = TSNE(n_components=2).fit_transform(data_pca)</span><br></pre></td></tr></table></figure>
+<p>也称作多维缩放，类似 T-SNE，经常用于数据可视化，维度大多是时候是 2-3，他在降维的同时尽可能保留样本间的相对距离。<br>MDS 算法通过距离函数 d0 对所有 N 个 k 维数据计算距离矩阵，它衡量的是原始特征空间中的距离（大多数时候是欧式距离）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.manifold import MDS</span><br><span class="line">mds = manifold.MDS(n_components=3)</span><br><span class="line">Xtrans = mds.fit_transform(X)</span><br></pre></td></tr></table></figure>
+<p>多维标度法解决的问题是：当 n 个对象（object）中各对对象之间的相似性（或距离）给定时，确定这些对象在低维空间中的表示，并使其尽可能与原先的相似性（或距离）“大体匹配”，使得由降维所引起的任何变形达到最小。多维空间中排列的每一个点代表一个对象，因此点间的距离与对象间的相似性高度相关。也就是说，两个相似的对象由多维空间中两个距离相近的点表示，而两个不相似的对象则由多维空间两个距离较远的点表示。多维空间通常为二维或三维的欧氏空间，但也可以是非欧氏三维以上空间。</p>
+<h2 id="5-1-原理："><a href="#5-1-原理：" class="headerlink" title="5.1. 原理："></a>5.1. 原理：</h2><p>scipy 和 numpy 中都有奇异值分解<br>R=UΣV^T<br>R 为 m <em> n 的矩阵<br>U 为 m </em> m 的矩阵<br>V 为 n <em> n 的矩阵<br>Σ(sigma) 为 m</em>n 的矩阵, 除了对角元素不为 0，其他元素都为 0，并且对角元素是从大到小排列的，前面的元素比较大，后面的很多元素接近 0。这些对角元素就是奇异值。</p>
+<h2 id="5-2-使用："><a href="#5-2-使用：" class="headerlink" title="5.2. 使用："></a>5.2. 使用：</h2><h4 id="numpy-中调用方式和求特征值特征向量类似-实际上特征分解是一种特殊的奇异值分解"><a href="#numpy-中调用方式和求特征值特征向量类似-实际上特征分解是一种特殊的奇异值分解" class="headerlink" title="numpy 中调用方式和求特征值特征向量类似 (实际上特征分解是一种特殊的奇异值分解,"></a>numpy 中调用方式和求特征值特征向量类似 (实际上特征分解是一种特殊的奇异值分解,</h4><h4 id="特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca-中的特征分解通常会使用-svd"><a href="#特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca-中的特征分解通常会使用-svd" class="headerlink" title="特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca 中的特征分解通常会使用 svd)"></a>特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca 中的特征分解通常会使用 svd)</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">U,Sigma,VT = linalg.svd(matrix)</span><br></pre></td></tr></table></figure>
+<h2 id="5-3-降维："><a href="#5-3-降维：" class="headerlink" title="5.3. 降维："></a>5.3. 降维：</h2><h5 id="5-3-1TruncatedSVD（截断-SVD）："><a href="#5-3-1TruncatedSVD（截断-SVD）：" class="headerlink" title="5.3.1TruncatedSVD（截断 SVD）："></a>5.3.1TruncatedSVD（截断 SVD）：</h5><p>sklearn 中代替 PCA 来给稀疏矩阵降维，稀疏矩阵具体查看库 scipy，原理和 sklearn 中的 PCA 一样是舍去了较小的奇异值，我试验了几次发现相同参数下稠密矩阵非稀疏矩阵降维的结果和 PCA 完全一样。<br>也就是说 sklearn 中的 pca 就是使用 svd 分解再选取三个在矩阵中间的对角矩阵中最大的一部分值，再还原这个矩阵。</p>
+<h5 id="5-3-2-SVD-的应用："><a href="#5-3-2-SVD-的应用：" class="headerlink" title="5.3.2 SVD 的应用："></a>5.3.2 SVD 的应用：</h5><p>利用 SVD 降维实际上是用来简化数据，使用了奇异值分解以后仅需保留着三个比较小的矩阵，就能表示原矩阵，不仅节省存储量，在计算的时候更是减少了计算量。SVD 在信息检索（隐性语义索引）、图像压缩、推荐系统等等领域中都有应用。</p>
+<p>经典的线性学习方法，也被称为 “Fisher” 判别分析。<br>LDA 试图让不同类别样本之间的距离最大，同时让相同类别样本之间的距离最小。简单来说 LDA 是为了使降维后的数据点尽可能的可分。</p>
+<h2 id="6-1-原理和例子："><a href="#6-1-原理和例子：" class="headerlink" title="6.1. 原理和例子："></a>6.1. 原理和例子：</h2><p>有空再补</p>
+<h2 id="6-2-LDA-和-PCA"><a href="#6-2-LDA-和-PCA" class="headerlink" title="6.2. LDA 和 PCA"></a>6.2. LDA 和 PCA</h2><p>当类别特别多的时候，每个类中的样本就越少，此时更加适合使用 PCA 而不是 LDA。PCA 不像 LDA 那样敏感，应该首先考虑 pca, 再根据具体情况来分析。<br>另外：PCA 是无监督的特征抽取方法，LDA 是一个有监督的方法。</p>
+<p>1、Multidimensional Scaling (MDS) 降维的同时保留样本之间的距离，如下图。<br>2、Isomap 通过连接每个样本和它的最近邻居来创建一个图，然后降低维的同时尝试保留样本间的测地距离 (两个样本之间最少经过几个点)。<br>3、t-Distributed Stochastic Neighbor Embedding (t-SNE)，减少维度的同时试图保持相似的样本靠近和不同的样本分离。它主要用于可视化，特别是可视化高维空间中的聚类。<br>4、Linear Discriminant Analysis (LDA)，是一种分类算法，但是在训练定义了一个超平面来投影数据。投影使得同一类的样本靠近，不同一类的样本分开，所以在运行另一分类算法（如 SVM 分类器）之前，LDA 是一种很好的减少维数的技术。</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/6006099-7b559a04edfd3511.png" alt></p>
+<p>image.png</p>
+<p>【机器学习系统设计】<br>【机器学习—周志华】<br>【机器学习实战】<br><a href="https://links.jianshu.com/go?to=http%3A%2F%2Fblog.csdn.net%2Fbaimafujinji%2Farticle%2Fdetails%2F79407478" target="_blank" rel="noopener">http://blog.csdn.net/baimafujinji/article/details/79407478</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/30/各类降维方法总结/" title="各类降维方法总结">https://ailab-aida.github.io/2019/10/30/各类降维方法总结/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/28/xgboost 算法和工程/" rel="next" title="XGBoost 算法和工程">
+                  <i class="fa fa-chevron-left"></i> XGBoost 算法和工程
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/" rel="prev" title="FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解">
+                  FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-投影（Projection）"><span class="nav-number">1.</span> <span class="nav-text">1.1 投影（Projection）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-流形学习（Manifold-Learning）"><span class="nav-number">2.</span> <span class="nav-text">1.2 流形学习（Manifold Learning）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原理："><span class="nav-number"></span> <span class="nav-text">原理：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-流程："><span class="nav-number">1.</span> <span class="nav-text">2.1 流程：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-numpy-中实现-PCA（【机器学习实战】）："><span class="nav-number"></span> <span class="nav-text">2.2 numpy 中实现 PCA（【机器学习实战】）：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-使用-sklearn-中的-PCA："><span class="nav-number">1.</span> <span class="nav-text">2.3 使用 sklearn 中的 PCA：</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#2-3-1-参数说明："><span class="nav-number">1.0.0.1.</span> <span class="nav-text">2.3.1. 参数说明：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-3-2-PCA-对象的属性"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">2.3.2.PCA 对象的属性</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-3-3-PCA-对象的方法"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">2.3.3.PCA 对象的方法</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-3-4-使用"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">2.3.4. 使用</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-PCA-的一些变种以及-KPCA（Kernel-PCA）的小例子"><span class="nav-number">2.</span> <span class="nav-text">2.4 PCA 的一些变种以及 KPCA（Kernel PCA）的小例子</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-1-增量-PCA（IPCA）"><span class="nav-number">2.0.1.</span> <span class="nav-text">2.4.1 增量 PCA（IPCA）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-2-随机-PCA"><span class="nav-number">2.0.2.</span> <span class="nav-text">2.4.2 随机 PCA</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-3-核-PCA-Kernel-PCA"><span class="nav-number">2.0.3.</span> <span class="nav-text">2.4.3 核 PCA(Kernel PCA)</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#选择合适的核与参数"><span class="nav-number">2.0.3.1.</span> <span class="nav-text">选择合适的核与参数</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-基本原理（【t-SNE-完整笔记】）"><span class="nav-number">3.</span> <span class="nav-text">3.1 基本原理（【t-SNE 完整笔记】）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-T-SNE-算法流程："><span class="nav-number"></span> <span class="nav-text">3.2 T-SNE 算法流程：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-PCA-和-T-SNE："><span class="nav-number"></span> <span class="nav-text">3.3 PCA 和 T-SNE：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-原理："><span class="nav-number"></span> <span class="nav-text">5.1. 原理：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-使用："><span class="nav-number"></span> <span class="nav-text">5.2. 使用：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#numpy-中调用方式和求特征值特征向量类似-实际上特征分解是一种特殊的奇异值分解"><span class="nav-number">0.1.</span> <span class="nav-text">numpy 中调用方式和求特征值特征向量类似 (实际上特征分解是一种特殊的奇异值分解,</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca-中的特征分解通常会使用-svd"><span class="nav-number">0.2.</span> <span class="nav-text">特征分解只能分解方阵，奇异值分解可以分解任意矩阵，pca 中的特征分解通常会使用 svd)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-降维："><span class="nav-number"></span> <span class="nav-text">5.3. 降维：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-3-1TruncatedSVD（截断-SVD）："><span class="nav-number">0.0.1.</span> <span class="nav-text">5.3.1TruncatedSVD（截断 SVD）：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-3-2-SVD-的应用："><span class="nav-number">0.0.2.</span> <span class="nav-text">5.3.2 SVD 的应用：</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-原理和例子："><span class="nav-number"></span> <span class="nav-text">6.1. 原理和例子：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-LDA-和-PCA"><span class="nav-number"></span> <span class="nav-text">6.2. LDA 和 PCA</span></a></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '2864f9e1741fe0c075c2fdd2e1647885',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

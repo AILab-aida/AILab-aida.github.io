@@ -272,6 +272,629 @@
   
   
   <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/FTRL（Follow The Regularized Leader）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/18/FTRL（Follow The Regularized Leader）/" class="post-title-link" itemprop="url">FTRL（Follow The Regularized Leader）</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 17:20:30 / 修改时间：17:30:36" itemprop="dateCreated datePublished" datetime="2019-10-18T17:20:30+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>FTRL 是 Follow The Regularized Leader 的缩写，它是 Google 在 2010 — 2013 年三年时间内，从理论研究到实际工程化实现的在线优化算法框架。FTRL 在处理带 𝐿1L1L_1 正则化的<a href="/2018/10/10/logistic-regression/">逻辑回归</a>类模型时，效果非常出色：能够得到性能较好的稀疏解。</p><p>中文网络上，已有一些关于 FTRL 的介绍。比较详细和出名的是新浪微博的冯扬撰写的「在线最优化求解」。但在我看来，已有的关于 FTRL 的介绍，都或多或少有些值得调整和改进的地方。这促成了这篇文章。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/18/FTRL（Follow The Regularized Leader）/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/各类优化方法总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/18/各类优化方法总结/" class="post-title-link" itemprop="url">各类优化方法总结</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 17:08:22 / 修改时间：17:20:00" itemprop="dateCreated datePublished" datetime="2019-10-18T17:08:22+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="各类优化方法总结"><a href="#各类优化方法总结" class="headerlink" title="各类优化方法总结"></a>各类优化方法总结</h1><p>机器学习的优化方法多种多样, 但在大数据场景下, 使用最多的还是基于 SGD 的一系列方法. 在 Angel 中目前只实现了少量的最优化方法, 如下:</p><ul>
+<li>基于随机梯度下降的方法<ul>
+<li>SDG: 这里指 mini-batch SGD (小批量随机梯度下降)</li>
+<li>Momentum: 带动量的 SGD</li>
+<li>AdaGrad: 带 Hessian 对角近似的 SGD</li>
+<li>AdaDelta:</li>
+<li>Adam: 带动量与对角 Hessian 近似的 SGD</li>
+</ul>
+</li>
+<li>在线学习方法<ul>
+<li>FTRL: Follow The Regularized Leader, 一种在线学习方法</li>
+</ul>
+</li>
+</ul>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/18/各类优化方法总结/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/推荐系统/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/18/推荐系统/" class="post-title-link" itemprop="url">推荐系统</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 16:40:12" itemprop="dateCreated datePublished" datetime="2019-10-18T16:40:12+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-10-21 11:11:08" itemprop="dateModified" datetime="2019-10-21T11:11:08+08:00">2019-10-21</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="推荐系统架构"><a href="#推荐系统架构" class="headerlink" title="推荐系统架构"></a><a href="推荐系统架构"></a>推荐系统架构</h2><hr><p>ffm+faiss 千万级别的 item 召回性能问题，使用阿里巴巴 深度树匹配模型(TDM)做聚类。</p><ul>
+<li>基本概念<ul>
+<li><a href="https://en.wikipedia.org/wiki/Recommender_system" target="_blank" rel="noopener">推荐系统</a>：推荐技术提供用户对某个目标（兴趣）的偏好程度预测能力，基于偏好预测排序输出用户喜好的目标（兴趣）集合。</li>
+<li><a href="https://en.wikipedia.org/wiki/Deep_learning" target="_blank" rel="noopener">深度学习</a>：基于深度神经网络结构的机器学习算法分支。</li>
+</ul>
+</li>
+<li>数据结构与算法<ul>
+<li><a href="https://en.wikipedia.org/wiki/Tree_" target="_blank" rel="noopener">树</a>：树是计算机科学中数据结构的经典类型，在数据组织上具有良好的效率。</li>
+<li><a href="https://en.wikipedia.org/wiki/Beam_search" target="_blank" rel="noopener">BeamSearch 算法</a>：一种启发式的贪心搜索方法。</li>
+<li><a href="https://en.wikipedia.org/wiki/K-means_clustering" target="_blank" rel="noopener">Kmeans 聚类算法</a>：一种基于向量量化的无监督聚类算法。</li>
+</ul>
+</li>
+<li>语言基础<ul>
+<li><a href="https://en.wikipedia.org/wiki/C++" target="_blank" rel="noopener">C++ 语言</a>：通用编程语言。</li>
+<li><a href="https://en.wikipedia.org/wiki/Python" target="_blank" rel="noopener">Python 语言</a>：通用脚本编程语言。</li>
+</ul>
+</li>
+</ul>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/18/推荐系统/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/BERT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/18/BERT/" class="post-title-link" itemprop="url">BERT研究</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:31:04" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文简要解析 BERT 的预训练辅助任务（Auxiliary Task）。</p><h2 id="预训练辅助任务"><a href="#预训练辅助任务" class="headerlink" title="预训练辅助任务"></a>预训练辅助任务</h2><p>BERT 通过两个辅助任务训练语言模型：Masked LM（MLM）与 Next Sentence Prediction（NSP）。</p><ul>
+<li>MLM：随机 mask 15% 的输入（token），模型需要通过 context 信息还原被 masked 的输入。</li>
+<li>NSP：随机生成句子对，模型需要判断句子对是否连续（next sentence）。</li>
+</ul>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/18/BERT/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/18/ernie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/18/ernie/" class="post-title-link" itemprop="url">ernie研究</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-18 14:23:20 / 修改时间：14:35:40" itemprop="dateCreated datePublished" datetime="2019-10-18T14:23:20+08:00">2019-10-18</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>本文假定读者已经阅读过 BERT 与 ERNIE 的论文。</p><h2 id="ERNIE-掩蔽策略"><a href="#ERNIE-掩蔽策略" class="headerlink" title="ERNIE 掩蔽策略"></a>ERNIE 掩蔽策略</h2><p>ERNIE 针对无切分（unsegmented）的语言（如中文），提出了一种 MLM 的数据增强（数据增强）策略：</p><blockquote>
+<p>我们将一个短语或一个实体作为一个单元，通常由多个单词组成。<strong>在单词表示训练期间，同一单元中的所有单词都被屏蔽，而不是仅一个单词或字符被屏蔽</strong>。以这种方式，在训练过程中隐式地学习了短语和实体的先验知识。</p>
+</blockquote>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/18/ernie/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/基础个性化推荐/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/10/17/基础个性化推荐/" class="post-title-link" itemprop="url">极简推荐系统</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-17 20:47:20" itemprop="dateCreated datePublished" datetime="2019-10-17T20:47:20+08:00">2019-10-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-10-24 11:30:25" itemprop="dateModified" datetime="2019-10-24T11:30:25+08:00">2019-10-24</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>我们就可以针对性的对一个产品搭建出一个个性化推荐模型，在这个模型中，我们需要解决两个问题：</p><ul>
+<li>第一推荐什么。</li>
+<li>第二哪些内容应该优先推荐。</li>
+</ul><p>上两篇文章很好的给出了具体的算法参考，大家可以回顾。</p><p>在进入这篇文章的正题之前，我们先一起解决上篇文章遗留的问题：</p><ol>
+<li><p>依据上面的公式，最后的分值 P 是不是会变成负数？比喻 08 年北京的奥运会的某篇报道……</p>
+</li>
+<li><p>很多 App 上的文章都有转发、收藏、点赞等功能，那么有这些因素存在后，算法该怎么调整？</p>
+</li>
+</ol>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/10/17/基础个性化推荐/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
     <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/17/youtube_net/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -484,7 +1107,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-28 15:08:17" itemprop="dateModified" datetime="2019-10-28T15:08:17+08:00">2019-10-28</time>
+                <time title="修改时间：2019-10-31 16:47:33" itemprop="dateModified" datetime="2019-10-31T16:47:33+08:00">2019-10-31</time>
               </span>
             
           
@@ -635,423 +1258,11 @@
   </article>
 
     
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/08/flutter provider基础使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/10/08/flutter provider基础使用/" class="post-title-link" itemprop="url">flutter provider基础使用</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-10-08 18:12:47" itemprop="dateCreated datePublished" datetime="2019-10-08T18:12:47+08:00">2019-10-08</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 17:57:18" itemprop="dateModified" datetime="2019-10-12T17:57:18+08:00">2019-10-12</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="main-dart"><a href="#main-dart" class="headerlink" title="main.dart"></a>main.dart</h2><p>废话不多说 直接上代码 😃</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line">import &apos;package:flutter/material.dart&apos;;</span><br><span class="line">import &apos;package:flutter_demo/provider/main_provider.dart&apos;;</span><br><span class="line">import &apos;package:provider/provider.dart&apos;;</span><br><span class="line"></span><br><span class="line">void main() &#123;</span><br><span class="line">  runApp(MaterialApp(</span><br><span class="line">    title: &apos;demo&apos;,</span><br><span class="line">    theme: ThemeData(</span><br><span class="line">      primarySwatch: Colors.blue,</span><br><span class="line">    ),</span><br><span class="line">    //定义作用区间 只绘制顶层home</span><br><span class="line">    home: MultiProvider(</span><br><span class="line">      providers: [</span><br><span class="line">        ChangeNotifierProvider(builder: (_) =&gt; MainProvider()),</span><br><span class="line">      ],</span><br><span class="line">      child: Home(),</span><br><span class="line">    ),</span><br><span class="line">  ));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Home extends StatefulWidget &#123;</span><br><span class="line">  @override</span><br><span class="line">  _HomeState createState() =&gt; new _HomeState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class _HomeState extends State&lt;Home&gt; &#123;</span><br><span class="line">//  int curNum = 0;</span><br><span class="line">  int curNum;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  void initState() &#123;</span><br><span class="line">    super.initState();</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void add() &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      curNum += 1;</span><br><span class="line">    &#125;);</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void minus() &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      curNum -= 1;</span><br><span class="line">    &#125;);</span><br><span class="line">    //TODO</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    //定义provider 实例化</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    curNum = provider.curNum;</span><br><span class="line">    return new Scaffold(</span><br><span class="line">      appBar: new AppBar(</span><br><span class="line">        title: new Text(&apos;demo&apos;),</span><br><span class="line">      ),</span><br><span class="line">      body: Column(</span><br><span class="line">        children: &lt;Widget&gt;[</span><br><span class="line">          Add(),</span><br><span class="line">//           Add(</span><br><span class="line">//             add: add,</span><br><span class="line">//           ),</span><br><span class="line">          Container(</span><br><span class="line">            child: Text(</span><br><span class="line">              &apos;$curNum&apos;,</span><br><span class="line">              style: TextStyle(fontSize: 30),</span><br><span class="line">            ),</span><br><span class="line">          ),</span><br><span class="line">          Minus(),</span><br><span class="line">          // Minus(</span><br><span class="line">          //   minus: minus,</span><br><span class="line">          // ),</span><br><span class="line">        ],</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Minus extends StatelessWidget &#123;</span><br><span class="line">  const Minus(&#123;</span><br><span class="line">    Key key,</span><br><span class="line">    // this.minus,</span><br><span class="line">  &#125;) : super(key: key);</span><br><span class="line">  // final int curNum;</span><br><span class="line">  // final VoidCallback minus;</span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    return Container(</span><br><span class="line">      child: Container(</span><br><span class="line">        child: FlatButton(</span><br><span class="line">          child: Text(</span><br><span class="line">            &apos;-&apos;,</span><br><span class="line">            style: TextStyle(fontSize: 30),</span><br><span class="line">          ),</span><br><span class="line">          onPressed: () &#123;</span><br><span class="line">            provider.minus();</span><br><span class="line">          &#125;,</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Add extends StatelessWidget &#123;</span><br><span class="line">  const Add(&#123;</span><br><span class="line">    Key key,</span><br><span class="line">    // this.add,</span><br><span class="line">  &#125;) : super(key: key);</span><br><span class="line">  // final int curNum;</span><br><span class="line">  // final VoidCallback add;</span><br><span class="line">  @override</span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    MainProvider provider = Provider.of&lt;MainProvider&gt;(context);</span><br><span class="line">    return Container(</span><br><span class="line">      child: Container(</span><br><span class="line">        child: FlatButton(</span><br><span class="line">          child: Text(</span><br><span class="line">            &apos;+&apos;,</span><br><span class="line">            style: TextStyle(fontSize: 30),</span><br><span class="line">          ),</span><br><span class="line">          onPressed: () &#123;</span><br><span class="line">            provider.add();</span><br><span class="line">          &#125;,</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/10/08/flutter provider基础使用/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/" class="post-title-link" itemprop="url">Ubuntu faiss安装并利用flask提供向量搜索服务API</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-17 17:21:08" itemprop="dateModified" datetime="2019-10-17T17:21:08+08:00">2019-10-17</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="前言-faiss-简介"><a href="#前言-faiss-简介" class="headerlink" title="前言 faiss 简介"></a><a href="#前言-faiss-简介"></a>前言 faiss 简介</h2><p>三月初，Facebook AI Research（FAIR）开源了一个名为 Faiss 的库，Faiss 主要用于有效的相似性搜索（Similarity Search）和稠密矢量聚类（Clustering of dense vectors），包含了在任何大小的矢量集合里进行搜索的算法。Faiss 上矢量集合的大小甚至可以大到装不进 RAM。这个库基本上是用 C++ 实现的，带有可选的通过 CUDA 提供的 GPU 支持，以及一个可选的 Python 接口。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/Ubuntu faiss安装并利用flask提供向量搜索服务API/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/基于分词标签的中文短文本相似度/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/29/基于分词标签的中文短文本相似度/" class="post-title-link" itemprop="url">基于分词标签的中文短文本相似度</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 14:42:44" itemprop="dateModified" datetime="2019-10-12T14:42:44+08:00">2019-10-12</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="基于分词标签的中文短文本相似度"><a href="#基于分词标签的中文短文本相似度" class="headerlink" title="基于分词标签的中文短文本相似度"></a>基于分词标签的中文短文本相似度</h3><p>最近接触到了一些关于中文短文本相似度的算法，将它们总结在此：</p><ul>
-<li><strong>中文编辑距离</strong></li>
-<li><strong>基于词频的余弦相似度</strong></li>
-<li><strong>simhash</strong></li>
-</ul><hr><h4 id="1-0-在相似度算法之前的分词处理"><a href="#1-0-在相似度算法之前的分词处理" class="headerlink" title="1.0 在相似度算法之前的分词处理"></a>1.0 在相似度算法之前的分词处理</h4><p>在比较两个字符串 str1 和 str2 之前，我们需要对它们进行分词处理，分词后变成两组标签（我认为分词后的标签具有原子性，不可再分），基于标签，我们可以很容易地进行两组数据的相似度比较。<br>优点：标签的频率以及相对的位置关系确实一定程度可以表示出重要性和时序关系。<br>缺点：中文编辑距离（时序关系），余弦相似度（标签重要性）, 他们没有直接的连接。<br>本项目基于 jieba 分词。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/基于分词标签的中文短文本相似度/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/09/29/UIAutomator2的使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/09/29/UIAutomator2的使用/" class="post-title-link" itemprop="url">UIAutomator2的使用</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-09-29 13:59:37" itemprop="dateCreated datePublished" datetime="2019-09-29T13:59:37+08:00">2019-09-29</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-12 13:27:18" itemprop="dateModified" datetime="2019-10-12T13:27:18+08:00">2019-10-12</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/移动端/" itemprop="url" rel="index"><span itemprop="name">移动端</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>uiautomator2 是一个 python 库，用于 Android 的 UI 自动化测试，其底层基于 Google uiautomator，Google 提供的 uiautomator 库可以获取屏幕上任意一个 APP 的任意一个控件属性，并对其进行任意操作</p><p>python-uiautomator2 封装了谷歌自带的 uiautomator2 测试框架，提供便利的 python 接口。他允许测试人员直接在 PC 上编写 Python 的测试代码，操作手机应用，完成自动化，大大提高了自动化代码编写的效率。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/09/29/UIAutomator2的使用/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
   </div>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1099,7 +1310,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">54</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1298,6 +1509,10 @@ window.addEventListener('pjax:success', () => {
   
 
   
+    
+      
+    
+      
     
       
     

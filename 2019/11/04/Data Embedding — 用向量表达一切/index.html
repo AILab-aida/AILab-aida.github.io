@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Embedding 的概念来自于 word embeddings。 Embedding is a transformation from discrete values/scalars to dense real value vectors. 有的地方把 embedding 翻译为嵌套，有的地方把它翻译为向量。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用Embedding表达一切">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/04/Data Embedding — 用向量表达一切/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="Embedding 的概念来自于 word embeddings。 Embedding is a transformation from discrete values/scalars to dense real value vectors. 有的地方把 embedding 翻译为嵌套，有的地方把它翻译为向量。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-05T14:08:01.421Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="用Embedding表达一切">
+<meta name="twitter:description" content="Embedding 的概念来自于 word embeddings。 Embedding is a transformation from discrete values/scalars to dense real value vectors. 有的地方把 embedding 翻译为嵌套，有的地方把它翻译为向量。">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/04/Data Embedding — 用向量表达一切/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>用Embedding表达一切 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/04/Data Embedding — 用向量表达一切/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">用Embedding表达一切
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-04 15:47:20" itemprop="dateCreated datePublished" datetime="2019-11-04T15:47:20+08:00">2019-11-04</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-05 22:08:01" itemprop="dateModified" datetime="2019-11-05T22:08:01+08:00">2019-11-05</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Embedding 的概念来自于 word embeddings。 Embedding is a transformation from discrete values/scalars to dense real value vectors. 有的地方把 embedding 翻译为嵌套，有的地方把它翻译为向量。</p><a id="more"></a>
+<p>Embedding 是一个行为，把离线形式的事物影响为实数向量。Embedding 这个词同时也是该行为所输出的东西，我们把输出的实数向量也称作是 Embedding。</p>
+<p>An embedding is a mapping from discrete objects, such as words, to vectors of real numbers.</p>
+<p>An embedding is a relatively low-dimensional space into which you can translate high-dimensional vectors. Embeddings make it easier to do machine learning on large inputs like sparse vectors representing words. Ideally, an embedding captures some of the semantics of the input by placing semantically similar inputs close together in the embedding space. An embedding can be learned and reused across models.</p>
+<p>它可以单独使用来学习一个单词嵌入，以后可以保存并在另一个模型中使用，比如作为特征。 它可以用作深度学习模型的一部分，其中嵌入与模型本身一起学习。 它可以用来加载预先训练的词嵌入模型，这是一种迁移学习。 它可以用来做相似召回，在某种空间计算 embedding 的相似度。</p>
+<p>广告、推荐、搜索等领域用户数据的稀疏性几乎必然要求在构建 DNN 之前对 user 和 item 进行 embedding 后才能进行有效的训练。</p>
+<p>深度学习中设计离散特征的话一般都处理成 Embedding 的形式，作为网络的底部（第一层），一般对整体网络效果有着重要的作用。</p>
+<p>在 Keras 中有专门的 Embedding 层，其作用是：Turns positive integers (indexes) into dense vectors of fixed size. eg. [[4], [20]] -&gt; [[0.25, 0.1], [0.6, -0.2]] This layer can only be used as the first layer in a model.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">keras.layers.Embedding(input_dim,</span><br><span class="line">        output_dim,</span><br><span class="line">        embeddings_initializer=&apos;uniform&apos;,</span><br><span class="line">        embeddings_regularizer=None,</span><br><span class="line">        activity_regularizer=None,</span><br><span class="line">        embeddings_constraint=None,</span><br><span class="line">        mask_zero=False,</span><br><span class="line">        input_length=None)</span><br></pre></td></tr></table></figure>
+<p>对应的 TFlearn 中的 Embedding 层:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">tflearn.layers.embedding_ops.embedding(incoming,</span><br><span class="line">        input_dim,</span><br><span class="line">        output_dim,</span><br><span class="line">        validate_indices=False,</span><br><span class="line">        weights_init=&apos;truncated_normal&apos;,</span><br><span class="line">        trainable=True,</span><br><span class="line">        restore=True,</span><br><span class="line">        reuse=False,</span><br><span class="line">        scope=None,</span><br><span class="line">        name=&apos;Embedding&apos;)</span><br></pre></td></tr></table></figure>
+<p>在 Tensorflow 中也可以在网络结构中加入 Embedding 层：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">embeddings = tf.Variable(tf.random_uniform([voc_size, embedding_size], -1.0, 1.0))</span><br><span class="line">...</span><br><span class="line">embed = tf.nn.embedding_lookup(embeddings, train_inputs) # lookup table</span><br></pre></td></tr></table></figure>
+<p>嵌入层被定义为网络的第一个隐藏层。它必须指定 3 个参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- input_dim：这是文本数据中词汇的取值可能数。例如，如果您的数据是整数编码为0-9之间的值，那么词汇的大小就是10个单词；</span><br><span class="line">- output_dim：这是嵌入单词的向量空间的大小。它为每个单词定义了这个层的输出向量的大小。例如，它可能是32或100甚至更大，可以视为具体问题的超参数；</span><br><span class="line">- input_length：这是输入序列的长度，就像您为Keras模型的任何输入层所定义的一样，也就是一次输入带有的词汇个数。例如，如果您的所有输入文档都由1000个字组成，那么input_length就是1000。</span><br></pre></td></tr></table></figure>
+<p>被 Embedding 的对象（比如 word）必须是有限个数的。embedding 层要求输入数据是整数编码的，所以每个 word 都用一个唯一的整数表示。这个数据准备步骤可以使用 Keras 提供的 Tokenizer API 来执行。</p>
+<p>嵌入层的输出是一个二维向量，每个 word 在输入文本（输入文档）序列中嵌入一个。</p>
+<p>在 word2vec 中，学习的目标是一个 word 的 Embedding 表达，文本语料是学习的来源，我们通过一个 word 的 context 来学习这个 word 的表达，context 指的是一段语料中某 word 相邻的 words。 在广告推荐等领域中，如果要做 item Embedding，那么 context 可以是一个用户点击行为中某被点击 item 相邻的被点击 items。</p>
+<p>怎么把 raw format 的 feature data 转变为 embedding format(也就是浮点数向量 vector) 的 embedding data？</p>
+<p>下面链接讲了我们如何用 TensorFlow 做 embedding <a href="https://www.tensorflow.org/guide/embedding" target="_blank" rel="noopener">https://www.tensorflow.org/guide/embedding</a><br>下面两个链接讲的典型的 word embedding，即 word2vec。 <a href="https://github.com/tensorflow/models/tree/master/tutorials/embedding" target="_blank" rel="noopener">https://github.com/tensorflow/models/tree/master/tutorials/embedding</a><br><a href="https://www.tensorflow.org/tutorials/representation/word2vec" target="_blank" rel="noopener">https://www.tensorflow.org/tutorials/representation/word2vec</a></p>
+<p>嵌入层用随机权重进行初始化，并将学习训练数据集中所有单词的嵌入。</p>
+<p>首先要有语料库，把它切分为 word，每个 word 赋予一个 int 作为 id。 比如语料 “I have a cat.”， [“I”, “have”, “a”, “cat”, “.”] vocabulary_size = 5 embedding_size = len(embedding-vector) word_ids = [1,2,3,4,5] embedded_word_ids = [[1, xxx], [2, yyy]…,[5, zzz]]</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">word_embeddings = tf.get_variable(“word_embeddings”, [vocabulary_size, embedding_size])</span><br><span class="line">embedded_word_ids = tf.nn.embedding_lookup(word_embeddings, word_ids)</span><br></pre></td></tr></table></figure>
+<p>embeddings is a matrix where each row represents a word vector.</p>
+<p>embedding_lookup is a quick way to get vectors corresponding to train_inputs.</p>
+<p>tf.nn.embedding_lookup 这个函数到底做了什么？<a href="https://stackoverflow.com/questions/34870614/what-does-tf-nn-embedding-lookup-function-do" target="_blank" rel="noopener">https://stackoverflow.com/questions/34870614/what-does-tf-nn-embedding-lookup-function-do</a> embedding_lookup 不是简单的查表，id 对应的向量是可以训练的，训练参数个数应该是 category num * embedding size，也就是说 lookup 是一种全连接层。</p>
+<p>下面是 word2vec 实现的最简单的版本，这里只展示网络结构的部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">train_inputs = tf.placeholder(tf.int32, shape=[batch_size])</span><br><span class="line"></span><br><span class="line">train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">with tf.device(&apos;/cpu:0&apos;):</span><br><span class="line"></span><br><span class="line">    embeddings = tf.Variable(tf.random_uniform([voc_size, embedding_size], -1.0, 1.0))</span><br><span class="line">    embed = tf.nn.embedding_lookup(embeddings, train_inputs)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">nce_weights = tf.Variable(tf.random_uniform([voc_size, embedding_size], -1.0, 1.0))</span><br><span class="line">nce_biases = tf.Variable(tf.zeros([voc_size]))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">loss = tf.reduce_mean(tf.nn.nce_loss(nce_weights, nce_biases, train_labels, embed, num_sampled, voc_size))</span><br><span class="line"></span><br><span class="line">train_op = tf.train.AdamOptimizer(1e-1).minimize(loss)</span><br></pre></td></tr></table></figure>
+<p>方法一：对稀疏的 id 做聚类处理</p>
+<p>把一个 embedding 在 tensorboard 上可视化出来，需要做三件事。</p>
+<ol>
+<li><p>Setup a 2D tensor that holds your embedding(s).</p>
+</li>
+<li><p>Periodically save your model variables in a checkpoint in LOG_DIR.</p>
+</li>
+<li><p>(Optional) Associate metadata with your embedding.</p>
+</li>
+</ol>
+<p>参考 <a href="https://stackoverflow.com/questions/40849116/how-to-use-tensorboard-embedding-projector" target="_blank" rel="noopener">https://stackoverflow.com/questions/40849116/how-to-use-tensorboard-embedding-projector</a></p>
+<p>word2vec(query2vec)</p>
+<p>item2vec(doc2vec)</p>
+<p>user2vec</p>
+<p>query 中每一个词蕴含的信息可以通过训练数据中由其召回的 item 所表达。</p>
+<p>query 的 Embedding 是由其切词后各个分词的 Embedding 所结合而成的。</p>
+<p>item 和 user 的量可以认为是无限的，所以不能直接使用它们的 index 来构建。我们可以用其某些有限的属性来表达它们。比如，说 user，其实聊的是 user 喜欢什么 item，接触过什么 item，那么其中的核心其实还是 item，这样理解的话，user 的 Embedding 其实就源自于若干个与之相关的 item 的 Embedding。</p>
+<p>这里的核心就在于，如何结合用户有过行为的若干个 item 的 Embedding，合成一个 User Embedding。</p>
+<p>将 word embedding 和 item embedding 放到同一个网络里训练。也就意味着使用同一个语料进行训练。</p>
+<p>Embedding 是一种方法，而它不是直接去解决目标问题的模型，但有了它作为模型或者输入的一部分，需要问题能够方便的求解。</p>
+<p>Word-embedding 是基础: <a href="https://paperswithcode.com/task/word-embeddings" target="_blank" rel="noopener">https://paperswithcode.com/task/word-embeddings</a></p>
+<p>Item-embedding:</p>
+<p>Query-embedding:</p>
+<p>User-embedding:</p>
+<h2 id="Alibaba-Learning-and-Transferring-IDs-Representation-in-E-commerce"><a href="#Alibaba-Learning-and-Transferring-IDs-Representation-in-E-commerce" class="headerlink" title="Alibaba - Learning and Transferring IDs Representation in E-commerce"></a>Alibaba - Learning and Transferring IDs Representation in E-commerce</h2><p>解读：<a href="https://zhuanlan.zhihu.com/p/56119617" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/56119617</a></p>
+<p>user embedding 就是网络的最后一个隐层，video embedding 是 softmax 的权重.</p>
+<p>将最后 softmax 层的输出矩阵的列向量当作 item embedding vector，而将 softmax 之前一层的值当作 user embedding vector。</p>
+<p>主要做法是把 item 视为 word，用户的行为序列视为一个集合，item 间的共现为正样本，并按照 item 的频率分布进行负样本采样，缺点是相似度的计算还只是利用到了 item 共现信息，1). 忽略了 user 行为序列信息; 2). 没有建模用户对不同 item 的喜欢程度高低。</p>
+<p>Item2vec 中把用户浏览的商品集合等价于 word2vec 中的 word 的序列.</p>
+<p><a href="https://github.com/facebookresearch/starspace" target="_blank" rel="noopener">https://github.com/facebookresearch/starspace</a></p>
+<p>这个命令行工具用起来很简单：input.txt 中每一行是一个 session 中的 item 序列。</p>
+<p>./starspace train -trainFile input.txt -model pagespace -label ‘page’ -trainMode 1</p>
+<p><a href="https://github.com/zalandoresearch/flair" target="_blank" rel="noopener">https://github.com/zalandoresearch/flair</a> A text embedding library</p>
+<p><a href="https://github.com/facebookresearch/PyTorch-BigGraph" target="_blank" rel="noopener">https://github.com/facebookresearch/PyTorch-BigGraph</a></p>
+<p><a href="https://gist.github.com/nzw0301/333afc00bd508501268fa7bf40cafe4e" target="_blank" rel="noopener">https://gist.github.com/nzw0301/333afc00bd508501268fa7bf40cafe4e</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/04/Data Embedding — 用向量表达一切/" title="用Embedding表达一切">https://ailab-aida.github.io/2019/11/04/Data Embedding — 用向量表达一切/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/04/词向量_word2vec 应用篇/" rel="next" title="词向量word2vec">
+                  <i class="fa fa-chevron-left"></i> 词向量word2vec
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/05/深入 FFM 原理与实践/" rel="prev" title="深入理解FFM原理">
+                  深入理解FFM原理 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Alibaba-Learning-and-Transferring-IDs-Representation-in-E-commerce"><span class="nav-number">1.</span> <span class="nav-text">Alibaba - Learning and Transferring IDs Representation in E-commerce</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '7b3cb06ab3e653974ebe86510121b74e',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

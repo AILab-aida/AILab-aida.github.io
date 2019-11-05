@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1，线性回归（Linear Regression）线性回归，即使用多维空间中的一条直线拟合样本数据，如果样本特征为：𝑥=(𝑥1,𝑥2,…,𝑥𝑛)x=(x1,x2,…,xn)x = ({x_1},{x_2},…,{x_n})模型假设函数如下：𝑦̂ =ℎ(𝑤,𝑏)=𝑤𝑇𝑥+𝑏,𝑤=(𝑤1,𝑤2,…,𝑤𝑛)y^=h(w,b)=wTx+b,w=(w1,w2,…,wn)\h">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="1，线性回归（Linear Regression）线性回归，即使用多维空间中的一条直线拟合样本数据，如果样本特征为：𝑥=(𝑥1,𝑥2,…,𝑥𝑛)x=(x1,x2,…,xn)x = ({x_1},{x_2},…,{x_n})模型假设函数如下：𝑦̂ =ℎ(𝑤,𝑏)=𝑤𝑇𝑥+𝑏,𝑤=(𝑤1,𝑤2,…,𝑤𝑛)y^=h(w,b)=wTx+b,w=(w1,w2,…,wn)\h">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-05T14:06:14.365Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解">
+<meta name="twitter:description" content="1，线性回归（Linear Regression）线性回归，即使用多维空间中的一条直线拟合样本数据，如果样本特征为：𝑥=(𝑥1,𝑥2,…,𝑥𝑛)x=(x1,x2,…,xn)x = ({x_1},{x_2},…,{x_n})模型假设函数如下：𝑦̂ =ℎ(𝑤,𝑏)=𝑤𝑇𝑥+𝑏,𝑤=(𝑤1,𝑤2,…,𝑤𝑛)y^=h(w,b)=wTx+b,w=(w1,w2,…,wn)\h">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-31 17:52:13" itemprop="dateCreated datePublished" datetime="2019-10-31T17:52:13+08:00">2019-10-31</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-05 22:06:14" itemprop="dateModified" datetime="2019-11-05T22:06:14+08:00">2019-11-05</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>1，线性回归（Linear Regression）</p><p>线性回归，即使用多维空间中的一条直线拟合样本数据，如果样本特征为：</p><p>𝑥=(𝑥1,𝑥2,…,𝑥𝑛)x=(x1,x2,…,xn)x = ({x_1},{x_2},…,{x_n})</p><p>模型假设函数如下：</p><p>𝑦̂ =ℎ(𝑤,𝑏)=𝑤𝑇𝑥+𝑏,𝑤=(𝑤1,𝑤2,…,𝑤𝑛)y^=h(w,b)=wTx+b,w=(w1,w2,…,wn)\hat y = h(w,b) = {w^T}x + b,w = ({w_1},{w_2},…,{w_n})</p><a id="more"></a>
+
+
+
+
+<p>以均方误差为模型损失，模型输入样本为 (x(1),y(1)),(x(2),y(2)),…,(x(m),y(m))，损失函数如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑙(𝑤,𝑏)=∑𝑗=1𝑚(𝑦̂ (𝑗)−𝑦(𝑗))2=∑𝑗=1𝑚(∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖+𝑏−𝑦(𝑗))l(w,b)=∑j=1m(y^(j)−y(j))2=∑j=1m(∑i=1nwixi(j)+b−y(j))l(w,b) = \sum\limits*&#123;j = 1&#125;^m &#123;&#123;&#123;(&#123;&#123;\hat y&#125;^&#123;(j)&#125;&#125; - &#123;y^&#123;(j)&#125;&#125;)&#125;^2&#125;&#125;  = \sum\limits*&#123;j = 1&#125;^m &#123;(\sum\limits\_&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125; + b&#125;  - &#123;y^&#123;(j)&#125;&#125;)&#125;</span><br></pre></td></tr></table></figure>
+<p>2，逻辑回归（Logistic Regression）</p>
+<p>线性回归用于预测标记为连续的，尤其是线性或准线性的样本数据，但是有时样本的标记为离散的，最典型的情况莫过于标记为 0 或者 1，此时的模型被称为分类模型。</p>
+<p>为了扩展线性回归到分类任务，需要一个函数将 (-∞,+∞) 映射到 (0,1)（或者(-1,1) 等任意两个离散值），函数最好连续可导，并且在自变量趋向于 -∞ 时无限趋近于因变量下限，在自变量趋向于 +∞ 时无限趋近于因变量上限。符合条件的函数有不少，比如 tanh 函数，logistic 函数。</p>
+<p>如果映射函数采用 logistic 函数，设模型假设函数为样本预测分类概率，模型假设函数为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑃(𝑦=1)=ℎ(𝑤,𝑏)=11+𝑒−ℎ𝑙𝑖𝑛𝑒𝑎𝑟(𝑤,𝑏)=11+𝑒−(𝑤𝑇𝑥+𝑏)𝑃(𝑦=0)=1−𝑃(𝑦=1)P(y=1)=h(w,b)=11+e−hlinear(w,b)=11+e−(wTx+b)P(y=0)=1−P(y=1)\begin&#123;array&#125;&#123;l&#125; P(y = 1) = h(w,b) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - &#123;h_&#123;linear&#125;&#125;(w,b)&#125;&#125;&#125;&#125; = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - (&#123;w^T&#125;x + b)&#125;&#125;&#125;&#125;\\ P(y = 0) = 1 - P(y = 1) \end&#123;array&#125;</span><br></pre></td></tr></table></figure>
+<p>另外，可以从另一个角度考虑从回归模型扩展为分类模型，令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln(𝑃(𝑦=1)𝑃(𝑦=0))=ln(ℎ(𝑤,𝑏)1−ℎ(𝑤,𝑏))=ℎ𝑙𝑖𝑛𝑒𝑎𝑟(𝑤,𝑏)=𝑤𝑇𝑥+𝑏ln⁡(P(y=1)P(y=0))=ln⁡(h(w,b)1−h(w,b))=hlinear(w,b)=wTx+b\ln (\frac&#123;&#123;P(y = 1)&#125;&#125;&#123;&#123;P(y = 0)&#125;&#125;) = \ln (\frac&#123;&#123;h(w,b)&#125;&#125;&#123;&#123;1 - h(w,b)&#125;&#125;) = &#123;h\_&#123;linear&#125;&#125;(w,b) = &#123;w^T&#125;x + b</span><br></pre></td></tr></table></figure>
+<p>同样可以得到映射函数为 logistic 函数的假设函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ℎ(𝑤,𝑏)=11+𝑒−(𝑤𝑇𝑥+𝑏)=11+𝑒−(∑𝑖=1𝑛𝑤𝑖𝑥𝑖+𝑏)h(w,b)=11+e−(wTx+b)=11+e−(∑i=1nwixi+b)h(w,b) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - (&#123;w^T&#125;x + b)&#125;&#125;&#125;&#125; = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - (\sum\limits_&#123;i = 1&#125;^n &#123;&#123;w_i&#125;&#123;x_i&#125;&#125;  + b)&#125;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>使用（负）对数似然函数作为损失函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑙(𝑤,𝑏)=−log(∏𝑗=1𝑚𝑃(𝑦(𝑗)=1)𝑦(𝑗)𝑃(𝑦(𝑗)=0)(1−𝑦(𝑗)))=−∑𝑗=1𝑚(𝑦(𝑗)log𝑃(𝑦(𝑗)=1)+(1−𝑦(𝑗))log𝑃(𝑦(𝑗)=0))=−∑𝑗=1𝑚(𝑦(𝑗)log(𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖))+(1−𝑦(𝑗))log(1−𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖)),𝑔(𝑧)=11+𝑒−𝑧l(w,b)=−log⁡(∏j=1mP(y(j)=1)y(j)P(y(j)=0)(1−y(j)))=−∑j=1m(y(j)log⁡P(y(j)=1)+(1−y(j))log⁡P(y(j)=0))=−∑j=1m(y(j)log⁡(g(b+∑i=1nwixi(j)))+(1−y(j))log⁡(1−g(b+∑i=1nwixi(j))),g(z)=11+e−z\begin&#123;array&#125;&#123;l&#125; l(w,b) = - \log (\prod\limits*&#123;j = 1&#125;^m &#123;P&#123;&#123;(&#123;y^&#123;(j)&#125;&#125; = 1)&#125;^&#123;&#123;y^&#123;(j)&#125;&#125;&#125;&#125;P&#123;&#123;(&#123;y^&#123;(j)&#125;&#125; = 0)&#125;^&#123;(1 - &#123;y^&#123;(j)&#125;&#125;)&#125;&#125;&#125; )\\ = - \sum\limits*&#123;j = 1&#125;^m &#123;(&#123;y^&#123;(j)&#125;&#125;\log P(&#123;y^&#123;(j)&#125;&#125; = 1) + (1 - &#123;y^&#123;(j)&#125;&#125;)\log P(&#123;y^&#123;(j)&#125;&#125; = 0))&#125; \\ = - \sum\limits*&#123;j = 1&#125;^m &#123;(&#123;y^&#123;(j)&#125;&#125;\log (g(b + \sum\limits*&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125;&#125; )) + (1 - &#123;y^&#123;(j)&#125;&#125;)\log (1 - g(b + \sum\limits\_&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125;&#125; ))&#125; ,g(z) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - z&#125;&#125;&#125;&#125; \end&#123;array&#125;</span><br></pre></td></tr></table></figure>
+<p>很多场景下，样本包含一些离散的 label 特征，这些特征很难连续量化，最简单的处理方式就是 one-hot，即将离散的每个数映射到多维空间中的一维。离散特征包含多少个可能值，转换后的特征就包含多少维。这样处理后样本特征的维数会变得非常巨大，另外大部分维度的值都是 0。</p>
+<p>一方面，逻辑回归核心是一个线性模型，因此计算规模随着样本特征数的增长而线性增长，相较其他机器学习模型来说计算量（随特征数增长）的增长率较小；另一方面，逻辑回归假设函数与损失函数中，各个特征对于结果是独立起作用的，因此在样本数足够的前提下，也不会受到大量值为 0 的特征的干扰。因此特别适合这类场景下的分类问题。</p>
+<p>3，因式分解机（Factorization Machine）</p>
+<p>逻辑回归最大的优势是简单，最大的劣势也是太简单，没有考虑特征之间的相互关系，需要手动对特征进行预处理。因此就有了包含特征两两交叉项的假设函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ℎ(𝑤,𝑏)=𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥𝑖+∑𝑖=1𝑛∑𝑗=𝑖+1𝑛𝜔𝑖𝑗𝑥𝑖𝑥𝑗),𝑔(𝑧)=11+𝑒−𝑧h(w,b)=g(b+∑i=1nwixi+∑i=1n∑j=i+1nωijxixj),g(z)=11+e−zh(w,b) = g(b + \sum\limits*&#123;i = 1&#125;^n &#123;&#123;w_i&#125;&#123;x_i&#125;&#125;  + \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;&#123;\omega *&#123;ij&#125;&#125;&#123;x_i&#125;&#125; &#123;x_j&#125;&#125; ),g(z) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - z&#125;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>此时有一个严重的问题，由于特征维数有可能是非常巨大的，很有可能训练样本中有一些特征组合 xixj（xi、xj 都不为 0）是完全不存在的，这样 ωij 就无法得到训练。实际使用模型时，如果出现特征组合 xixj，模型就无法正常工作。</p>
+<p>为了减小训练计算量，也为了规避上面说的这种情况，我们引入辅助矩阵 v，n 为特征总维数，k 为超参数</p>
+<p>𝑣∈𝑅𝑛∗𝑘v∈Rn∗kv \in {R^{n*k}}</p>
+<p>然后使用 vvT 代替参数矩阵 ω，可得</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝜔𝑖𝑗=∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑇𝑟𝑗=∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑗𝑟ωij=∑r=1kvirvrjT=∑r=1kvirvjr&#123;\omega _&#123;ij&#125;&#125; = \sum\limits_&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;v*&#123;rj&#125;^T&#125;  = \sum\limits*&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;&#123;v\_&#123;jr&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>可得假设函数线性部分最后一项可化简为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">∑𝑖=1𝑛∑𝑗=𝑖+1𝑛𝜔𝑖𝑗𝑥𝑖𝑥𝑗=∑𝑖=1𝑛∑𝑗=𝑖+1𝑛∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑗𝑟𝑥𝑖𝑥𝑗=∑𝑟=1𝑘(∑𝑖=1𝑛∑𝑗=𝑖+1𝑛𝑣𝑖𝑟𝑣𝑗𝑟𝑥𝑖𝑥𝑗)=12∑𝑟=1𝑘(∑𝑖=1𝑛∑𝑗=1𝑛𝑣𝑖𝑟𝑣𝑗𝑟𝑥𝑖𝑥𝑗−∑𝑖=1𝑛𝑣𝑖𝑟𝑣𝑖𝑟𝑥𝑖𝑥𝑖)=12∑𝑟=1𝑘(∑𝑖=1𝑛𝑣𝑖𝑟𝑥𝑖∑𝑗=1𝑛𝑣𝑗𝑟𝑥𝑗−∑𝑖=1𝑛𝑣𝑖𝑟𝑣𝑖𝑟𝑥𝑖𝑥𝑖)=12∑𝑟=1𝑘((∑𝑖=1𝑛𝑣𝑖𝑟𝑥𝑖)2−∑𝑖=1𝑛(𝑣𝑖𝑟𝑥𝑖)2)∑i=1n∑j=i+1nωijxixj=∑i=1n∑j=i+1n∑r=1kvirvjrxixj=∑r=1k(∑i=1n∑j=i+1nvirvjrxixj)=12∑r=1k(∑i=1n∑j=1nvirvjrxixj−∑i=1nvirvirxixi)=12∑r=1k(∑i=1nvirxi∑j=1nvjrxj−∑i=1nvirvirxixi)=12∑r=1k((∑i=1nvirxi)2−∑i=1n(virxi)2)\begin&#123;array&#125;&#123;l&#125; \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;&#123;\omega _&#123;ij&#125;&#125;&#123;x*i&#125;&#125; &#123;x_j&#125;&#125; \\ = \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;\sum\limits*&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;jr&#125;&#125;&#123;x_i&#125;&#123;x_j&#125;&#125; &#125; &#125; \\ = \sum\limits*&#123;r = 1&#125;^k &#123;(\sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;jr&#125;&#125;&#123;x_i&#125;&#123;x_j&#125;)&#125; &#125; &#125; \\ = \frac&#123;1&#125;&#123;2&#125;\sum\limits*&#123;r = 1&#125;^k &#123;(\sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;jr&#125;&#125;&#123;x_i&#125;&#123;x_j&#125;&#125; &#125; - \sum\limits*&#123;i = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;ir&#125;&#125;&#123;x_i&#125;&#123;x_i&#125;&#125; )&#125; \\ = \frac&#123;1&#125;&#123;2&#125;\sum\limits*&#123;r = 1&#125;^k &#123;(\sum\limits*&#123;i = 1&#125;^n &#123;&#123;v*&#123;ir&#125;&#125;&#123;x*i&#125;&#125; \sum\limits*&#123;j = 1&#125;^n &#123;&#123;v_&#123;jr&#125;&#125;&#123;x*j&#125;&#125; - \sum\limits*&#123;i = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;ir&#125;&#125;&#123;x_i&#125;&#123;x_i&#125;&#125; )&#125; \\ = \frac&#123;1&#125;&#123;2&#125;\sum\limits*&#123;r = 1&#125;^k &#123;(&#123;&#123;(\sum\limits_&#123;i = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;x*i&#125;&#125; )&#125;^2&#125; - \sum\limits*&#123;i = 1&#125;^n &#123;&#123;&#123;(&#123;v_&#123;ir&#125;&#125;&#123;x_i&#125;)&#125;^2&#125;&#125; )&#125; \end&#123;array&#125;</span><br></pre></td></tr></table></figure>
+<p>同逻辑回归一样，令模型假设函数为样本预测分类概率，还是使用（负）对数似然函数为损失函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑙(𝑏,𝑤,𝑣)=−log(∏𝑗=1𝑚𝑃(𝑦(𝑗)=1)𝑦(𝑗)𝑃(𝑦(𝑗)=0)(1−𝑦(𝑗)))=−∑𝑗=1𝑚(𝑦(𝑗)log(ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗))+(1−𝑦(𝑗))log(1−ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗)))ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗)=𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖+12∑𝑟=1𝑘((∑𝑖=1𝑛𝑣𝑖𝑟𝑥(𝑗)𝑖)2−∑𝑖=1𝑛(𝑣𝑖𝑟𝑥(𝑗)𝑖)2))𝑔(𝑧)=11+𝑒−𝑧l(b,w,v)=−log⁡(∏j=1mP(y(j)=1)y(j)P(y(j)=0)(1−y(j)))=−∑j=1m(y(j)log⁡(h(w,b)|x=x(j))+(1−y(j))log⁡(1−h(w,b)|x=x(j)))h(w,b)|x=x(j)=g(b+∑i=1nwixi(j)+12∑r=1k((∑i=1nvirxi(j))2−∑i=1n(virxi(j))2))g(z)=11+e−z\begin&#123;array&#125;&#123;l&#125; l(b,w,v) = - \log (\prod\limits*&#123;j = 1&#125;^m &#123;P&#123;&#123;(&#123;y^&#123;(j)&#125;&#125; = 1)&#125;^&#123;&#123;y^&#123;(j)&#125;&#125;&#125;&#125;P&#123;&#123;(&#123;y^&#123;(j)&#125;&#125; = 0)&#125;^&#123;(1 - &#123;y^&#123;(j)&#125;&#125;)&#125;&#125;&#125; ) = - \sum\limits*&#123;j = 1&#125;^m &#123;(&#123;y^&#123;(j)&#125;&#125;\log (h(w,b)&#123;|_&#123;x = &#123;x^&#123;(j)&#125;&#125;&#125;&#125;) + (1 - &#123;y^&#123;(j)&#125;&#125;)\log (1 - h(w,b)&#123;|_&#123;x = &#123;x^&#123;(j)&#125;&#125;&#125;&#125;))&#125; \\ h(w,b)&#123;|_&#123;x = &#123;x^&#123;(j)&#125;&#125;&#125;&#125; = g(b + \sum\limits_&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125;&#125; + \frac&#123;1&#125;&#123;2&#125;\sum\limits*&#123;r = 1&#125;^k &#123;(&#123;&#123;(\sum\limits*&#123;i = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;x*i^&#123;(j)&#125;&#125; )&#125;^2&#125; - \sum\limits*&#123;i = 1&#125;^n &#123;&#123;&#123;(&#123;v_&#123;ir&#125;&#125;x_i^&#123;(j)&#125;)&#125;^2&#125;&#125; )&#125; )\\ g(z) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - z&#125;&#125;&#125;&#125; \end&#123;array&#125;</span><br></pre></td></tr></table></figure>
+<p>4，关于 FM 假设函数的讨论</p>
+<p>仔细看 FM 假设函数线性部分最后一项的化简过程，会发现一个问题，这个 “化简” 过程仅仅是化简了式子的形式，其实并没有减少计算量，反倒是增加了计算量，如果假设函数不是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ℎ(𝑤,𝑏)=𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥𝑖+∑𝑖=1𝑛∑𝑗=𝑖+1𝑛𝜔𝑖𝑗𝑥𝑖𝑥𝑗)h(w,b)=g(b+∑i=1nwixi+∑i=1n∑j=i+1nωijxixj)h(w,b) = g(b + \sum\limits*&#123;i = 1&#125;^n &#123;&#123;w_i&#125;&#123;x_i&#125;&#125;  + \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;&#123;\omega *&#123;ij&#125;&#125;&#123;x_i&#125;&#125; &#123;x_j&#125;&#125; )</span><br></pre></td></tr></table></figure>
+<p>而是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ℎ(𝑤,𝑏)=𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥𝑖+∑𝑖=1𝑛∑𝑗=1𝑛𝜔𝑖𝑗𝑥𝑖𝑥𝑗)h(w,b)=g(b+∑i=1nwixi+∑i=1n∑j=1nωijxixj)h(w,b) = g(b + \sum\limits*&#123;i = 1&#125;^n &#123;&#123;w_i&#125;&#123;x_i&#125;&#125;  + \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = 1&#125;^n &#123;&#123;\omega *&#123;ij&#125;&#125;&#123;x_i&#125;&#125; &#123;x_j&#125;&#125; )</span><br></pre></td></tr></table></figure>
+<p>表面上看假设函数增加了若干项， 但经过化简后，可得线性部分最后一项为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">∑𝑖=1𝑛∑𝑗=1𝑛𝜔𝑖𝑗𝑥𝑖𝑥𝑗=∑𝑖=1𝑛∑𝑗=𝑖+1𝑛∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑗𝑟𝑥𝑖𝑥𝑗=∑𝑟=1𝑘((∑𝑖=1𝑛𝑣𝑖𝑟𝑥𝑖)2)∑i=1n∑j=1nωijxixj=∑i=1n∑j=i+1n∑r=1kvirvjrxixj=∑r=1k((∑i=1nvirxi)2)\sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = 1&#125;^n &#123;&#123;\omega _&#123;ij&#125;&#125;&#123;x*i&#125;&#125; &#123;x_j&#125;&#125;  = \sum\limits*&#123;i = 1&#125;^n &#123;\sum\limits*&#123;j = i + 1&#125;^n &#123;\sum\limits*&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;&#123;v*&#123;jr&#125;&#125;&#123;x_i&#125;&#123;x_j&#125;&#125; &#125; &#125;  = \sum\limits*&#123;r = 1&#125;^k &#123;(&#123;&#123;(\sum\limits_&#123;i = 1&#125;^n &#123;&#123;v_&#123;ir&#125;&#125;&#123;x_i&#125;&#125; )&#125;^2&#125;)&#125;</span><br></pre></td></tr></table></figure>
+<p>反倒是更简单了，为什么不用后面式子计算，而要用更复杂的前者呢？</p>
+<p>这是由于 ω 的每一项并不是独立的，我们使用了 vvT 代替了 ω</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝜔𝑖𝑗=∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑇𝑟𝑗=∑𝑟=1𝑘𝑣𝑖𝑟𝑣𝑗𝑟ωij=∑r=1kvirvrjT=∑r=1kvirvjr&#123;\omega _&#123;ij&#125;&#125; = \sum\limits_&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;v*&#123;rj&#125;^T&#125;  = \sum\limits*&#123;r = 1&#125;^k &#123;&#123;v_&#123;ir&#125;&#125;&#123;v\_&#123;jr&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>即可认为 vi=(vi1,vi2,…,vik) 代表了特征 i 与其他特征交叉关系的隐藏特征</p>
+<p>如果不去掉交叉特征中的 xixi 项，则等同于 vi 不仅隐含了交叉关系，还隐含了 xi 的二次项，不符合我们的初衷</p>
+<p>5，TensorFlow 概述</p>
+<p>TensorFlow 即 tensor+flow，tensor 指数据，以任意维的类型化数组为具体形式，flow 则指数据的流向</p>
+<blockquote>
+<p>描述 flow 有三个层次的概念：</p>
+<ul>
+<li>operation：是最基本的单元，每个 operation 获得 0 个或多个 tensor，产生 0 个或多个 tensor。operation 可能为获取一个常量 tf.constant()，获取一个变量 tf.get_variable() 或者进行一个操作，比如加法 tf.add()、乘法 tf.multiply()。</li>
+<li>graph：定义了数据流，由 tf.Graph() 初始化（一般情况下省略）。graph 由节点和节点间的连线构成，graph 中的节点即 operation。graph 是对数据流向组成的网络结构的定义，本身并不进行任何计算。</li>
+<li>session：定义了 graph 运行的环境，由 tf.Session() 初始化。session 中可以运行 graph 中一个或多个 operation，可以在运行前通过 feed 给 operation 输入数据，也可以通过返回值获取计算结果。</li>
+</ul>
+<p>概念上讲，图中所有节点间的连线都是 tensor，但总需要有一些数据作为数据来源，描述这些数据来源的组件有以下几种类型：</p>
+<ul>
+<li>常量：用 tf.constant() 定义，即运行过程中不会改变的数据，一般用来保存一些固有参数。常量可以被认为是一个 operation，输入为空，输出为常数（数组）。</li>
+<li>变量：理论上广义的变量包含所有除常量以外的所有 tensor，这里的变量专指 tf.Variable()。值得注意的是，在 TensorFlow 中，小写开头的才是 operation，大写开头的都是类，因此 tf.Variable() 不是一个 operation，而是包含了一系列 operation，如初始化、赋值的类成员。每个 graph 运行前必须初始化所有使用到的变量。</li>
+<li>占位符：用 tf.placeholder() 定义，是一种特殊类型的 operation，不需要初始化，但需要在运行中通过 feed 接收数据。</li>
+</ul>
+</blockquote>
+<p>6，LR 的 TensorFlow 实现</p>
+<p>首先需要定义输入样本的特征维度和接收输入样本特征和样本标签的占位符。</p>
+<p>特征维度可以使用普通 python 变量指定，此时等同于使用 tf.constant 创建了一个常量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">FEATURE_NUM = 8</span><br><span class="line">#shape参数的列表长度代表占位符的维度</span><br><span class="line">#如果shape不为None，则输入数据维度必须等同于shape参数列表长度</span><br><span class="line">#每一维的大小可以不指定（为None），也可以指定，如果指定则输入数据该维度长度必须与shape指定的一致</span><br><span class="line">x = tf.placeholder(tf.float32, shape=[None, FEATURE_NUM])</span><br><span class="line">#等同于x = tf.placeholder(tf.float32, shape=[None, tf.constant(FEATURE_NUM, dtype=tf.int64)])</span><br><span class="line">y = tf.placeholder(tf.int32, shape=[None])</span><br></pre></td></tr></table></figure>
+<p>不可以通过使用 placeholder 指定特征维度</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">m = tf.placeholder(tf.int32, shape=None)</span><br><span class="line">x = tf.placeholder(tf.float32, shape=[None, m])  #无法执行</span><br><span class="line">y = tf.placeholder(tf.int32, shape=[None])</span><br></pre></td></tr></table></figure>
+<p>虽然 placeholder 初始 shape 中不能包含其他 tensor，但可以根据输入样本的列数动态指定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x = tf.placeholder(tf.float32, shape=[None, None])  #或者可以不指定维数，输入shape=None，此时可以输入任意维数，任意大小的数据</span><br><span class="line">y = tf.placeholder(tf.int32, shape=[None])</span><br><span class="line">m = tf.shape(x)[1]  #此处不能使用x.get_shape()[1].value，get_shape()获取的结果为静态大小，返回结果为[None,None]</span><br></pre></td></tr></table></figure>
+<p>接下来要定义放置 LR 假设函数中 w 与 b 的变量，在定义参数 w 前，需要定义一个 w 的初始值。对于 LR 来说，参数初始值为随机数或者全零都没关系，因为 LR 的损失函数一定是凸函数（求二阶导数可知），但一般情况下还是习惯采用随机数初始化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#常用的随机函数有random_uniform、random_normal和truncated_normal</span><br><span class="line">#分别是均匀分布、正态分布、被截断的正态分布</span><br><span class="line">weight_init = tf.truncated_normal(shape=[FEATURE_NUM, 1],mean=0.0,stddev=1.0)  #此处shape初始化只能使用常量，不支持使用tensor</span><br><span class="line">weight = tf.Variable(weight_init)</span><br><span class="line">bais = tf.Variable([0.0])</span><br></pre></td></tr></table></figure>
+<p>为了保持习惯用法，将一维向量 y 扩展为二维列向量，TensorFlow 中扩维可以使用 tf.expand_dims() 或者 tf.reshape()：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">y_expand = tf.expand_dims(y, axis=1)  #方法1，axis表示在原若干个维度的间隔中第几个位置插入新维度</span><br><span class="line">y_expand = tf.reshape(y, shape=[tf.shape(x)[0],1])  #方法2，shape为输出的维度值</span><br><span class="line">y_expand = tf.reshape(y, shape=[-1,1])  #方法3，shape参数列表中最多只能有一个参数未知，写为-1</span><br></pre></td></tr></table></figure>
+<p>可知：</p>
+<p>𝑥∈𝑅𝑚∗𝑛,𝑦∈𝑅𝑚∗1,𝑤∈𝑅𝑛∗1,𝑏∈𝑅0x∈Rm∗n,y∈Rm∗1,w∈Rn∗1,b∈R0x \in {R^{m<em>n}},y \in {R^{m</em>1}},w \in {R^{n*1}},b \in {R^0}</p>
+<p>回头看 LR 损失函数的定义</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑙(𝑤,𝑏)=−∑𝑗=1𝑚(𝑦(𝑗)log(𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖))+(1−𝑦(𝑗))log(1−𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖)),𝑔(𝑧)=11+𝑒−𝑧l(w,b)=−∑j=1m(y(j)log⁡(g(b+∑i=1nwixi(j)))+(1−y(j))log⁡(1−g(b+∑i=1nwixi(j))),g(z)=11+e−zl(w,b) =  - \sum\limits*&#123;j = 1&#125;^m &#123;(&#123;y^&#123;(j)&#125;&#125;\log (g(b + \sum\limits*&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125;&#125; )) + (1 - &#123;y^&#123;(j)&#125;&#125;)\log (1 - g(b + \sum\limits\_&#123;i = 1&#125;^n &#123;&#123;w_i&#125;x_i^&#123;(j)&#125;&#125; ))&#125; ,g(z) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - z&#125;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在 TensorFlow 中，“+” 等同于 tf.add()，“-” 等同于 tf.subtract()，“*” 等同于 tf.multiply()，“/” 等同于 tf.div()，所有这些操作是 “逐项操作”：</p>
+<ul>
+<li>如果两个操作数都为标量，则结果为标量</li>
+<li>如果一个操作数为标量，另一个操作数为向量，则标量会分别与向量每一个元素逐个操作，得到结果</li>
+<li>如果两个操作数为相同维度，每个维度大小相同的向量，则结果为向量每两个对应位置上的元素的操作得到的结果</li>
+<li>如果两个操作数维度不相同，如果向量维度数为 a、b，并且 a&gt;b，则 b 的各维度大小需要与 a 的高维度相对应，低维向量在高维向量的低维展开，操作得到结果</li>
+<li>除上面几种情况，调用不合法</li>
+</ul>
+</blockquote>
+<p>因此，在逻辑回归的损失函数中，我们无需关心 “b+”、“1-” 等操作，这些标量自然会展开到正确的维度。同样，tf.log()、tf.sigmoid()函数也会对输入向量每一个元素逐个操作，不会改变向量的维度和对应值的位置。</p>
+<blockquote>
+<p>对于式子中的求和 Σ，在 TensorFlow 中有两种处理方式：</p>
+<ul>
+<li>一种是矩阵乘法 tf.matmul()，如矩阵 a、b、c 关系为 c=tf.matmul(a,b)，则可得：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑐𝑖𝑗=∑𝑘𝑎𝑖𝑘𝑏𝑘𝑗cij=∑kaikbkj&#123;c*&#123;ij&#125;&#125; = \sum\limits_k &#123;&#123;a*&#123;ik&#125;&#125;&#123;b\_&#123;kj&#125;&#125;&#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<ul>
+<li>另一种是矩阵压缩函数 tf.reduce_sum()（求和）、tf.reduce_mean()（求平均）等函数。这些函数除了第一个参数为要操作的矩阵外，还有几个很有用的参数：axis 是要压缩的维度。对于一个二维矩阵来说，压缩维度为 0 意味着压缩行，生成列向量，压缩维度为 1 意味着压缩列，生成行向量，axis=None 意味着压缩成标量；keepdim 指压缩后是否保持原有维度，如果 keepdims=True，操作矩阵被压缩的维度长度会保持，但长度一定是 1</li>
+</ul>
+</blockquote>
+<p>在损失函数中，先看最外层求和项（以 j 求和），可以看做 y 与 log 函数的结果的逐项相乘求和，因此 log 函数的输出向量形状必须与 y 或者 y 的转置一致。而 log 函数的输出向量形状取决于内部求和项（以 i 求和）。可以通过求和式得到合适的运算形式为 x*w，也可以通过形状来推理合适的运算形式，即：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">𝑡𝑓.𝑚𝑎𝑡𝑚𝑢𝑙(𝑥,𝑤)∈𝑅𝑚∗1tf.matmul(x,w)∈Rm∗1tf.matmul(x,w) \in &#123;R^&#123;m\*1&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>然后经过 log 函数得到的结果与 y 逐项相乘，再求压缩平均（此处之所以不是求和而是求平均，是为了避免样本数量对损失函数结果产生影响），可以得到假设函数、（负）似然函数、损失函数的运算式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">y_float = tf.to_float(y_expand)</span><br><span class="line">hypothesis = tf.sigmoid(tf.matmul(x, weight) + bais)</span><br><span class="line">likelyhood = -(y_float*tf.log(hypothesis) + (1.0-y_float)*(tf.log(1.0-hypothesis)))</span><br><span class="line">loss = tf.reduce_mean(likelyhood, axis=0)</span><br></pre></td></tr></table></figure>
+<p>还可以使用 TensorFlow 的损失函数计算 loss</p>
+<blockquote>
+<p>TensorFlow 的损失函数主要有以下几个（下述所有公式假设样本数只有一个，多个的话需要取平均）：</p>
+<ul>
+<li>log_loss：即交叉熵计算，设损失函数 l，假设函数 h，样本标签 y，二分类损失公式如下：</li>
+</ul>
+<p>𝑙=−𝑦∗log(ℎ)−(1−𝑦)log(1−ℎ)l=−y∗log⁡(h)−(1−y)log⁡(1−h)l =  - y*\log (h) - (1 - y)\log (1 - h)</p>
+<p>多分类损失公式如下，注意可以有多个分类（分类数为 c）为正确分类：</p>
+<p>𝑙=−∑𝑖𝑐(𝑦𝑖log(ℎ𝑖)−(1−𝑦𝑖)log(1−ℎ𝑖))l=−∑ic(yilog⁡(hi)−(1−yi)log⁡(1−hi))l =  - \sum\limits_i^c {({y_i}\log ({h_i}) - (1 - {y_i})\log (1 - {h_i}))}</p>
+<p>注意不是下式，这里跟一些其他库有区别：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑙=−∑𝑖𝑐𝑦𝑖log(ℎ𝑖)l=−∑icyilog⁡(hi)l =  - \sum\limits_i^c &#123;&#123;y_i&#125;\log (&#123;h_i&#125;)&#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<ul>
+<li>sigmoid_cross_entropy：sigmoid + 交叉熵，与 log_loss 的差别在于先对输入预测值求 sigmoid 函数，然后再计算交叉熵。sigmoid 函数如下：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑔(𝑧)=11+𝑒−𝑧g(z)=11+e−zg(z) = \frac&#123;1&#125;&#123;&#123;1 + &#123;e^&#123; - z&#125;&#125;&#125;&#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<ul>
+<li>softmax_cross_entropy：softmax + 交叉熵，设分类总数为 c，softmax 函数如下：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑔(𝑧𝑖)=𝑒𝑧𝑖∑𝑗𝑐𝑒𝑧𝑗g(zi)=ezi∑jcezjg(&#123;z_i&#125;) = \frac&#123;&#123;&#123;e^&#123;&#123;z_i&#125;&#125;&#125;&#125;&#125;&#123;&#123;\sum\limits_j^c &#123;&#123;e^&#123;&#123;z_j&#125;&#125;&#125;&#125; &#125;&#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<ul>
+<li><p>sparse_softmax_cross_entropy：计算方式与 softmax_cross_entropy，但输入样本标签为整数标签，而不是 one-hot 形式，这是唯一一个输入两个参数各维度大小不同的损失函数</p>
+</li>
+<li><p>mean_squared_error：均方误差损失函数，损失公式如下：</p>
+</li>
+</ul>
+<p>𝑙=(𝑦−ℎ)2l=(y−h)2l = {(y - h)^2}</p>
+<ul>
+<li>huber_loss：由于均方误差对误差比较大的点相当敏感，为了控制异常点对模型训练的影响，huber loss 对误差比较小的样本点使用二次项计算损失，对误差比较大的样本点使用线性方程计算损失，</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑙=&#123;12(𝑦−ℎ)2,|𝑦−ℎ|&lt;=𝑑12𝑑2+𝑑(|𝑦−ℎ|−𝑑),|𝑦−ℎ|&gt;𝑑l=&#123;12(y−h)2,|y−h|&lt;=d12d2+d(|y−h|−d),|y−h|&gt;dl = \left\&#123; \begin&#123;array&#125;&#123;l&#125; \frac&#123;1&#125;&#123;2&#125;&#123;(y - h)^2&#125;,|y - h| &lt; = d\\ \frac&#123;1&#125;&#123;2&#125;&#123;d^2&#125; + d(|y - h| - d),|y - h| &gt; d \end&#123;array&#125; \right.</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<ul>
+<li>hinge_loss：hinge loss 不太在意预测的有多准确，而主要比较预测正确类别与错误类别的间隔，设损失函数 l，假设函数 h，样本标签 y，二分类损失公式如下：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑙=&#123;max(0,1−ℎ),𝑦=1max(0,1+ℎ),𝑦=0l=&#123;max(0,1−h),y=1max(0,1+h),y=0l = \left\&#123; \begin&#123;array&#125;&#123;l&#125; \max (0,1 - h),y = 1\\ \max (0,1 + h),y = 0 \end&#123;array&#125; \right.</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<p>设正确分类为 i，分类总数为 c，多分类损失公式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; 𝑙=∑𝑗≠𝑖𝑐max(0,1+ℎ𝑗−ℎ𝑖)l=∑j≠icmax(0,1+hj−hi)l = \sum\limits\_&#123;j \ne i&#125;^c &#123;\max (0,1 + &#123;h_j&#125; - &#123;h_i&#125;)&#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">在此处，使用 tf.losses.log_loss() 或者 tf.losses.sigmoid_cross_entropy() 可以得到与上面运算式完全相同的结果，即：</span><br></pre></td></tr></table></figure>
+<p>hypothesis = tf.sigmoid(tf.matmul(x, weight) + bais)<br>loss = tf.losses.log_loss(y_expand, hypothesis)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">或者</span><br></pre></td></tr></table></figure>
+<p>hypothesis = tf.matmul(x, weight) + bais<br>loss = tf.losses.sigmoid_cross_entropy(y_expand, hypothesis)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然后利用 TensorFlow 的自动微分功能，即优化类之一来定义模型的优化过程：</span><br></pre></td></tr></table></figure>
+<p>LEARNING_RATE = 0.02<br>optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)<br>training_op = optimizer.minimize(loss)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&gt; TensorFlow 的优化类主要有以下几个：</span><br><span class="line">&gt;</span><br><span class="line">&gt; - GradientDescentOptimizer：最普通的批量梯度下降，令学习速率为 η，t 代表本次迭代，t+1 代表下次迭代，则梯度迭代公式如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝜃𝑡+1=𝜃𝑡−𝜂∂𝑙(𝜃)∂𝜃θt+1=θt−η∂l(θ)∂θ&#123;\theta \_&#123;t + 1&#125;&#125; = &#123;\theta \_t&#125; - \eta \frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; - AdagradOptimizer：进行参数迭代的同时记录了每个参数每次迭代的梯度的平方和，下次迭代时梯度与累积平方和的平方根成反比。这样会对低频的参数做较大的更新，对高频的参数做较小的更新，对于稀疏数据表现的更好；但是由于学习速率越来越小，有可能没有到达最低点学习速率就变得很慢了，难以收敛。令 s 为梯度累积平方和，ε 为极小量，t 代表本次迭代，t-1 代表上次迭代，t+1 代表下次迭代，梯度迭代公式如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝑠𝑡=𝑠𝑡−1+(∂𝑙(𝜃)∂𝜃)2,𝜃𝑡+1=𝜃𝑡−𝜂𝑠𝑡+𝜀‾‾‾‾‾‾√∂𝑙(𝜃)∂𝜃st=st−1+(∂l(θ)∂θ)2,θt+1=θt−ηst+ε∂l(θ)∂θ&#123;s*t&#125; = &#123;s*&#123;t - 1&#125;&#125; + &#123;(\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;)^2&#125;,&#123;\theta \_&#123;t + 1&#125;&#125; = &#123;\theta \_t&#125; - \frac&#123;\eta &#125;&#123;&#123;\sqrt &#123;&#123;s_t&#125; + \varepsilon &#125; &#125;&#125;\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; - RMSPropOptimizer：为解决 AdagradOptimizer 后期更新速率过慢的问题，RMSprop 使用加权累积平方和替换累积平方和。令 m 代表梯度加权累积平方和，ε 为极小量，β 为权重，t 代表本次迭代，t-1 代表上次迭代，t+1 代表下次迭代，梯度迭代公式如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝑚𝑡=𝛽𝑚𝑡−1+(1−𝛽)(∂𝑙(𝜃)∂𝜃)2,𝜃𝑡+1=𝜃𝑡−𝜂𝑚𝑡+𝜀‾‾‾‾‾‾√∂𝑙(𝜃)∂𝜃mt=βmt−1+(1−β)(∂l(θ)∂θ)2,θt+1=θt−ηmt+ε∂l(θ)∂θ&#123;m*t&#125; = \beta &#123;m*&#123;t - 1&#125;&#125; + (1 - \beta )&#123;(\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;)^2&#125;,&#123;\theta \_&#123;t + 1&#125;&#125; = &#123;\theta \_t&#125; - \frac&#123;\eta &#125;&#123;&#123;\sqrt &#123;&#123;m_t&#125; + \varepsilon &#125; &#125;&#125;\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; - MomentumOptimizer：多一个必须参数 “动量速率”，每次迭代时参考前一次迭代的 “动量”，在迭代中方向不变的维度做较大的更新，迭代中方向反复改变的维度做较小的更新。适用于在不同维度梯度差距很大的情况，更新不会在小梯度方向反复震荡。令 γ 代表动量速率，t 代表本次迭代，t-1 代表上次迭代，t+1 代表下次迭代，梯度迭代公式如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝑣𝑡=𝛾𝑣𝑡−1+𝜂∂𝑙(𝜃)∂𝜃,𝜃𝑡+1=𝜃𝑡−𝑣𝑡vt=γvt−1+η∂l(θ)∂θ,θt+1=θt−vt&#123;v*t&#125; = \gamma &#123;v*&#123;t - 1&#125;&#125; + \eta \frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;,&#123;\theta \_&#123;t + 1&#125;&#125; = &#123;\theta \_t&#125; - &#123;v_t&#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; - AdamOptimizer：综合了 MomentumOptimizer 和 RMSPropOptimizer，既包含动量（一次项）部分也包含衰减（两次项）部分。令 f 代表动量，g 代表衰减，β1、β2 为权重，t 代表本次迭代，t-1 代表上次迭代，t+1 代表下次迭代：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝑓𝑡=𝛽2𝑓𝑡−1+(1−𝛽2)∂𝑙(𝜃)∂𝜃𝑔𝑡=𝛽1𝑔𝑡−1+(1−𝛽1)(∂𝑙(𝜃)∂𝜃)2ft=β2ft−1+(1−β2)∂l(θ)∂θgt=β1gt−1+(1−β1)(∂l(θ)∂θ)2\begin&#123;array&#125;&#123;l&#125; &#123;f*t&#125; = &#123;\beta \_2&#125;&#123;f*&#123;t - 1&#125;&#125; + (1 - &#123;\beta _2&#125;)\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;\\ &#123;g_t&#125; = &#123;\beta \_1&#125;&#123;g_&#123;t - 1&#125;&#125; + (1 - &#123;\beta \_1&#125;)&#123;(\frac&#123;&#123;\partial l(\theta )&#125;&#125;&#123;&#123;\partial \theta &#125;&#125;)^2&#125; \end&#123;array&#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; 注意此处第一次迭代的梯度值和速率值偏小，为了校正偏差，计算校正后的动量 f′和衰减 g′，再计算迭代公式：</span><br><span class="line">&gt;</span><br><span class="line">&gt; 𝑓′𝑡=𝑓𝑡1−𝛽1𝑔′𝑡=𝑔𝑡1−𝛽2𝜃𝑡+1=𝜃𝑡−𝜂𝑔′𝑡+𝜀√𝑓′𝑡f′t=ft1−β1g′t=gt1−β2θt+1=θt−ηg′t+εf′t\begin&#123;array&#125;&#123;l&#125; &#123;&#123;f&apos;&#125;_t&#125; = \frac&#123;&#123;&#123;f_t&#125;&#125;&#125;&#123;&#123;1 - &#123;\beta _1&#125;&#125;&#125;\\ &#123;&#123;g&apos;&#125;_t&#125; = \frac&#123;&#123;&#123;g_t&#125;&#125;&#125;&#123;&#123;1 - &#123;\beta _2&#125;&#125;&#125;\\ &#123;\theta \_&#123;t + 1&#125;&#125; = &#123;\theta \_t&#125; - \frac&#123;\eta &#125;&#123;&#123;\sqrt &#123;&#123;&#123;g&apos;&#125;_t&#125; + \varepsilon &#125; &#125;&#125;&#123;&#123;f&apos;&#125;\_t&#125; \end&#123;array&#125;</span><br><span class="line"></span><br><span class="line">最后还需要一个预测操作和准确率判断操作：</span><br></pre></td></tr></table></figure>
+<p>THRESHOLD = 0.5<br>predictions = tf.sign(hypothesis-THRESHOLD) #符号函数，判断向量对应位置的符号，输出对应位置为-1、0 或 1<br>labels = tf.sign(y_float-THRESHOLD)<br>corrections = tf.equal(predictions, labels) #比较向量对应位置的两个值，相等则输出对应位置为 True<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">也可以使用：</span><br></pre></td></tr></table></figure>
+<p>THRESHOLD = 0.5<br>predictions = tf.to_int32(hypothesis-THRESHOLD)<br>corrections = tf.equal(predictions, y_expand)<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">完整代码（包括测试运行代码）如下：</span><br></pre></td></tr></table></figure>
+<p>tf.reset_default_graph() #清空 Graph</p>
+<p>FEATURE_NUM = 8 #特征数量<br>with tf.name_scope(“input”):<br>x = tf.placeholder(tf.float32, shape=[None, FEATURE_NUM])<br>y = tf.placeholder(tf.int32, shape=[None])</p>
+<p>with tf.name_scope(“lr”):<br>weight_init = tf.truncated_normal(shape=[FEATURE_NUM, 1],mean=0.0,stddev=1.0)<br>weight = tf.Variable(weight_init)<br>bais = tf.Variable([0.0])</p>
+<pre><code>y_expand = tf.expand_dims(y, axis=1)
+
+hypothesis = tf.sigmoid(tf.matmul(x, weight) + bais)
+</code></pre><p>with tf.name_scope(“loss”):<br>y_float = tf.to_float(y_expand)<br>likelyhood = -(y_float<em>tf.log(hypothesis) + (1.0-y_float)</em>(tf.log(1.0-hypothesis)))<br>loss = tf.reduce_mean(likelyhood, axis=0)</p>
+<p>LEARNING_RATE = 0.02 #学习速率<br>with tf.name_scope(“train”):<br>optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)<br>training_op = optimizer.minimize(loss)</p>
+<p>THRESHOLD = 0.5 #判断门限<br>with tf.name_scope(“eval”):<br>predictions = tf.sign(hypothesis-THRESHOLD)<br>labels = tf.sign(y_float-THRESHOLD)<br>corrections = tf.equal(predictions, labels)<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<p>init = tf.global_variables_initializer() #初始化所有变量</p>
+<p>EPOCH = 10 #迭代次数<br>with tf.Session() as sess:<br>sess.run(init)<br>for i in range(EPOCH):<br>_training_op, _loss = sess.run([training_op, loss], feed_dict={x: np.random.rand(10,8), y: np.random.randint(2,size=10)})<br>_accuracy = sess.run([accuracy], feed_dict={x: np.random.rand(5,8), y: np.random.randint(2,size=5)})<br>print “epoch:”, i, _loss, _accuracy</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">7，FM 的 TensorFlow 实现</span><br><span class="line"></span><br><span class="line">同样，先定义变量占位符：</span><br></pre></td></tr></table></figure>
+<p>FEATURE_NUM = 8 #特征数量<br>x = tf.placeholder(tf.float32, shape=[None, FEATURE_NUM])<br>y = tf.placeholder(tf.int32, shape=[None])<br>y_exband = tf.expand_dims(y, axis=1)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然后实现假设函数：</span><br></pre></td></tr></table></figure>
+<pre><code>𝑙(𝑏,𝑤,𝑣)=−∑𝑗=1𝑚(𝑦(𝑗)log(ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗))+(1−𝑦(𝑗))log(1−ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗)))ℎ(𝑤,𝑏)|𝑥=𝑥(𝑗)=𝑔(𝑏+∑𝑖=1𝑛𝑤𝑖𝑥(𝑗)𝑖+12∑𝑟=1𝑘((∑𝑖=1𝑛𝑣𝑖𝑟𝑥(𝑗)𝑖)2−∑𝑖=1𝑛(𝑣𝑖𝑟𝑥(𝑗)𝑖)2))l(b,w,v)=−∑j=1m(y(j)log⁡(h(w,b)|x=x(j))+(1−y(j))log⁡(1−h(w,b)|x=x(j)))h(w,b)|x=x(j)=g(b+∑i=1nwixi(j)+12∑r=1k((∑i=1nvirxi(j))2−∑i=1n(virxi(j))2))\begin{array}{l} l(b,w,v) = - \sum\limits*{j = 1}^m {({y^{(j)}}\log (h(w,b){|*{x = {x^{(j)}}}}) + (1 - {y^{(j)}})\log (1 - h(w,b){|_{x = {x^{(j)}}}}))} \\ h(w,b){|_{x = {x^{(j)}}}} = g(b + \sum\limits*{i = 1}^n {{w_i}x_i^{(j)}} + \frac{1}{2}\sum\limits*{r = 1}^k {({{(\sum\limits_{i = 1}^n {{v_{ir}}x*i^{(j)}} )}^2} - \sum\limits*{i = 1}^n {{{({v_{ir}}x_i^{(j)})}^2}} )} ) \end{array}
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">先定义模型权重：</span><br></pre></td></tr></table></figure>
+<p>HIDDEN_N = 5<br>bais = tf.Variable([0.0])<br>weight = tf.Variable(tf.random_normal([FEATURE_N, 1], 0.0, 1.0))<br>weight_mix = tf.Variable(tf.random_normal([FEATURE_N, HIDDEN_N], 0.0, 1.0))</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">一次项和零次项比较好计算，跟 LR 一样，但二次项就比较麻烦了。这里的计算过程，一些广为流传的博客上代码都是错的。</span><br><span class="line"></span><br><span class="line">首先可知：</span><br></pre></td></tr></table></figure>
+<p>𝑥∈𝑅𝑚∗𝑛,𝑣∈𝑅𝑛∗𝑘,𝑦∈𝑅𝑚∗1x∈Rm∗n,v∈Rn∗k,y∈Rm∗1x \in {R^{m<em>n}},v \in {R^{n</em>k}},y \in {R^{m*1}}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">先尝试矩阵乘法降维，可得：</span><br></pre></td></tr></table></figure>
+<p>𝑥𝑣∈𝑅𝑚∗𝑘,(𝑥𝑣)𝑎𝑏=∑𝑖=1𝑛𝑥(𝑎)𝑖𝑣𝑖𝑏xv∈Rm∗k,(xv)ab=∑i=1nxi(a)vibxv \in {R^{m*k}},{(xv)<em>{ab}} = \sum\limits</em>{i = 1}^n {x<em>i^{(a)}{v</em>{ib}}}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">可见正好与二次项的第一项形式一致，可以通过以下方式计算第一项，一个 m\*k 的矩阵，得到结果后可以通过先压缩第 1 维再压缩第 0 维，得到损失函数结果（0 维标量）</span><br></pre></td></tr></table></figure>
+<p>x_weight_mix = tf.matmul(x, weight_mix)<br>x_weight_mix_square = tf.square(x_weight_mix)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">但观察二次项的第二项，就没这么简单了，去除维度无关的加法、减法、log 等操作的影响，第二项等同于计算如下式子：</span><br></pre></td></tr></table></figure>
+<pre><code>∑𝑗=1𝑚∑𝑟=1𝑘∑𝑖=1𝑛(𝑥(𝑗)𝑖𝑣𝑖𝑟)2∑j=1m∑r=1k∑i=1n(xi(j)vir)2\sum\limits*{j = 1}^m {\sum\limits*{r = 1}^k {\sum\limits*{i = 1}^n {{{(x_i^{(j)}{v*{ir}})}^2}} } }
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">即需要得到每个 j、r、i 的组合，再平方，再依次求和，可知这必须是一个三维矩阵才能完成运算。因此，如果能设计一个三维矩阵 d 满足如下就条件，就好计算了：</span><br></pre></td></tr></table></figure>
+<p>𝑑𝑗𝑟𝑖=𝑥(𝑗)𝑖𝑣𝑖𝑟,𝑑∈𝑅𝑚∗𝑘∗𝑛djri=xi(j)vir,d∈Rm∗k∗n{d<em>{jri}} = x_i^{(j)}{v</em>{ir}},d \in {R^{m<em>k</em>n}}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">由于三维矩阵 d 的每项不涉及求和，只有两个数相乘，因此最直接的方式是扩展 x、v 的维度与 d 相同，然后直接逐项相乘，为方便计算，调整三维矩阵 d 的定义：</span><br></pre></td></tr></table></figure>
+<p>𝑑𝑗𝑖𝑟=𝑥(𝑗)𝑖𝑣𝑖𝑟,𝑑∈𝑅𝑚∗𝑛∗𝑘djir=xi(j)vir,d∈Rm∗n∗k{d<em>{jir}} = x_i^{(j)}{v</em>{ir}},d \in {R^{m<em>n</em>k}}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这样，x 在第 2 维扩展，v 在第 0 为扩展，逐项相乘结果即为 d：</span><br></pre></td></tr></table></figure>
+<p>𝑑𝑗𝑖𝑟=𝑥(𝑛𝑒𝑤),(𝑗)𝑖𝑟𝑣(𝑛𝑒𝑤),𝑗𝑖𝑟,𝑑∈𝑅𝑚∗𝑛∗𝑘𝑥(𝑛𝑒𝑤),(𝑗)𝑖𝑟=𝑥(𝑗)𝑖,𝑥(𝑛𝑒𝑤)∈𝑅𝑚∗𝑛∗𝑘𝑣(𝑛𝑒𝑤),𝑗𝑖𝑟=𝑣𝑖𝑟,𝑣(𝑛𝑒𝑤)∈𝑅𝑚∗𝑛∗𝑘djir=x(new),ir(j)v(new),jir,d∈Rm∗n∗kx(new),ir(j)=xi(j),x(new)∈Rm∗n∗kv(new),jir=vir,v(new)∈Rm∗n∗k\begin{array}{l} {d<em>{jir}} = {x</em>{(new),}}<em>{ir}^{(j)}{v</em>{(new)}}<em>{,jir},d \in {R^{m<em>n</em>k}}\ {x</em>{(new),}}<em>{ir}^{(j)} = x_i^{(j)},{x</em>{(new)}} \in {R^{m<em>n</em>k}}\ {v<em>{(new)}}</em>{,jir} = {v<em>{ir}},{v</em>{(new)}} \in {R^{m<em>n</em>k}} \end{array}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这里需要用到 tf.tile() 和 tf.reshape()，tf.tile() 的功能是将矩阵的某一维（或者 n 维）的数据重复数次，tf.reshape() 可以将两维向量变为三维矩阵。这里需要注意，如果先 tile 再 reshape，其实是很容易出错的，例如将 x 的第 2 维扩展 k 次，可得：</span><br><span class="line"></span><br><span class="line">𝑥(𝑡𝑖𝑙𝑒)∈𝑅𝑚∗(𝑛∗𝑘)x(tile)∈Rm∗(n∗k)&#123;x\_&#123;(tile)&#125;&#125; \in &#123;R^&#123;m*(n*k)&#125;&#125;</span><br><span class="line"></span><br><span class="line">但是，到底 x(tile) 经过 “合适的”reshape 升维后是 m*n*k 维矩阵还是 m*k*n 维矩阵，是一个难以直接判断的问题，因此，最好先 reshape（或者 expand_dims），再 tile。二次项的第二项计算方式如下：</span><br></pre></td></tr></table></figure>
+<p>SAMPLE<em>N = tf.shape(x)[0]<br>x</em> = tf.reshape(x, [SAMPLE<em>N,FEATURE_N,1]) #SAMPLE<em>N</em>FEATURE_N*1<br>x\</em>_ = tf.tile(x<em>, [1,1,HIDDEN_N]) #SAMPLE</em>N<em>FEATURE_N</em>HIDDEN<em>N<br>w<em> = tf.reshape(weight</em>mix, [1,FEATURE_N,HIDDEN_N]) #1<em>FEATURE_N</em>HIDDEN_N<br>w\</em>_ = tf.tile(x<em>, [SAMPLE_N,1,1]) #SAMPLE_N</em>FEATURE_N<em>HIDDEN_N<br>embeddings = tf.multiply(x<strong>, w</strong>) #SAMPLE_N</em>FEATURE_N<em>HIDDEN_N<br>embeddings_square = tf.square(embeddings) #SAMPLE_N</em>FEATURE_N<em>HIDDEN_N<br>embeddings_square_sum = tf.reduce_sum(embeddings_square, 1) #SAMPLE_N\</em>HIDDEN_N</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">此时，可以发现，构造出 embeddings 矩阵后，二次项的第一项也可以通过 embeddings 来计算：</span><br></pre></td></tr></table></figure>
+<p>embeddings_sum = tf.reduce_sum(embeddings, 1) #SAMPLE_N<em>HIDDENT_N<br>embeddings_sum_square = tf.square(embeddings_sum) #SAMPLE_N</em>HIDDENT_N</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然后将损失函数的零次项、一次项、二次项组合起来，可得损失函数：</span><br></pre></td></tr></table></figure>
+<p>z = bais + tf.matmul(X, weight) + 1.0/2.0*tf.reduce_sum(tf.subtract(embeddings_sum_square,embeddings_square_sum), 1, keepdims=True)<br>hypothesis = tf.sigmoid(z)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这里可以发现，z 的计算公式中包含大量二次项的求和，绝对值很可能会比较大，此时再经过 sigmoid 函数，由于浮点数表达精度有限，结果可能会近似等于 1 或等于 0，造成模型无法更新，因此此处需要使用 tf.clip_by_value() 对 z 进行截断，防止超出精度：</span><br></pre></td></tr></table></figure>
+<p>z = bais + tf.matmul(x, weight) + 1.0/2.0*tf.reduce<em>sum(tf.subtract(embeddings_sum_square,embeddings_square_sum), 1, keepdims=True)<br>z</em> = tf.clip<em>by_value(z,-4.0,4.0)<br>hypothesis = tf.sigmoid(z</em>)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">接下来优化过程与判断过程与 LR 基本一样，可得完整代码（包括测试运行代码）如下：</span><br></pre></td></tr></table></figure>
+<p>tf.reset_default_graph() #清空 Graph</p>
+<p>FEATURE_NUM = 8 #特征数量<br>with tf.name_scope(“input”):<br>x = tf.placeholder(tf.float32, shape=[None, FEATURE_NUM])<br>y = tf.placeholder(tf.int32, shape=[None])<br>y_expand = tf.expand_dims(y, axis=1)</p>
+<p>HIDDEN_NUM = 5 #隐藏特征维度<br>with tf.name_scope(“fm”):<br>bais = tf.Variable([0.0])<br>weight = tf.Variable(tf.random_normal([FEATURE_NUM, 1], 0.0, 1.0))<br>weight_mix = tf.Variable(tf.random_normal([FEATURE_NUM, HIDDEN_NUM], 0.0, 1.0))</p>
+<pre><code>SAMPLE_NUM = tf.shape(x)[0]  #获取样本数
+
+x_ = tf.reshape(x, [SAMPLE_NUM,FEATURE_NUM,1]) #SAMPLE_NUM*FEATURE_NUM*1
+x__ = tf.tile(x_, [1,1,HIDDEN_NUM]) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+w_ = tf.reshape(weight_mix, [1,FEATURE_NUM,HIDDEN_NUM]) #1*FEATURE_NUM*HIDDEN_NUM
+w__ = tf.tile(w_, [SAMPLE_NUM,1,1]) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+
+embeddings = tf.multiply(x__, w__) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+embeddings_sum = tf.reduce_sum(embeddings, 1) #SAMPLE_NUM*HIDDEN_NUM
+embeddings_sum_square = tf.square(embeddings_sum) #SAMPLE_NUM*HIDDEN_NUM
+embeddings_square = tf.square(embeddings) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+embeddings_square_sum = tf.reduce_sum(embeddings_square, 1) #SAMPLE_NUM*HIDDEN_NUM
+
+z = bais + tf.matmul(x, weight) + 1.0/2.0*tf.reduce_sum(tf.subtract(embeddings_sum_square,embeddings_square_sum), 1, keepdims=True)
+z_ = tf.clip_by_value(z,-4.0,4.0)
+hypothesis  = tf.sigmoid(z_)
+</code></pre><p>with tf.name_scope(“loss”):<br>loss = tf.losses.log_loss(y_expand, hypothesis)</p>
+<p>LEARNING_RATE = 0.02 #学习速率<br>with tf.name_scope(“train”):<br>optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)<br>training_op = optimizer.minimize(loss)</p>
+<p>THRESHOLD = 0.5 #判断门限<br>with tf.name_scope(“eval”):<br>predictions = tf.to_int32(hypothesis-THRESHOLD)<br>corrections = tf.equal(predictions, y_expand)<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<p>init = tf.global_variables_initializer() #初始化所有变量</p>
+<p>EPOCH = 10 #迭代次数<br>with tf.Session() as sess:<br>sess.run(init)<br>for i in range(EPOCH):<br>_training_op, _loss = sess.run([training_op, loss], feed_dict={x: np.random.rand(10,8), y: np.random.randint(2,size=10)})<br>_accuracy = sess.run([accuracy], feed_dict={x: np.random.rand(5,8), y: np.random.randint(2,size=5)})<br>print “epoch:”, i, _loss, _accuracy</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">但是这时可以发现，模型本身已经比较复杂了，其中包含了若干变量，在嵌入工程，或者作为模型中的一个模块嵌入网络中时，很有可能会造成变量名称的混乱，并且也不利于生成明晰的网络结构，因此，这里考虑将 FM 构建网络部分包裹成函数或者类：</span><br></pre></td></tr></table></figure>
+<h1 id="FM-模型"><a href="#FM-模型" class="headerlink" title="FM 模型"></a>FM 模型</h1><p>class FmModel(object):<br>def <strong>init</strong>(self, x, y, feature_num, hidden_num):<br>self.x = x<br>self.y = y<br>self.feature_num = feature_num #获取特征数，这个值要建 Variable，所以不能动态获取<br>self.sample_num = tf.shape(x)[0] #获取样本数<br>self.hidden_num = hidden_num #获取隐藏特征维度</p>
+<pre><code>    self.bais = tf.Variable([0.0])
+    self.weight = tf.Variable(tf.random_normal([self.feature_num, 1], 0.0, 1.0))
+    self.weight_mix = tf.Variable(tf.random_normal([self.feature_num, self.hidden_num], 0.0, 1.0))
+
+    x_ = tf.reshape(self.x, [self.sample_num,self.feature_num,1]) #SAMPLE_NUM*FEATURE_NUM*1
+    x__ = tf.tile(x_, [1,1,self.hidden_num]) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+    w_ = tf.reshape(self.weight_mix, [1,self.feature_num,self.hidden_num]) #1*FEATURE_NUM*HIDDEN_NUM
+    w__ = tf.tile(w_, [self.sample_num,1,1]) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+
+    embeddings = tf.multiply(x__, w__) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+    embeddings_sum = tf.reduce_sum(embeddings, 1) #SAMPLE_NUM*HIDDEN_NUM
+    embeddings_sum_square = tf.square(embeddings_sum) #SAMPLE_NUM*HIDDEN_NUM
+    embeddings_square = tf.square(embeddings) #SAMPLE_NUM*FEATURE_NUM*HIDDEN_NUM
+    embeddings_square_sum = tf.reduce_sum(embeddings_square, 1) #SAMPLE_NUM*HIDDEN_NUM
+
+    z = self.bais + tf.matmul(self.x, self.weight) + 1.0/2.0*tf.reduce_sum(tf.subtract(embeddings_sum_square,embeddings_square_sum), 1, keepdims=True)
+    z_ = tf.clip_by_value(z,-4.0,4.0)
+
+    self.hypothesis  = tf.sigmoid(z_)
+    y_expand = tf.expand_dims(self.y, axis=1)
+    self.loss = tf.losses.log_loss(y_expand, self.hypothesis)
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这里需要注意，无论使用类也好，函数也好，其中很多变量从全局变量变为了局部变量，函数执行完变量就被销毁了。但只要执行完一次，网络就已经建立起来了，变量的生存期并不影响网络节点的生存期。这时又涉及到另一个问题：如何在 Session 中想要得到这些类或函数中定义的网络节点的值。</span><br><span class="line"></span><br><span class="line">&gt; TensorFlow 中会话运行网络节点的方式有两种：</span><br><span class="line">&gt;</span><br><span class="line">&gt; - 使用网络建立过程中，仍处于生存期内的 python 变量。这样做有两个局限性，一种情况是 python 变量生存期外就无法使用，另一情况是如果模型加载自已经训练好的网络，没有对应节点的 python 变量。</span><br><span class="line">&gt; - 使用网络中的节点名，赋给 python 变量。TensorFlow 中的 Tensor 都可以在定义时添加一个附加参数 name，可以通过 tf.get_default_graph().get_tensor_by_name() 来获取网络中任何的节点。</span><br><span class="line"></span><br><span class="line">比如上例中如果要获取 embeddings 变量的值，可以如此操作：</span><br></pre></td></tr></table></figure>
+<h1 id="FM-模型-1"><a href="#FM-模型-1" class="headerlink" title="FM 模型"></a>FM 模型</h1><p>class FmModel(object):<br>def <strong>init</strong>(self, x, y, feature_num, hidden_num):<br>…<br>embeddings = tf.multiply(x<strong>, w</strong>, ) #SAMPLE_NUM<em>FEATURE_NUM</em>HIDDEN_NUM<br>…</p>
+<p>HIDDEN_NUM = 5 #隐藏特征维度<br>with tf.name_scope(“fm”):<br>fm = FmModel(x, y, FEATURE_NUM, HIDDEN_NUM)</p>
+<p>embeddings = tf.get_default_graph().get_tensor_by_name(“fm/embeddings:0”) #注意 name_scope 与后面的冒号和序号</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">使用 FmModel 类的完整代码（包括测试运行代码）如下：</span><br></pre></td></tr></table></figure>
+<p>tf.reset_default_graph() #清空 Graph</p>
+<p>FEATURE_NUM = 8 #特征数量<br>with tf.name_scope(“input”):<br>x = tf.placeholder(tf.float32, shape=[None, FEATURE_NUM])<br>y = tf.placeholder(tf.int32, shape=[None])</p>
+<p>HIDDEN_NUM = 5 #隐藏特征维度<br>with tf.name_scope(“fm”):<br>fm = FmModel(x, y, FEATURE_NUM, HIDDEN_NUM)</p>
+<p>LEARNING_RATE = 0.02 #学习速率<br>with tf.name_scope(“train”):<br>optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)<br>training_op = optimizer.minimize(fm.loss)</p>
+<p>THRESHOLD = 0.5 #判断门限<br>with tf.name_scope(“eval”):<br>y_expand = tf.expand_dims(y, axis=1)<br>predictions = tf.to_int32(fm.hypothesis-THRESHOLD)<br>corrections = tf.equal(predictions, fm.y_expand)<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<p>init = tf.global_variables_initializer() #初始化所有变量</p>
+<p>EPOCH = 10 #迭代次数<br>with tf.Session() as sess:<br>sess.run(init)<br>for i in range(EPOCH):<br>_training_op, _loss = sess.run([training_op, fm.loss], feed_dict={x: np.random.rand(10,8), y: np.random.randint(2,size=10)})<br>_accuracy = sess.run([accuracy], feed_dict={x: np.random.rand(5,8), y: np.random.randint(2,size=5)})<br>print “epoch:”, i, _loss, _accuracy</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">7，稀疏 FM 的 TensorFlow 实现</span><br><span class="line"></span><br><span class="line">上述 TensorFlow 实现中使用了不少二维甚至三维的矩阵运算，在生产环境中，使用 FM 模型的样本数据往往是维数巨大并且稀疏的，这时直接使用矩阵乘法会占用大量的系统资源、浪费大量的运算时间。</span><br><span class="line"></span><br><span class="line">针对稀疏矩阵乘法，TensorFlow 有一种专门的方式简化运算过程。此时要用到 tf.nn.embedding_lookup()函数，这个函数的输入一个参数矩阵 w 和一个稀疏索引矩阵 i，作用是在在参数矩阵 w 的第一维中查找索引矩阵 i 中各值对应的 “行”，抽取出索引值对应的“一行” 参数，放到索引矩阵中对应位置，组合为有效特征对应的参数矩阵。可知索引矩阵的值必须小于 w 第一维的大小，结果维数等于 w 的维数与 i 的维数之和减一。</span><br><span class="line"></span><br><span class="line">由于有效特征矩阵会参与矩阵运算，矩阵运算中不能出现每行长度不同的情况，所以这里有一点局限性，就是每个样本的有效特征数必须是一样的，如果多了需要截取，如果少了需要补零。</span><br><span class="line"></span><br><span class="line">针对稀疏特征的 FM 完整代码（包括测试运行代码）如下：</span><br></pre></td></tr></table></figure>
+<h1 id="FM-模型-2"><a href="#FM-模型-2" class="headerlink" title="FM 模型"></a>FM 模型</h1><p>class FmModel(object):<br>def <strong>init</strong>(self, i, x, y, feature_num, valid_num, hidden_num):<br>self.i = i<br>self.x = x<br>self.y = y<br>self.feature_num = feature_num #获取特征数，这个值要建 Variable，所以不能动态获取<br>self.valid_num = valid_num #获取有效特征数，这个值要建 Variable，所以不能动态获取<br>self.sample_num = tf.shape(x)[0] #获取样本数<br>self.hidden_num = hidden_num #获取隐藏特征维度</p>
+<pre><code>    self.bais = tf.Variable([0.0])
+    self.weight = tf.Variable(tf.random_normal([self.feature_num, 1], 0.0, 1.0))
+    self.weight_mix = tf.Variable(tf.random_normal([self.feature_num, self.hidden_num], 0.0, 1.0))
+
+    x_ = tf.reshape(self.x, [self.sample_num,self.valid_num,1]) #SAMPLE_NUM*VALID_NUM*1
+    w_ = tf.nn.embedding_lookup(self.weight, self.i) #SAMPLE_NUM*VALID_NUM*1
+
+    expressings = tf.multiply(x_, w_) #SAMPLE_NUM*VALID_NUM*1
+    expressings_reduce = tf.reshape(self.x, [self.sample_num,self.valid_num]) #SAMPLE_NUM*VALID_NUM
+
+    x__ = tf.tile(x_, [1,1,self.hidden_num]) #SAMPLE_NUM*VALID_NUM*HIDDEN_NUM
+    w__ = tf.nn.embedding_lookup(self.weight_mix, self.i) #SAMPLE_NUM*VALID_NUM*HIDDEN_NUM
+
+    embeddings = tf.multiply(x__, w__) #SAMPLE_NUM*VALID_NUM*HIDDEN_NUM
+    embeddings_sum = tf.reduce_sum(embeddings, 1) #SAMPLE_NUM*HIDDEN_NUM
+    embeddings_sum_square = tf.square(embeddings_sum) #SAMPLE_NUM*HIDDEN_NUM
+    embeddings_square = tf.square(embeddings) #SAMPLE_NUM*VALID_NUM*HIDDEN_NUM
+    embeddings_square_sum = tf.reduce_sum(embeddings_square, 1) #SAMPLE_NUM*HIDDEN_NUM
+
+    z = self.bais + \
+        tf.reduce_sum(expressings_reduce, 1, keepdims=True) + \
+        1.0/2.0*tf.reduce_sum(tf.subtract(embeddings_sum_square,embeddings_square_sum), 1, keepdims=True)
+    z_ = tf.clip_by_value(z,-4.0,4.0)
+
+    self.hypothesis  = tf.sigmoid(z_)
+
+    self.y_expand = tf.expand_dims(self.y, axis=1)
+
+    self.loss = tf.losses.log_loss(self.y_expand, self.hypothesis)
+</code></pre><p>tf.reset_default_graph() #清空 Graph</p>
+<p>VALID_NUM = 8 #有效特征数量<br>with tf.name_scope(“input”):<br>i = tf.placeholder(tf.int32, shape=[None, VALID_NUM])<br>x = tf.placeholder(tf.float32, shape=[None, VALID_NUM])<br>y = tf.placeholder(tf.int32, shape=[None])<br>y_expand = tf.expand_dims(y, axis=1)</p>
+<p>FEATURE_NUM = 20 #特征数量<br>HIDDEN_NUM = 5 #隐藏特征维度<br>with tf.name_scope(“fm”):<br>fm = FmModel(i, x, y, FEATURE_NUM, VALID_NUM, HIDDEN_NUM)</p>
+<p>LEARNING_RATE = 0.02 #学习速率<br>with tf.name_scope(“train”):<br>optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)<br>training_op = optimizer.minimize(fm.loss)</p>
+<p>THRESHOLD = 0.5 #判断门限<br>with tf.name_scope(“eval”):<br>predictions = tf.to_int32(fm.hypothesis-THRESHOLD)<br>corrections = tf.equal(predictions, fm.y_expand)<br>accuracy = tf.reduce_mean(tf.cast(corrections, tf.float32))</p>
+<p>init = tf.global_variables_initializer() #初始化所有变量</p>
+<p>EPOCH = 10 #迭代次数<br>with tf.Session() as sess:<br>sess.run(init)<br>for epoch in range(EPOCH):<br>_training_op, _loss = sess.run([training_op, fm.loss],<br>feed_dict={i: np.array([np.random.choice(20, 8) for cnt in range(10)]), x: np.random.rand(10,8), y: np.random.randint(2,size=10)})<br>_accuracy = sess.run([accuracy],<br>feed_dict={i: np.array([np.random.choice(20, 8) for cnt in range(5)]), x: np.random.rand(5,8), y: np.random.randint(2,size=5)})<br>print “epoch:”, epoch, _loss, _accuracy</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">参考文献：</span><br><span class="line"></span><br><span class="line">https://www.cnblogs.com/pinard/p/6370127.html</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/" title="FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解">https://ailab-aida.github.io/2019/10/31/FM（Factorization Machine）因式分解机 与 TensorFlow 实现 详解/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/10/30/各类降维方法总结/" rel="next" title="各类降维方法总结">
+                  <i class="fa fa-chevron-left"></i> 各类降维方法总结
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/04/词向量_word2vec 应用篇/" rel="prev" title="词向量word2vec">
+                  词向量word2vec <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#FM-模型"><span class="nav-number">1.</span> <span class="nav-text">FM 模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FM-模型-1"><span class="nav-number">2.</span> <span class="nav-text">FM 模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FM-模型-2"><span class="nav-number">3.</span> <span class="nav-text">FM 模型</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '9f943e985acfd95936632e90724ec361',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
