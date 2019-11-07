@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线 (或者高维空间中的平面) 来拟合训练数据，进而对未知数据进行预测。基本套路机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性回归">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/07/ 线性回归/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线 (或者高维空间中的平面) 来拟合训练数据，进而对未知数据进行预测。基本套路机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://sharkdtu.com/images/linear_regression.png">
+<meta property="og:image" content="http://sharkdtu.com/images/ml-no-normalize.png">
+<meta property="og:image" content="http://sharkdtu.com/images/ml-normalize.png">
+<meta property="og:updated_time" content="2019-11-07T12:13:46.581Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="线性回归">
+<meta name="twitter:description" content="线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线 (或者高维空间中的平面) 来拟合训练数据，进而对未知数据进行预测。基本套路机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通">
+<meta name="twitter:image" content="http://sharkdtu.com/images/linear_regression.png">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/07/ 线性回归/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>线性回归 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/07/ 线性回归/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">线性回归
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-07 20:09:12 / 修改时间：20:13:46" itemprop="dateCreated datePublished" datetime="2019-11-07T20:09:12+08:00">2019-11-07</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>线性回归可以说是机器学习中最简单，最基础的机器学习算法，它是一种监督学习方法，可以被用来解决回归问题。它用一条直线 (或者高维空间中的平面) 来拟合训练数据，进而对未知数据进行预测。</p><p><a href="/images/linear_regression.png"><img src="http://sharkdtu.com/images/linear_regression.png" alt></a></p><h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a><a href="#基本套路" title="基本套路"></a>基本套路</h2><p>机器学习方法，无外乎三点：模型，代价函数，优化算法。首先找到一个模型用于预测未知世界，然后针对该模型确定代价函数，以度量预测错误的程度，最后使用优化算法在已有的样本数据上不断地优化模型参数，来最小化代价函数。通常来说，用的最多的优化算法主要是梯度下降或拟牛顿法 (<a href="http://blog.csdn.net/itplus/article/details/21896453" target="_blank" rel="noopener">L-BFGS</a> 或 <a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="noopener">OWL-QN</a>)，计算过程都需要计算参数梯度值，下面仅从模型、代价函数以及参数梯度来描述一种机器学习算法。</p><a id="more"></a>
+
+
+<p><strong>基本模型</strong>：</p>
+<p>hθ(X)=θTX=θ0+θ1x1+θ2x2+⋯+θnxnhθ(X)=θTX=θ0+θ1x1+θ2x2+⋯+θnxn \begin{split} h_ \theta(X) &amp;= \theta^T X \ &amp;= \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n \end{split}</p>
+<blockquote>
+<p>XXX 为表示样本特征，为 nnn 维向量，θθ\theta 为模型参数，为 n+1n+1n+1 维向量，包括一个偏置 θ0θ0\theta_0</p>
+</blockquote>
+<p><strong>代价函数</strong>：</p>
+<p>J(θ)=12m∑i=1m(y(i)−hθ(X))2J(θ)=12m∑i=1m(y(i)−hθ(X))2 J(\theta) = \frac {1} {2m} \sum<em>{i=1}^m \left ( y^{(i)}-h</em>\theta(X) \right ) ^2</p>
+<blockquote>
+<p>上述公式也称之为平方误差，mmm 为样本个数，(X(i),y(i))(X(i),y(i))(X^{(i)}, y^{(i)}) 为第 iii 个样本。</p>
+</blockquote>
+<p><strong>参数梯度</strong>：</p>
+<p>▽θjJ(θ)=1m∑i=1m[(y(i)−hθ(X(i)))X(i)j]▽θjJ(θ)=1m∑i=1m[(y(i)−hθ(X(i)))Xj(i)] \bigtriangledown<em>{\theta_j} J(\theta) = \frac {1} {m} \sum</em>{i=1}^m \left[\left ( y^{(i)} - h_ \theta(X^{(i)}) \right ) X^{(i)}_j \right]</p>
+<blockquote>
+<p>θjθj\theta_j 表示第 jjj 个参数，X(i)jXj(i)X^{(i)}_j 表示样本 X(i)X(i)X^{(i)} 的第 jjj 个特征值。</p>
+</blockquote>
+<p>上述描述是按照常规的机器学习方法来描述线性回归，模型参数一般是通过梯度下降或拟牛顿法优化迭代得到，其实线性回归问题是可解的，只是在样本维度较大时很难求解才使用优化迭代的方法来逼近，如果样本维度并不是很大的情况下，是可以解方程一次性得到样本参数。</p>
+<p><strong>最小二乘</strong>：</p>
+<p>θ=(XTX)−1XTyθ=(XTX)−1XTy \theta = {\left( X^T X \right)} ^{-1} X^T y</p>
+<blockquote>
+<p>注意这里 XXX 为 m×nm×nm \times n 矩阵，nnn 为特征维度，mmm 为样本个数； yyy 为 m×1m×1m \times 1 向量，表示每个样本的标签。</p>
+</blockquote>
+<p><strong>加权最小二乘</strong>：</p>
+<p>θ=(XTWX)−1XTWyθ=(XTWX)−1XTWy \theta = {\left( X^T W X \right)} ^{-1} X^T W y</p>
+<blockquote>
+<p>WWW 为 m×mm×mm \times m 对角矩阵，对角线上的每个值表示对应样本实例的权重。</p>
+</blockquote>
+<h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a><a href="#应用套路" title="应用套路"></a>应用套路</h2><p>在实际应用时，基于上述基本套路可能会有些小变化，下面首先还是从模型、代价函数以及参数梯度来描述。把基本套路中模型公式中的 θ0θ0\theta_0 改成 bbb，表示截距项，模型变成如下形式：</p>
+<p>hθ,b(X)=θTX+b=θ1x1+θ2x2+⋯+θnxn+bhθ,b(X)=θTX+b=θ1x1+θ2x2+⋯+θnxn+b \begin{split} h_{\theta,b}(X) &amp;= \theta^T X + b \ &amp;= \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n + b \end{split}</p>
+<h3 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a><a href="#正则化" title="正则化"></a>正则化</h3><p>为了防止过拟合，一般会在代价函数上增加正则项，常见的正则方法有：</p>
+<ul>
+<li>L1: λ‖θ‖λ‖θ‖\lambda \left | \theta \right | , 也称之为套索回归 (Lasso)，可将参数稀疏化，但是不可导</li>
+<li>L2: λ2‖θ‖2λ2‖θ‖2\frac {\lambda} {2} {\left | \theta \right |}^2，也称之为岭回归 (Ridge)，可将参数均匀化，可导</li>
+<li>L1&amp;L2: λ(α‖θ‖+1−α2‖θ‖2)λ(α‖θ‖+1−α2‖θ‖2)\lambda \left(\alpha \left | \theta \right | + \frac {1-\alpha} {2} {\left | \theta \right |}^2 \right), 也称之为弹性网络 (ElasticNet)，具备 L1&amp;L2 的双重特性</li>
+</ul>
+<p>加上正则项后，代价函数变成如下形式：</p>
+<p>J(θ,b)=12m∑i=1m(y(i)−hθ,b(X))2+λm(α‖θ‖+1−α2‖θ‖2)J(θ,b)=12m∑i=1m(y(i)−hθ,b(X))2+λm(α‖θ‖+1−α2‖θ‖2) \begin{split} J(\theta, b) =&amp; \frac {1} {2m} \sum<em>{i=1}^m \left ( y^{(i)}-h</em>{\theta,b}(X) \right ) ^2 + \frac {\lambda} {m} \left(\alpha \left | \theta \right | + \frac {1-\alpha} {2} {\left | \theta \right |}^2 \right) \end{split}</p>
+<blockquote>
+<p>λλ\lambda 为正则项系数，αα\alpha 为 ElasticNet 参数，他们都是可调整的超参数， 当 α=0α=0\alpha = 0，则为 L2 正则， 当 α=1α=1\alpha = 1，则为 L1 正则。L1 正则项增加 1/m1/m1/m 以及 L2 正则项增加 1/2m1/2m1/2m 系数，仅仅是为了使求导后的形式规整一些。</p>
+</blockquote>
+<p>由于 L1 正则项不可导，如果 αα\alpha 不为 0，那么不能简单的套用梯度下降或 L-BFGS，需要采用借助<a href="http://blog.csdn.net/jbb0523/article/details/52103257" target="_blank" rel="noopener">软阈值 (Soft Thresholding)</a> 函数解决，如果是使用拟牛顿法，可以采用 <a href="http://research.microsoft.com/en-us/um/people/jfgao/paper/icml07scalable.pdf" target="_blank" rel="noopener">OWL-QN</a>，它是基于 L-BFGS 算法的可用于求解 L1 正则的算法。基于上述代价函数，下面仅列出包含 L2 正则项时的参数梯度：</p>
+<p>▽θjJ(θ,b)▽bJ(θ,b)=1m∑i=1m(y(i)−hθ,b(X(i)))X(i)j+λ(1−α)mθj∗=1m∑i=1m(y(i)−hθ,b(X(i)))▽θjJ(θ,b)=1m∑i=1m(y(i)−hθ,b(X(i)))Xj(i)+λ(1−α)mθj∗▽bJ(θ,b)=1m∑i=1m(y(i)−hθ,b(X(i))) \begin{split} \bigtriangledown<em>{\theta_j} J(\theta, b) &amp;= \frac {1} {m} \sum</em>{i=1}^m \left ( y^{(i)} - h<em>{\theta,b} (X^{(i)}) \right ) X^{(i)}_j + \frac {\lambda (1-\alpha)} {m} {\theta_j}^\ast \ \bigtriangledown_b J(\theta, b) &amp;= \frac {1} {m} \sum</em>{i=1}^m \left( y^{(i)} - h_{\theta,b} (X^{(i)}) \right) \end{split}</p>
+<blockquote>
+<p>θj∗θj∗{\theta_j}^\ast 为上一次迭代得到的参数值。</p>
+</blockquote>
+<p>实际上，使用 L2 正则，是将前面所述的最小二乘方程改成如下形式:</p>
+<p>θ=(XTX+kI)−1XTyθ=(XTX+kI)−1XTy \theta = {\left( X^T X + kI \right)}^{-1} X^T y</p>
+<blockquote>
+<p>这样可以降低矩阵 XTXXTXX^T X 奇异的可能，否则就不能求逆了。</p>
+</blockquote>
+<h3 id="标准化"><a href="#标准化" class="headerlink" title="标准化"></a><a href="#标准化" title="标准化"></a>标准化</h3><p>一般来说，一个特征的值可能在区间 (0,1)(0,1)(0, 1) 之间，另一特征的值可能在区间 (−∞,∞)(−∞,∞)(-\infty, \infty) ，这就是所谓的样本特征之间量纲不同，这样会导致优化迭代过程中的不稳定。当参数有不同初始值时，其收敛速度差异性较大，得到的结果可能也有较大的差异性，如下图所示，可以看到 X 和 Y 这两个变量的变化幅度不一致，如果直接使用梯度下降来优化迭代，那么量纲较大的特征信息量会被放大，量纲较小的特征信息量会被缩小。</p>
+<p><a href="/images/ml-no-normalize.png"><img src="http://sharkdtu.com/images/ml-no-normalize.png" alt></a></p>
+<p>所以一般要对数据作无量纲化处理，通常会采用标准化方法 (x−u)/σ(x−u)/σ(x-u)/\sigma ，得到如下数据分布，这样无论从哪个点开始，其迭代方向的抖动都不会太大，每个特征的信息也不至于被放大和缩小。</p>
+<p><a href="/images/ml-normalize.png"><img src="http://sharkdtu.com/images/ml-normalize.png" alt></a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><a href="#总结" title="总结"></a>总结</h2><p>虽然线性回归现在可能很少用于解决实际问题，但是因为其简单易懂，学习它有助于对机器学习有个入门级的初步掌握，了解机器学习的套路等。</p>
+<p><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-linear-regression.html" target="_blank" rel="noopener">http://sharkdtu.com/posts/ml-linear-regression.html</a></em></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/07/ 线性回归/" title="线性回归">https://ailab-aida.github.io/2019/11/07/ 线性回归/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/07/协同过滤推荐 ALS/" rel="next" title="协同过滤推荐 ALS">
+                  <i class="fa fa-chevron-left"></i> 协同过滤推荐 ALS
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/07/逻辑回归/" rel="prev" title="逻辑回归">
+                  逻辑回归 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本套路"><span class="nav-number">1.</span> <span class="nav-text">基本套路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用套路"><span class="nav-number">2.</span> <span class="nav-text">应用套路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#正则化"><span class="nav-number">2.1.</span> <span class="nav-text">正则化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标准化"><span class="nav-number">2.2.</span> <span class="nav-text">标准化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '412c9f6f37fe5883f87fe391749656e5',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

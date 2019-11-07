@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。基本套路给定训练集 TTT，每个实例表示为 (x,y)(x,y)(x, y)，其中 xxx 为 nnn 维特征向量，定义">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="朴素贝叶斯">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/07/朴素贝叶斯/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。基本套路给定训练集 TTT，每个实例表示为 (x,y)(x,y)(x, y)，其中 xxx 为 nnn 维特征向量，定义">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-07T12:13:01.087Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="朴素贝叶斯">
+<meta name="twitter:description" content="朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。基本套路给定训练集 TTT，每个实例表示为 (x,y)(x,y)(x, y)，其中 xxx 为 nnn 维特征向量，定义">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/07/朴素贝叶斯/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>朴素贝叶斯 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/07/朴素贝叶斯/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">朴素贝叶斯
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-07 20:09:51 / 修改时间：20:13:01" itemprop="dateCreated datePublished" datetime="2019-11-07T20:09:51+08:00">2019-11-07</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>朴素贝叶斯（NaiveBayes）是基于贝叶斯定理与特征条件独立假设的一种分类方法，常用于文档分类、垃圾邮件分类等应用场景。其基本思想是，对于给定的训练集，基于特征条件独立的假设，学习输入输出的联合概率分布，然后根据贝叶斯定理，对给定的预测数据，预测其类别为后验概率最大的类别。</p><h2 id="基本套路"><a href="#基本套路" class="headerlink" title="基本套路"></a><a href="#基本套路" title="基本套路"></a>基本套路</h2><p>给定训练集 TTT，每个实例表示为 (x,y)(x,y)(x, y)，其中 xxx 为 nnn 维特征向量，定义 XXX 为输入 (特征) 空间上的随机向量，YYY 为输出 (类别) 空间上的随机变量，根据训练集计算如下概率分布：</p><a id="more"></a>
+
+<ul>
+<li>先验概率分布，即每个类别在训练集中概率分布</li>
+</ul>
+<p>P(Y=ck)，k=1,2,…,K(其中 K 为类别个数)P(Y=ck)，k=1,2,…,K(其中 K 为类别个数) P\left( Y=c_k \right) ，k=1, 2,…, K \left(\text{其中 K 为类别个数}\right)</p>
+<ul>
+<li>条件概率分布，即在每个类别下，各特征的条件概率分布</li>
+</ul>
+<p>P(X=x∣Y=ck)=P(X1=x1,X2=x2,…,Xn=xn∣Y=ck)P(X=x∣Y=ck)=P(X1=x1,X2=x2,…,Xn=xn∣Y=ck) P\left( X=x \mid Y=c_k \right) = P\left( X_1=x_1, X_2=x_2,…, X_n=x_n \mid Y=c_k \right)</p>
+<p>假设每个特征之间是独立的，那么上述条件概率分布可以展开为如下形式：</p>
+<p>P(X=x∣Y=ck)=P(X1=x1,X2=x2,…,Xn=xn∣Y=ck)=∏j=1nP(Xj=xj∣Y=ck)P(X=x∣Y=ck)=P(X1=x1,X2=x2,…,Xn=xn∣Y=ck)=∏j=1nP(Xj=xj∣Y=ck) \begin{split} P\left( X=x \mid Y=c<em>k \right) &amp;= P\left( X_1=x_1, X_2=x_2,…, X_n=x_n \mid Y=c_k \right) \ &amp;= \prod</em>{j=1}^{n} P\left( X_j=x_j \mid Y=c_k \right) \end{split}</p>
+<p>如果有了每个类别的概率 P(Y=ck)P(Y=ck)P\left( Y=c_k \right)，以及 每个类别下每个特征的条件概率 P(Xj=xj∣Y=ck)P(Xj=xj∣Y=ck)P\left( X_j=x_j \mid Y=c_k \right)，那么对于一个未知类别的实例 xxx，就可以用贝叶斯公式求解其属于每个类别的后验概率：</p>
+<p>P(Y=ck∣X=x)=P(X=x∣Y=ck)P(Y=ck)∑kP(X=x∣Y=ck)P(Y=ck)=P(Y=ck)∏jP(Xj=xj∣Y=ck)∑kP(Y=ck)∏jP(Xj=xj∣Y=ck)P(Y=ck∣X=x)=P(X=x∣Y=ck)P(Y=ck)∑kP(X=x∣Y=ck)P(Y=ck)=P(Y=ck)∏jP(Xj=xj∣Y=ck)∑kP(Y=ck)∏jP(Xj=xj∣Y=ck) \begin{split} P\left( Y=c<em>k \mid X=x \right) &amp;= \frac {P\left( X=x \mid Y=c_k \right) P\left( Y=c_k \right)} {\sum</em>{k}P\left( X=x \mid Y=c<em>k \right) P\left( Y=c_k \right)} \ &amp;= \frac {P\left( Y=c_k \right) \prod</em>{j} P\left( X<em>j=x_j \mid Y=c_k \right)} {\sum</em>{k} P\left( Y=c<em>k \right)\prod</em>{j} P\left( X_j=x_j \mid Y=c_k \right)} \end{split}</p>
+<p>对于每个实例，分母都一样，则将该实例的类别判别为：</p>
+<p>y=argmaxckP(Y=ck)∏jP(Xj=xj∣Y=ck)y=argmaxckP(Y=ck)∏jP(Xj=xj∣Y=ck) y = {arg \, max}<em>{c_k} \; P\left( Y=c_k \right) \prod</em>{j} P\left( X_j=x_j \mid Y=c_k \right)</p>
+<h2 id="应用套路"><a href="#应用套路" class="headerlink" title="应用套路"></a><a href="#应用套路" title="应用套路"></a>应用套路</h2><p>那么如何求解 P(Y=ck)P(Y=ck)P\left( Y=c_k \right) 和 P(Xj=xj∣Y=ck)P(Xj=xj∣Y=ck)P\left( X_j=x_j \mid Y=c_k \right) 这些概率值呢？答案是极大似然估计。先验概率的极大似然估计为：</p>
+<p>P(Y=ck)=Ny=ck+λ∑KiNy=ci+KλP(Y=ck)=Ny=ck+λ∑iKNy=ci+Kλ P\left( Y=c<em>k \right) = \frac {N</em>{y=c<em>k} + \lambda} {\sum_i^K N</em>{y=c_i} + K\lambda}</p>
+<blockquote>
+<p>其中 Ny=ckNy=ckN_{y=c_k} 为类别 ckckc_k 的实例个数，KKK 为类别个数，λλ\lambda 为平滑系数，避免估计的概率为 0 的情况。</p>
+</blockquote>
+<p>对于条件概率 P(Xj=xj∣Y=ck)P(Xj=xj∣Y=ck)P\left( X_j=x_j \mid Y=c_k \right) 的极大似然估计通常有两种模型：多项式模型和伯努利模型。</p>
+<p><strong>多项式模型</strong></p>
+<p>P(Xj=xj∣Y=ck)=Nxj∣y=ck+λ∑niNxj∣y=ck+nλP(Xj=xj∣Y=ck)=Nxj∣y=ck+λ∑inNxj∣y=ck+nλ P\left( X<em>j=x_j \mid Y=c_k \right) = \frac {N</em>{x<em>j \mid y=c_k} + \lambda} {\sum_i^{n}N</em>{x_j \mid y=c_k} + n\lambda}</p>
+<blockquote>
+<p>其中 Nxj∣y=ckNxj∣y=ckN_{x_j \mid y=c_k} 为类别 ckckc_k 下特征 xjxjx_j 出现的总次数， nnn 为特征维度。</p>
+</blockquote>
+<p><strong>伯努利模型</strong></p>
+<p>对于每个特征 xjxjx_j，只能有 {0, 1} 两种可能的取值：</p>
+<p>P(Xj=1∣Y=ck)P(Xj=0∣Y=ck)=Ny=ck,xj=1+λNy=ck+2λ=1−P(Xj=1∣Y=ck)P(Xj=1∣Y=ck)=Ny=ck,xj=1+λNy=ck+2λP(Xj=0∣Y=ck)=1−P(Xj=1∣Y=ck) \begin{split} P\left( X<em>j=1 \mid Y=c_k \right) &amp;= \frac {N</em>{y=c<em>k, x_j=1} + \lambda} {N</em>{y=c_k} + 2\lambda} \ P\left( X_j=0 \mid Y=c_k \right) &amp;= 1- P\left( X_j=1 \mid Y=c_k \right) \end{split}</p>
+<blockquote>
+<p>其中 Ny=ck,xj=1Ny=ck,xj=1N_{y=c_k, x_j=1} 为类别 ckckc_k 下特征 xj=1xj=1x_j=1 出现的总次数。</p>
+</blockquote>
+<p>通过给定的训练集，根据上述极大似然估计方法，可以求得朴素贝叶斯模型的参数 (即上述的先验概率和条件概率)，基于这些参数即可根据下面的模型对未知类别的数据进行预测。</p>
+<p>y=argmaxckP(Y=ck)∏jP(Xj=xj∣Y=ck)y=argmaxckP(Y=ck)∏jP(Xj=xj∣Y=ck) y = {arg \, max}<em>{c_k} \; P\left( Y=c_k \right) \prod</em>{j} P\left( X_j=x_j \mid Y=c_k \right)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><a href="#总结" title="总结"></a>总结</h2><p>朴素贝叶斯模型是基于特征之间独立的假设，这是个非常强的假设，这也是其名字的由来，它属于生成学习方法，训练时不需要迭代拟合，模型简单易于理解，常用于文本分类等，并能取得较好的效果。</p>
+<p><em>转载请注明出处，本文永久链接：<a href="http://sharkdtu.com/posts/ml-nb.html" target="_blank" rel="noopener">http://sharkdtu.com/posts/ml-nb.html</a></em></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/07/朴素贝叶斯/" title="朴素贝叶斯">https://ailab-aida.github.io/2019/11/07/朴素贝叶斯/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/07/逻辑回归/" rel="next" title="逻辑回归">
+                  <i class="fa fa-chevron-left"></i> 逻辑回归
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/07/分布式 TensorFlow 编程模型演进/" rel="prev" title="分布式 TensorFlow 编程模型演进">
+                  分布式 TensorFlow 编程模型演进 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本套路"><span class="nav-number">1.</span> <span class="nav-text">基本套路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用套路"><span class="nav-number">2.</span> <span class="nav-text">应用套路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '03d8bf94c343e868f73eb271aaa37cc7',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
