@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="LDA 模型是什么 LDA 可以分为以下 5 个步骤： 一个函数：gamma 函数。 四个分布：二项分布、多项分布、beta 分布、Dirichlet 分布。 一个概念和一个理念：共轭先验和贝叶斯框架。 两个模型：pLSA、LDA。 一个采样：Gibbs 采样 关于 LDA 有两种含义，一种是线性判别分析（Linear Discriminant Analysis），一种是概率主题模型：隐含狄利克">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="主题模型 (Topic Model)、LDA(案例代码)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="LDA 模型是什么 LDA 可以分为以下 5 个步骤： 一个函数：gamma 函数。 四个分布：二项分布、多项分布、beta 分布、Dirichlet 分布。 一个概念和一个理念：共轭先验和贝叶斯框架。 两个模型：pLSA、LDA。 一个采样：Gibbs 采样 关于 LDA 有两种含义，一种是线性判别分析（Linear Discriminant Analysis），一种是概率主题模型：隐含狄利克">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8db29dd2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8f155161?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=X%5Csim_%7B%7Db(n%2Cp">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Csum_%7Bi%3D1%7D%5E%7Bk%7Dp_i%3D1%2Cp_i%3E0">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha%3E0">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta%3E0">
+<meta property="og:image" content="https://juejin.im/equation?tex=f(x%3B%5Calpha%2C%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cfrac%7B1%7D%7BB(%5Calpha%2C%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5CGamma(z">
+<meta property="og:image" content="https://juejin.im/equation?tex=f(x_1%2Cx_2%2C...%2Cx_k%3B%5Calpha_1%2C%5Calpha_2%2C...%2C%5Calpha_k">
+<meta property="og:image" content="https://juejin.im/equation?tex=B(%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=Beta(p%7C%5Calpha%2C%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=(m_1%2Cm_2">
+<meta property="og:image" content="https://juejin.im/equation?tex=B(m_1%2Bm_2%2Cp">
+<meta property="og:image" content="https://juejin.im/equation?tex=Dir(%5Cvec%7Bp%7D%7C%5Cvec%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cpi(%5Ctheta">
+<meta property="og:image" content="https://juejin.im/equation?tex=X">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cpi(%5Ctheta%7Cx">
+<meta property="og:image" content="https://juejin.im/equation?tex=w">
+<meta property="og:image" content="https://juejin.im/equation?tex=V">
+<meta property="og:image" content="https://juejin.im/equation?tex=z">
+<meta property="og:image" content="https://juejin.im/equation?tex=k">
+<meta property="og:image" content="https://juejin.im/equation?tex=D%3D(W_1%2C...%2CW_M">
+<meta property="og:image" content="https://juejin.im/equation?tex=W%3D(w_1%2Cw_2%2C...%2Cw_N">
+<meta property="og:image" content="https://juejin.im/equation?tex=W%3D(w_1%2Cw_2%2C...%2Cw_N">
+<meta property="og:image" content="https://juejin.im/equation?tex=p(w_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=w_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=p(W">
+<meta property="og:image" content="https://juejin.im/equation?tex=z_1%2C...%2Cz_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=p(W">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8f5bddaf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(w_j%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(w_j%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(z_k%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(w_j%7Cz_k">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(w_j%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(d_i%2Cw_j">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(d_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(w_j%7Cz_k">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(z_k%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta%3D(P(w_j%7Cz_k">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(d_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctheta_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w_%7Bi%2Cj%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=(P(z_k%7Cd_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Calpha">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cbeta">
+<meta property="og:updated_time" content="2019-11-07T09:57:52.153Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="主题模型 (Topic Model)、LDA(案例代码)">
+<meta name="twitter:description" content="LDA 模型是什么 LDA 可以分为以下 5 个步骤： 一个函数：gamma 函数。 四个分布：二项分布、多项分布、beta 分布、Dirichlet 分布。 一个概念和一个理念：共轭先验和贝叶斯框架。 两个模型：pLSA、LDA。 一个采样：Gibbs 采样 关于 LDA 有两种含义，一种是线性判别分析（Linear Discriminant Analysis），一种是概率主题模型：隐含狄利克">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8db29dd2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>主题模型 (Topic Model)、LDA(案例代码) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">主题模型 (Topic Model)、LDA(案例代码)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-07 17:53:54 / 修改时间：17:57:52" itemprop="dateCreated datePublished" datetime="2019-11-07T17:53:54+08:00">2019-11-07</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>LDA 模型是什么</li>
+</ol><hr><p>LDA 可以分为以下 5 个步骤：</p><ul>
+<li>一个函数：gamma 函数。</li>
+<li>四个分布：二项分布、多项分布、beta 分布、Dirichlet 分布。</li>
+<li>一个概念和一个理念：共轭先验和贝叶斯框架。</li>
+<li>两个模型：pLSA、LDA。</li>
+<li>一个采样：Gibbs 采样</li>
+</ul><p>关于 LDA 有两种含义，一种是线性判别分析（Linear Discriminant Analysis），一种是概率主题模型：<strong>隐含狄利克雷分布（Latent Dirichlet Allocation，简称 LDA）</strong>，本文讲后者。</p><a id="more"></a>
+
+
+
+
+<p>按照 wiki 上的介绍，LDA 由 Blei, David M.、Ng, Andrew Y.、Jordan 于 2003 年提出，是一种主题模型，它可以将文档集 中每篇文档的主题以概率分布的形式给出，从而通过分析一些文档抽取出它们的主题（分布）出来后，便可以根据主题（分布）进行主题聚类或文本分类。同时，它是一种典型的词袋模型，即一篇文档是由一组词构成，词与词之间没有先后顺序的关系。此外，一篇文档可以包含多个主题，文档中每一个词都由其中的一个主题生成。</p>
+<p>人类是怎么生成文档的呢？首先先列出几个主题，然后以一定的概率选择主题，以一定的概率选择这个主题包含的词汇，最终组合成一篇文章。如下图所示 (其中不同颜色的词语分别对应上图中不同主题下的词)。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8db29dd2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>那么 LDA 就是跟这个反过来：<strong>根据给定的一篇文档，反推其主题分布。</strong></p>
+<p>在 LDA 模型中，一篇文档生成的方式如下：</p>
+<ul>
+<li>从狄利克雷分布 <img src="https://juejin.im/equation?tex=%5Calpha" alt> 中取样生成文档 i 的主题分布 <img src="https://juejin.im/equation?tex=%5Ctheta_i" alt>。</li>
+<li>从主题的多项式分布 <img src="https://juejin.im/equation?tex=%5Ctheta_i" alt> 中取样生成文档 i 第 j 个词的主题 <img src="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D" alt>。</li>
+<li>从狄利克雷分布 <img src="https://juejin.im/equation?tex=%5Cbeta" alt> 中取样生成主题 <img src="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D" alt> 对应的词语分布 <img src="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D" alt>。</li>
+<li>从词语的多项式分布 <img src="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D" alt> 中采样最终生成词语 <img src="https://juejin.im/equation?tex=w_%7Bi%2Cj%7D" alt>。</li>
+</ul>
+<p>其中，类似 Beta 分布是二项式分布的共轭先验概率分布，而狄利克雷分布（Dirichlet 分布）是多项式分布的共轭先验概率分布。此外，LDA 的图模型结构如下图所示（类似贝叶斯网络结构）：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8f155161?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="1-1-5-个分布的理解"><a href="#1-1-5-个分布的理解" class="headerlink" title="1.1 5 个分布的理解"></a>1.1 5 个分布的理解</h3><p>先解释一下以上出现的概念。</p>
+<ol>
+<li><p><strong>二项分布（Binomial distribution）</strong></p>
+<p>二项分布是从伯努利分布推进的。伯努利分布，又称两点分布或 0-1 分布，是一个离散型的随机分布，其中的随机变量只有两类取值，非正即负 {+，-}。而二项分布即重复 n 次的伯努利试验，记为 <img src="https://juejin.im/equation?tex=X%5Csim_%7B%7Db(n%2Cp" alt>&gt;)。简言之，只做一次实验，是伯努利分布，重复做了 n 次，是二项分布。</p>
+</li>
+<li><p><strong>多项分布</strong></p>
+<p>是二项分布扩展到多维的情况。多项分布是指单次试验中的随机变量的取值不再是 0-1 的，而是有多种离散值可能（1,2,3…,k）。比如投掷 6 个面的骰子实验，N 次实验结果服从 K=6 的多项分布。其中：</p>
+<p><img src="https://juejin.im/equation?tex=%5Csum_%7Bi%3D1%7D%5E%7Bk%7Dp_i%3D1%2Cp_i%3E0" alt></p>
+</li>
+<li><p><strong>共轭先验分布</strong></p>
+<p>在<a href="https://baike.baidu.com/item/%E8%B4%9D%E5%8F%B6%E6%96%AF%E7%BB%9F%E8%AE%A1/3431194" target="_blank" rel="noopener">贝叶斯统计</a>中，如果<a href="https://baike.baidu.com/item/%E5%90%8E%E9%AA%8C%E5%88%86%E5%B8%83/2022914" target="_blank" rel="noopener">后验分布</a>与<a href="https://baike.baidu.com/item/%E5%85%88%E9%AA%8C%E5%88%86%E5%B8%83/7513047" target="_blank" rel="noopener">先验分布</a>属于同类，则先验分布与后验分布被称为<strong>共轭分布</strong>，而先验分布被称为似然函数的<strong>共轭先验</strong>。</p>
+</li>
+<li><p><strong>Beta 分布</strong></p>
+<p>二项分布的共轭先验分布。给定参数 <img src="https://juejin.im/equation?tex=%5Calpha%3E0" alt> 和 <img src="https://juejin.im/equation?tex=%5Cbeta%3E0" alt>，取值范围为 [0,1] 的随机变量 x 的概率密度函数：</p>
+<p><img src="https://juejin.im/equation?tex=f(x%3B%5Calpha%2C%5Cbeta" alt>%3D%5Cfrac%7B1%7D%7BB(%5Calpha%2C%5Cbeta)%7Dx%5E%7B%5Calpha-1%7D(1-x)%5E%7B%5Cbeta-1%7D&gt;)</p>
+<p>其中：</p>
+<p><img src="https://juejin.im/equation?tex=%5Cfrac%7B1%7D%7BB(%5Calpha%2C%5Cbeta" alt>%7D%3D%5Cfrac%7B%5CGamma(%5Calpha%2B%5Cbeta)%7D%7B%5CGamma(%5Calpha)%5CGamma(%5Cbeta)%7D&gt;) <img src="https://juejin.im/equation?tex=%5CGamma(z" alt>%3D%5Cint_%7B0%7D%5E%7B%5Cinfty%7Dt%5E%7Bz-1%7De%5E%7B-t%7Ddt&gt;)</p>
+<p><strong>注：这便是所谓的 gamma 函数，下文会具体阐述。</strong></p>
+</li>
+<li><p><strong>狄利克雷分布</strong></p>
+<p>是 beta 分布在高维度上的推广。Dirichlet 分布的的密度函数形式跟 beta 分布的密度函数如出一辙：</p>
+<p><img src="https://juejin.im/equation?tex=f(x_1%2Cx_2%2C...%2Cx_k%3B%5Calpha_1%2C%5Calpha_2%2C...%2C%5Calpha_k" alt>%3D%5Cfrac%7B1%7D%7BB(%5Calpha)%7D%5Cprod_%7Bi%3D1%7D%5E%7Bk%7Dx_i%5E%7B%5Calpha%5Ei-1%7D&gt;)</p>
+<p>其中</p>
+<p><img src="https://juejin.im/equation?tex=B(%5Calpha" alt>%3D%5Cfrac%7B%5Cprod<em>%7Bi%3D1%7D%5E%7Bk%7D%5CGamma(%5Calpha%5Ei)%7D%7B%5CGamma(%5Csum</em>%7Bi%3D1%7D%5E%7Bk%7D%5Calpha%5Ei)%7D%2C%5Csum_%7B%7Dx_i%3D1&gt;)</p>
+</li>
+</ol>
+<p>至此，我们可以看到二项分布和多项分布很相似，Beta 分布和 Dirichlet 分布很相似。</p>
+<p>如果想要深究其原理可以参考：<a href="https://blog.csdn.net/v_july_v/article/details/41209515" target="_blank" rel="noopener">通俗理解 LDA 主题模型</a>，也可以先往下走，最后在回过头来看详细的公式，就更能明白了。</p>
+<p>总之，<strong>可以得到以下几点信息。</strong></p>
+<ul>
+<li><p>beta 分布是二项式分布的共轭先验概率分布：对于非负实数 <img src="https://juejin.im/equation?tex=%5Calpha" alt> 和 <img src="https://juejin.im/equation?tex=%5Cbeta" alt> ，我们有如下关系：</p>
+<p><img src="https://juejin.im/equation?tex=Beta(p%7C%5Calpha%2C%5Cbeta" alt>%2BCount(m_1%2Cm_2)%3DBeta(p%7C%5Calpha%2Bm_1%2C%5Cbeta%2Bm_2)&gt;)</p>
+<p>其中 <img src="https://juejin.im/equation?tex=(m_1%2Cm_2" alt>&gt;) 对应的是二项分布 <img src="https://juejin.im/equation?tex=B(m_1%2Bm_2%2Cp" alt>&gt;) 的记数。针对于这种观测到的数据符合二项分布，参数的先验分布和后验分布都是 Beta 分布的情况，就是 Beta-Binomial 共轭。”</p>
+</li>
+<li><p>狄利克雷分布（Dirichlet 分布）是多项式分布的共轭先验概率分布，一般表达式如下：</p>
+<p><img src="https://juejin.im/equation?tex=Dir(%5Cvec%7Bp%7D%7C%5Cvec%5Calpha" alt>%2BMultCount(%5Cvec%7Bm%7D)%3DDir(p%7C%5Cvec%7B%5Calpha%7D%2B%5Cvec%7Bm%7D)&gt;)</p>
+<p>针对于这种观测到的数据符合多项分布，参数的先验分布和后验分布都是 Dirichlet 分布的情况，就是 Dirichlet-Multinomial 共轭。 ”</p>
+</li>
+<li><p>贝叶斯派思考问题的固定模式：</p>
+<p>先验分布 <img src="https://juejin.im/equation?tex=%5Cpi(%5Ctheta" alt>&gt;)+ 样本信息 <img src="https://juejin.im/equation?tex=X" alt> = 后验分布 <img src="https://juejin.im/equation?tex=%5Cpi(%5Ctheta%7Cx" alt>&gt;)。</p>
+</li>
+</ul>
+<h3 id="1-2-3-个基础模型的理解"><a href="#1-2-3-个基础模型的理解" class="headerlink" title="1.2 3 个基础模型的理解"></a>1.2 3 个基础模型的理解</h3><p>在讲 LDA 模型之前，再循序渐进理解基础模型：Unigram model、mixture of unigrams model，以及跟 LDA 最为接近的 pLSA 模型。为了方便描述，首先定义一些变量：</p>
+<ul>
+<li><img src="https://juejin.im/equation?tex=w" alt> 表示词，<img src="https://juejin.im/equation?tex=V" alt> 表示所有单词的个数（固定值）。</li>
+<li><img src="https://juejin.im/equation?tex=z" alt> 表示主题，<img src="https://juejin.im/equation?tex=k" alt> 是主题的个数（预先给定，固定值）。</li>
+<li><img src="https://juejin.im/equation?tex=D%3D(W_1%2C...%2CW_M" alt>&gt;) 表示语料库，其中的 M 是语料库中的文档数（固定值）。</li>
+<li><img src="https://juejin.im/equation?tex=W%3D(w_1%2Cw_2%2C...%2Cw_N" alt>&gt;) 表示文档，其中的 N 表示一个文档中的词数（随机变量）。</li>
+</ul>
+<ol>
+<li><p><strong>Unigram model</strong></p>
+<p>对于文档<img src="https://juejin.im/equation?tex=W%3D(w_1%2Cw_2%2C...%2Cw_N" alt>&gt;)，用 <img src="https://juejin.im/equation?tex=p(w_n" alt>&gt;) 表示词 <img src="https://juejin.im/equation?tex=w_n" alt> 的先验概率，生成文档 w 的概率为：</p>
+<p><img src="https://juejin.im/equation?tex=p(W" alt>%3D%5Cprod_%7Bn%3D1%7D%5E%7BN%7Dp(w_n)&gt;)</p>
+</li>
+<li><p><strong>Mixture of unigrams model</strong></p>
+<p>该模型的生成过程是：给某个文档先选择一个主题 z, 再根据该主题生成文档，该文档中的所有词都来自一个主题。假设主题有 <img src="https://juejin.im/equation?tex=z_1%2C...%2Cz_n" alt>，生成文档 w 的概率为：</p>
+<p><img src="https://juejin.im/equation?tex=p(W" alt>%3Dp(z<em>1)%5Cprod</em>%7Bn%3D1%7D%5E%7BN%7Dp(w<em>n%7Cz_1)%2B…%2Bp(z_k)%5Cprod</em>%7Bn%3D1%7D%5E%7BN%7Dp(w<em>n%7Cz_k)%3D%5Csum</em>%7Bz%7Dp(z)%5Cprod_%7Bn%3D1%7D%5E%7BN%7Dp(w_n%7Cz)&gt;)</p>
+</li>
+<li><p><strong>PLSA 模型</strong></p>
+<p>理解了 pLSA 模型后，到 LDA 模型也就一步之遥——给 pLSA 加上贝叶斯框架，便是 LDA。</p>
+<p>在上面的 Mixture of unigrams model 中，我们假定一篇文档只有一个主题生成，可实际中，一篇文章往往有多个主题，只是这多个主题各自在文档中出现的概率大小不一样。比如介绍一个国家的文档中，往往会分别从教育、经济、交通等多个主题进行介绍。那么在 pLSA 中，文档是怎样被生成的呢？</p>
+<p>假定你一共有 K 个可选的主题，有 V 个可选的词，<strong>咱们来玩一个扔骰子的游戏。</strong></p>
+<p><strong> 一、</strong> 假设你每写一篇文档会制作一颗 K 面的 “文档 - 主题” 骰子（扔此骰子能得到 K 个主题中的任意一个），和 K 个 V 面的“主题 - 词项” 骰子（每个骰子对应一个主题，K 个骰子对应之前的 K 个主题，且骰子的每一面对应要选择的词项，V 个面对应着 V 个可选的词）。</p>
+<p>比如可令 K=3，即制作 1 个含有 3 个主题的 “文档 - 主题” 骰子，这 3 个主题可以是：教育、经济、交通。然后令 V = 3，制作 3 个有着 3 面的 “主题 - 词项” 骰子，其中，教育主题骰子的 3 个面上的词可以是：大学、老师、课程，经济主题骰子的 3 个面上的词可以是：市场、企业、金融，交通主题骰子的 3 个面上的词可以是：高铁、汽车、飞机。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d8f5bddaf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong> 二、</strong> 每写一个词，先扔该 “文档 - 主题” 骰子选择主题，得到主题的结果后，使用和主题结果对应的那颗 “主题 - 词项” 骰子，扔该骰子选择要写的词。</p>
+<p>先扔 “文档 - 主题” 的骰子，假设（以一定的概率）得到的主题是教育，所以下一步便是扔教育主题筛子，（以一定的概率）得到教育主题筛子对应的某个词：大学。</p>
+<p>上面这个投骰子产生词的过程简化下便是：<strong>“先以一定的概率选取主题，再以一定的概率选取词”。</strong></p>
+<p><strong> 三、</strong> 最后，你不停的重复扔 “文档 - 主题” 骰子和”主题 - 词项“骰子，重复 N 次（产生 N 个词），完成一篇文档，重复这产生一篇文档的方法 M 次，则完成 M 篇文档。</p>
+<p><strong>上述过程抽象出来即是 PLSA 的文档生成模型。在这个过程中，我们并未关注词和词之间的出现顺序，所以 pLSA 是一种词袋方法。生成文档的整个过程便是选定文档生成主题，确定主题生成词。</strong></p>
+<p>反过来，既然文档已经产生，那么如何根据已经产生好的文档反推其主题呢？这个利用看到的文档推断其隐藏的主题（分布）的过程（其实也就是产生文档的逆过程），便是<strong>主题建模的目的：自动地发现文档集中的主题（分布）。</strong></p>
+<p>文档 d 和词 w 是我们得到的样本，可观测得到，所以对于任意一篇文档，其 <img src="https://juejin.im/equation?tex=P(w_j%7Cd_i" alt>&gt;) 是已知的。从而可以根据大量已知的文档 - 词项信息 <img src="https://juejin.im/equation?tex=P(w_j%7Cd_i" alt>&gt;)，训练出文档 - 主题 <img src="https://juejin.im/equation?tex=P(z_k%7Cd_i" alt>&gt;) 和主题 - 词项 <img src="https://juejin.im/equation?tex=P(w_j%7Cz_k" alt>&gt;)，如下公式所示：</p>
+<p><img src="https://juejin.im/equation?tex=P(w_j%7Cd_i" alt>%3D%5Csum_%7Bk%3D1%7D%5E%7BK%7DP(w_j%7Cz_k)P(z_k%7Cd_i)&gt;)</p>
+<p>故得到文档中每个词的生成概率为：</p>
+<p><img src="https://juejin.im/equation?tex=P(d_i%2Cw_j" alt>%3DP(d<em>i)P(w_j%7Cd_i)%3DP(d_i)%5Csum</em>%7Bk%3D1%7D%5E%7BK%7DP(w_j%7Cz_k)P(z_k%7Cd_i)&gt;)</p>
+<p>由于 <img src="https://juejin.im/equation?tex=P(d_i" alt>&gt;) 可事先计算求出，而 <img src="https://juejin.im/equation?tex=P(w_j%7Cz_k" alt>%5E%7B%7D&gt;) 和 <img src="https://juejin.im/equation?tex=P(z_k%7Cd_i" alt>&gt;) 未知，所以 <img src="https://juejin.im/equation?tex=%5Ctheta%3D(P(w_j%7Cz_k" alt>%2CP(z_k%7Cd_i))&gt;) 就是我们要估计的参数（值），通俗点说，就是要最大化这个 θ。</p>
+<p>用什么方法进行估计呢，常用的参数估计方法有极大似然估计 MLE、最大后验证估计 MAP、贝叶斯估计等等。因为该待估计的参数中含有隐变量 z，所以我们可以考虑 EM 算法。详细的 EM 算法可以参考之前写过的 <a href="https://github.com/NLP-LOVE/ML-NLP/tree/master/Machine%20Learning/6.%20EM" target="_blank" rel="noopener">EM 算法</a> 章节。</p>
+</li>
+</ol>
+<h3 id="1-3-LDA-模型"><a href="#1-3-LDA-模型" class="headerlink" title="1.3 LDA 模型"></a>1.3 LDA 模型</h3><p>事实上，理解了 pLSA 模型，也就差不多快理解了 LDA 模型，因为 LDA 就是在 pLSA 的基础上加层贝叶斯框架，即 LDA 就是 pLSA 的贝叶斯版本（正因为 LDA 被贝叶斯化了，所以才需要考虑历史先验知识，才加的两个先验参数）。</p>
+<p>下面，咱们对比下本文开头所述的 LDA 模型中一篇文档生成的方式是怎样的：</p>
+<ul>
+<li>按照先验概率 <img src="https://juejin.im/equation?tex=P(d_i" alt>&gt;) 选择一篇文档 <img src="https://juejin.im/equation?tex=d_i" alt>。</li>
+<li>从狄利克雷分布（即 Dirichlet 分布）<img src="https://juejin.im/equation?tex=%5Calpha" alt> 中取样生成文档 <img src="https://juejin.im/equation?tex=d_i" alt> 的主题分布 <img src="https://juejin.im/equation?tex=%5Ctheta_i" alt>，换言之，主题分布 <img src="https://juejin.im/equation?tex=%5Ctheta_i" alt> 由超参数为 <img src="https://juejin.im/equation?tex=%5Calpha" alt> 的 Dirichlet 分布生成。</li>
+<li>从主题的多项式分布 <img src="https://juejin.im/equation?tex=%5Ctheta_i" alt> 中取样生成文档 <img src="https://juejin.im/equation?tex=d_i" alt> 第 j 个词的主题 <img src="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D" alt>。</li>
+<li>从狄利克雷分布（即 Dirichlet 分布）<img src="https://juejin.im/equation?tex=%5Cbeta" alt> 中取样生成主题 <img src="https://juejin.im/equation?tex=z_%7Bi%2Cj%7D" alt> 对应的词语分布 <img src="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D" alt>，换言之，词语分布 <img src="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D" alt> 由参数为 <img src="https://juejin.im/equation?tex=%5Cbeta" alt> 的 Dirichlet 分布生成。</li>
+<li>从词语的多项式分布 <img src="https://juejin.im/equation?tex=%5Cphi_%7Bz_%7Bi%2Cj%7D%7D" alt> 中采样最终生成词语 <img src="https://juejin.im/equation?tex=w_%7Bi%2Cj%7D" alt>。</li>
+</ul>
+<p>LDA 中，选主题和选词依然都是两个随机的过程，依然可能是先从主题分布 {教育：0.5，经济：0.3，交通：0.2} 中抽取出主题：教育，然后再从该主题对应的词分布 {大学：0.5，老师：0.3，课程：0.2} 中抽取出词：大学。</p>
+<p>那 PLSA 跟 LDA 的区别在于什么地方呢？区别就在于：</p>
+<p>PLSA 中，主题分布和词分布是唯一确定的，能明确的指出主题分布可能就是 {教育：0.5，经济：0.3，交通：0.2}，词分布可能就是 {大学：0.5，老师：0.3，课程：0.2}。 但在 LDA 中，主题分布和词分布不再唯一确定不变，即无法确切给出。例如主题分布可能是 {教育：0.5，经济：0.3，交通：0.2}，也可能是 {教育：0.6，经济：0.2，交通：0.2}，到底是哪个我们不再确定（即不知道），因为它是随机的可变化的。但再怎么变化，也依然服从一定的分布，<strong>即主题分布跟词分布由 Dirichlet 先验随机确定。正因为 LDA 是 PLSA 的贝叶斯版本，所以主题分布跟词分布本身由先验知识随机给定。</strong></p>
+<p>换言之，LDA 在 pLSA 的基础上给这两参数 <img src="https://juejin.im/equation?tex=(P(z_k%7Cd_i" alt>%E3%80%81P(w_j%7Cz_k))&gt;) 加了两个先验分布的参数（贝叶斯化）：一个主题分布的先验分布 Dirichlet 分布 <img src="https://juejin.im/equation?tex=%5Calpha" alt>，和一个词语分布的先验分布 Dirichlet 分布 <img src="https://juejin.im/equation?tex=%5Cbeta" alt>。</p>
+<p>综上，LDA 真的只是 pLSA 的贝叶斯版本，文档生成后，两者都要根据文档去推断其主题分布和词语分布（即两者本质都是为了估计给定文档生成主题，给定主题生成词语的概率），只是用的参数推断方法不同，在 pLSA 中用极大似然估计的思想去推断两未知的固定参数，而 LDA 则把这两参数弄成随机变量，且加入 dirichlet 先验。</p>
+<p>所以，pLSA 跟 LDA 的本质区别就在于它们去估计未知参数所采用的思想不同，前者用的是频率派思想，后者用的是贝叶斯派思想。</p>
+<p>LDA 参数估计：<strong>Gibbs 采样</strong>，详见文末的参考文献。</p>
+<ol>
+<li>怎么确定 LDA 的 topic 个数？</li>
+</ol>
+<hr>
+<ol>
+<li>基于经验 主观判断、不断调试、操作性强、最为常用。</li>
+<li>基于困惑度（主要是比较两个模型之间的好坏）。</li>
+<li>使用 Log - 边际似然函数的方法，这种方法也挺常用的。</li>
+<li>非参数方法：Teh 提出的基于狄利克雷过程的 HDP 法。</li>
+<li><p>基于主题之间的相似度：计算主题向量之间的余弦距离，KL 距离等。</p>
+</li>
+<li><p>如何用主题模型解决推荐系统中的冷启动问题？</p>
+</li>
+</ol>
+<hr>
+<p>推荐系统中的冷启动问题是指在没有大量用户数据的情况下如何给用户进行个性化推荐，目的是最优化点击率、转化率或用户 体验（用户停留时间、留存率等）。冷启动问题一般分为用户冷启动、物品冷启动和系统冷启动三大类。</p>
+<ul>
+<li>用户冷启动是指对一个之前没有行为或行为极少的新用户进行推荐；</li>
+<li>物品冷启动是指为一个新上市的商品或电影（这时没有与之相关的 评分或用户行为数据）寻找到具有潜在兴趣的用户；</li>
+<li>系统冷启动是指如何为一个 新开发的网站设计个性化推荐系统。</li>
+</ul>
+<p>解决冷启动问题的方法一般是基于内容的推荐。以 Hulu 的场景为例，对于用 户冷启动来说，我们希望根据用户的注册信息（如：年龄、性别、爱好等）、搜 索关键词或者合法站外得到的其他信息（例如用户使用 Facebook 账号登录，并得 到授权，可以得到 Facebook 中的朋友关系和评论内容）来推测用户的兴趣主题。 得到用户的兴趣主题之后，我们就可以找到与该用户兴趣主题相同的其他用户， 通过他们的历史行为来预测用户感兴趣的电影是什么。</p>
+<p>同样地，对于物品冷启动问题，我们也可以根据电影的导演、演员、类别、关键词等信息推测该电影所属于的主题，然后基于主题向量找到相似的电影，并将新电影推荐给以往喜欢看这 些相似电影的用户。<strong>可以使用主题模型（pLSA、LDA 等）得到用户和电影的主题。</strong></p>
+<p>以用户为例，我们将每个用户看作主题模型中的一篇文档，用户对应的特征 作为文档中的单词，这样每个用户可以表示成一袋子特征的形式。通过主题模型 学习之后，经常共同出现的特征将会对应同一个主题，同时每个用户也会相应地 得到一个主题分布。每个电影的主题分布也可以用类似的方法得到。</p>
+<p><strong> 那么如何解决系统冷启动问题呢？</strong> 首先可以得到每个用户和电影对应的主题向量，除此之外，还需要知道用户主题和电影主题之间的偏好程度，也就是哪些主题的用户可能喜欢哪些主题的电影。当系统中没有任何数据时，我们需要一些先验知识来指定，并且由于主题的数目通常比较小，随着系统的上线，收集到少量的数据之后我们就可以对主题之间的偏好程度得到一个比较准确的估计。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/" title="主题模型 (Topic Model)、LDA(案例代码)">https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/06/numpy 创建矩阵常用方法/" rel="next" title="numpy 创建矩阵常用方法">
+                  <i class="fa fa-chevron-left"></i> numpy 创建矩阵常用方法
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-5-个分布的理解"><span class="nav-number">1.</span> <span class="nav-text">1.1 5 个分布的理解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-3-个基础模型的理解"><span class="nav-number">2.</span> <span class="nav-text">1.2 3 个基础模型的理解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-LDA-模型"><span class="nav-number">3.</span> <span class="nav-text">1.3 LDA 模型</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '6857a8f536746fa26c4bd9296fa6cbf4',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
