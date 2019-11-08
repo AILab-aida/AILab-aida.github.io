@@ -66,7 +66,7 @@
 <meta property="og:description" content="基于 icf+als 矩阵分解+gbdt 的推荐现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt可以先后验 ctr  后验 staytime 做 ab ，再先验 ctr (模型) 后验 staytime基于 Word embedding + xgb 的推荐基于 fm+lr 的推荐">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://ailab-aida.github.io/images/ali_rec.png">
-<meta property="og:updated_time" content="2019-11-07T09:55:54.490Z">
+<meta property="og:updated_time" content="2019-11-08T06:20:44.916Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="推荐系统迭代">
 <meta name="twitter:description" content="基于 icf+als 矩阵分解+gbdt 的推荐现在 recall 是 icf als 矩阵分解 rank 是 smart gbdt可以先后验 ctr  后验 staytime 做 ab ，再先验 ctr (模型) 后验 staytime基于 Word embedding + xgb 的推荐基于 fm+lr 的推荐">
@@ -315,7 +315,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-07 17:55:54" itemprop="dateModified" datetime="2019-11-07T17:55:54+08:00">2019-11-07</time>
+                <time title="修改时间：2019-11-08 14:20:44" itemprop="dateModified" datetime="2019-11-08T14:20:44+08:00">2019-11-08</time>
               </span>
             
           
@@ -669,7 +669,7 @@ APP登录_7天统计    login    user_login_7_days
 网络类型 org_event_topic.$properties.$network_type event_network_type
 事件类型 org_event_topic.$.event    event_type
 事件时间 org_event_topic.$.time event_time
-</code></pre><p>排序升级为 XGB 排序<br>召回升级为 fm，用户特征存在 Redis，item 特征存在 faiss，向量之间做乘积<br>开发工具为 TF<br>作者张俊林</p>
+</code></pre><p>排序升级为 XGB 排序<br>召回升级为 fm，用户特征存在 Redis，item 特征存在 faiss，向量之间做乘积<br>开发工具为 TF<br>tf 的 FM 接入 kafka 的增量数据实时训练，然后 FM 即做召回，又做排序。<br>用户画像 emb,item 基础信息 emb,对多个召回在做排序。<br>作者张俊林</p>
 <p>3、流式计算<br>基于 flink 的实时推荐</p>
 
     </div>
@@ -794,7 +794,7 @@ APP登录_7天统计    login    user_login_7_days
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
