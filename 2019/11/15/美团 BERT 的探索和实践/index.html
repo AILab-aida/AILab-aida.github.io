@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="他山之石，可以攻玉。美团点评 NLP 团队一直紧跟业界前沿技术，开展了基于美团点评业务数据的预训练研究工作，训练了更适配美团点评业务场景的 MT-BERT 模型，通过微调将 MT-BERT 落地到多个业务场景中，并取得了不错的业务效果。背景2018 年，自然语言处理（Natural Language Processing，NLP）领域最激动人心的进展莫过于预训练语言模型，包括基于 RNN 的 EL">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="美团 BERT 的探索和实践">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/15/美团 BERT 的探索和实践/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="他山之石，可以攻玉。美团点评 NLP 团队一直紧跟业界前沿技术，开展了基于美团点评业务数据的预训练研究工作，训练了更适配美团点评业务场景的 MT-BERT 模型，通过微调将 MT-BERT 落地到多个业务场景中，并取得了不错的业务效果。背景2018 年，自然语言处理（Natural Language Processing，NLP）领域最激动人心的进展莫过于预训练语言模型，包括基于 RNN 的 EL">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_jpg/hEx03cFgUsXSfff7GYE4gG7EMIvpwibMGHDh691Cuibz0g0C04Jibu2Dd3uxAPeibVbAb3WDpmXvic549wIFNJLDj0Q/640?wx_fmt=jpeg">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTOswNHRIZ4vPWcEx27M50qdWIjbSMqQibOw79keonroXTwY61CJEHYaw/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT9aLDjiclWLdibUuAmqkAQdtibK6Q10c6zhfGtA6Y2gWTMXuSKzicXXxX5w/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTv8YYHwDYqjEcJBmMWtdvXmeqESZzR2qMmCSqpK3JvtXJbOQppyoiblg/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTKAibvB7wSVCmrpECicTa1l9KeawF3Xx3j49opbgQNqpbdFIDDr2icCibZw/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTLDNNhzkMNl4B0BEY0lpot4ic2MIOiabt97OjDPs0aWQxDrRUia9dg5LlQ/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTjqkhmXVyTnhGZgyGubick0P1dIGDTP9hYu2aPPK2pQcZJYQ3ZuiafPwg/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTqM0V0vc5pP011vxaduJh2unYx2ZehE2Oiaey8C0gEZIYOaHd3hSJ6jQ/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTJholGS4kp9P2OsPPtE5v0u00aBQlAx9HsViabPjGNlxRAmHhXvlw8bQ/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTElMYQqq7Y2h37lhmD6T8nsh3ib2bTuHaetx6Y2xp72JBRTKjXZBS5wg/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTibENR551grIibX2EEEeOFrNMkkSxyEH4YcG0wXUsIF7Rh7zfCW248WDg/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTEElRLBicicueCZACVDCWwUMf0HKnbGfKAvTw1nP3rd0I8DV8Yomo9ickw/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT81l8l5y6xYXic8ZpNod6ZYXA6vg4GXteJXElXO0SicYrv6IxERKg7qqA/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT55248M7M6lFNTibmVwsQRUUevhzf5Jt1xBtJLm3prkYSgDP0h7ZibPbA/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_jpg/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTzp4nefv0ZNIibtLiakWiceqdX5GSvg6DDbU77yeXElibsRZshV8iagN6btQ/640?wx_fmt=jpeg">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTHYFeE29d7eLywrHBo1POk3Zf0hW8Gn9zs79sKjuk9Z5lhSibArQaSJA/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTBviaMbnMI3DdvLHcNiaxEtMYbFuabGuGFaD6QpsOqqhoag1vic6IJiaXQQ/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVThqcCPmCAhlgUJ5BibunNk0c9vUwZA05yY9Ct0HXExZSLUwnskuQoIww/640?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTpYt3wGdV2k0BmojPFK20ibibaZcpsibhVKtpHme9YX4X9g7Uq1bbzN3Mg/640?wx_fmt=png">
+<meta property="og:updated_time" content="2019-11-15T09:20:52.479Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="美团 BERT 的探索和实践">
+<meta name="twitter:description" content="他山之石，可以攻玉。美团点评 NLP 团队一直紧跟业界前沿技术，开展了基于美团点评业务数据的预训练研究工作，训练了更适配美团点评业务场景的 MT-BERT 模型，通过微调将 MT-BERT 落地到多个业务场景中，并取得了不错的业务效果。背景2018 年，自然语言处理（Natural Language Processing，NLP）领域最激动人心的进展莫过于预训练语言模型，包括基于 RNN 的 EL">
+<meta name="twitter:image" content="https://mmbiz.qpic.cn/mmbiz_jpg/hEx03cFgUsXSfff7GYE4gG7EMIvpwibMGHDh691Cuibz0g0C04Jibu2Dd3uxAPeibVbAb3WDpmXvic549wIFNJLDj0Q/640?wx_fmt=jpeg">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/15/美团 BERT 的探索和实践/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>美团 BERT 的探索和实践 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/15/美团 BERT 的探索和实践/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">美团 BERT 的探索和实践
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-15 17:13:28 / 修改时间：17:20:52" itemprop="dateCreated datePublished" datetime="2019-11-15T17:13:28+08:00">2019-11-15</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://mmbiz.qpic.cn/mmbiz_jpg/hEx03cFgUsXSfff7GYE4gG7EMIvpwibMGHDh691Cuibz0g0C04Jibu2Dd3uxAPeibVbAb3WDpmXvic549wIFNJLDj0Q/640?wx_fmt=jpeg" alt></p><p>他山之石，可以攻玉。美团点评 NLP 团队一直紧跟业界前沿技术，开展了基于美团点评业务数据的预训练研究工作，训练了更适配美团点评业务场景的 MT-BERT 模型，通过微调将 MT-BERT 落地到多个业务场景中，并取得了不错的业务效果。</p><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a><strong>背景</strong></h2><p>2018 年，自然语言处理（Natural Language Processing，NLP）领域最激动人心的进展莫过于<strong>预训练语言模型</strong>，包括基于 RNN 的 ELMo[1] 和 ULMFiT[2]，基于 Transformer[3] 的 OpenAI GPT[4] 及 Google BERT[5] 等。下图 1 回顾了近年来预训练语言模型的发展史以及最新的进展。预训练语言模型的成功，证明了我们可以从海量的无标注文本中学到潜在的语义信息，而无需为每一项下游 NLP 任务单独标注大量训练数据。此外，预训练语言模型的成功也开创了 NLP 研究的新范式 [6]，即首先使用大量无监督语料进行语言模型预训练（Pre-training），再使用少量标注语料进行微调（Fine-tuning）来完成具体 NLP 任务（分类、序列标注、句间关系判断和机器阅读理解等）。</p><a id="more"></a>
+
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTOswNHRIZ4vPWcEx27M50qdWIjbSMqQibOw79keonroXTwY61CJEHYaw/640?wx_fmt=png" alt>图 1 NLP Pre-training and Fine-tuning 新范式及相关扩展工作</p>
+<p>所谓的 “预训练”，其实并不是什么新概念，这种“Pre-training and Fine-tuning” 的方法在图像领域早有应用。2009 年，邓嘉、李飞飞等人在 CVPR 2009 发布了 ImageNet 数据集[7]，其中 120 万张图像分为 1000 个类别。基于 ImageNet，以图像分类为目标使用深度卷积神经网络（如常见的 ResNet、VCG、Inception 等）进行预训练，得到的模型称为预训练模型。针对目标检测或者语义分割等任务，基于这些预训练模型，通过一组新的全连接层与预训练模型进行拼接，利用少量标注数据进行微调，将预训练模型学习到的图像分类能力迁移到新的目标任务。预训练的方式在图像领域取得了广泛的成功，比如有学者将 ImageNet 上学习得到的特征表示用于 PSACAL VOC 上的物体检测，将检测率提高了 20%[8]。</p>
+<p>他山之石，可以攻玉。图像领域预训练的成功也启发了 NLP 领域研究，深度学习时代广泛使用的词向量（即词嵌入，Word Embedding）即属于 NLP 预训练工作。使用深度神经网络进行 NLP 模型训练时，首先需要将待处理文本转为词向量作为神经网络输入，词向量的效果会影响到最后模型效果。词向量的效果主要取决于训练语料的大小，很多 NLP 任务中有限的标注语料不足以训练出足够好的词向量，通常使用跟当前任务无关的大规模未标注语料进行词向量预训练，因此预训练的另一个好处是能增强模型的泛化能力。目前，大部分 NLP 深度学习任务中都会使用预训练好的词向量（如 Word2Vec[9] 和 GloVe[10] 等）进行网络初始化（而非随机初始化），从而加快网络的收敛速度。</p>
+<p>预训练词向量通常只编码词汇间的关系，对上下文信息考虑不足，且无法处理一词多义问题。如 “bank” 一词，根据上下文语境不同，可能表示 “银行”，也可能表示“岸边”，却对应相同的词向量，这样显然是不合理的。为了更好的考虑单词的上下文信息，Context2Vec[11] 使用两个双向长短时记忆网络（Long Short Term Memory，LSTM）[12] 来分别编码每个单词左到右（Left-to-Right）和右到左（Right-to-Left）的上下文信息。类似地，ELMo 也是基于大量文本训练深层双向 LSTM 网络结构的语言模型。ELMo 在词向量的学习中考虑深层网络不同层的信息，并加入到单词的最终 Embedding 表示中，在多个 NLP 任务中取得了提升。ELMo 这种使用预训练语言模型的词向量作为特征输入到下游目标任务中，被称为 Feature-based 方法。</p>
+<p>另一种方法是微调（Fine-tuning）。GPT、BERT 和后续的预训练工作都属于这一范畴，直接在深层 Transformer 网络上进行语言模型训练，收敛后针对下游目标任务进行微调，不需要再为目标任务设计 Task-specific 网络从头训练。关于 NLP 领域的预训练发展史，张俊林博士写过一篇很详实的介绍 [13]，本文不再赘述。</p>
+<p>Google AI 团队提出的预训练语言模型 BERT（Bidirectional Encoder Representations from Transformers），在 11 项自然语言理解任务上刷新了最好指标，可以说是近年来 NLP 领域取得的最重大的进展之一。BERT 论文也斩获 NLP 领域顶会 NAACL 2019 的最佳论文奖，BERT 的成功也启发了大量的后续工作，不断刷新了 NLP 领域各个任务的最佳水平。有 NLP 学者宣称，属于 NLP 的 ImageNet 时代已经来临 [14]。</p>
+<p>美团点评作为中国领先的生活服务电子商务平台，涵盖搜索、推荐、广告、配送等多种业务场景，几乎涉及到各种类型的自然语言处理任务。在我们的平台上，迄今为止积累了近 40 亿条用户公开评价（UGC），如何高效而准确地完成对海量 UGC 的自然语言理解和处理是美团点评技术团队面临的挑战之一。美团 NLP 中心一直紧跟业界前沿技术，开展了基于美团点评业务数据的预训练研究工作，训练了更适配美团点评业务场景的 MT-BERT 模型，通过微调将 MT-BERT 落地到多个业务场景中，并取得了不错的业务效果。</p>
+<p><strong>BERT 模型介绍</strong></p>
+<p>BERT 是基于 Transformer 的深度双向语言表征模型，基本结构如图 2 所示，本质上是利用 Transformer 结构构造了一个多层双向的 Encoder 网络。Transformer 是 Google 在 2017 年提出的基于自注意力机制（Self-attention）的深层模型，在包括机器翻译在内的多项 NLP 任务上效果显著，超过 RNN 且训练速度更快。不到一年时间内，Transformer 已经取代 RNN 成为神经网络机器翻译的 State-Of-The-Art（SOTA）模型，包括谷歌、微软、百度、阿里、腾讯等公司的线上机器翻译模型都已替换为 Transformer 模型。关于 Transformer 的详细介绍可以参考 Google 论文《Attention is all you need》[3]。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT9aLDjiclWLdibUuAmqkAQdtibK6Q10c6zhfGtA6Y2gWTMXuSKzicXXxX5w/640?wx_fmt=png" alt>图 2 BERT 及 Transformer 网络结构示意图</p>
+<p><strong>模型结构</strong></p>
+<p>如表 1 所示，根据参数设置的不同，Google 论文中提出了 Base 和 Large 两种 BERT 模型。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTv8YYHwDYqjEcJBmMWtdvXmeqESZzR2qMmCSqpK3JvtXJbOQppyoiblg/640?wx_fmt=png" alt></p>
+<p><strong>输入表示</strong></p>
+<p>针对不同的任务，BERT 模型的输入可以是单句或者句对。对于每一个输入的 Token，它的表征由其对应的词表征（Token Embedding）、段表征（Segment Embedding）和位置表征（Position Embedding）相加产生，如图 3 所示：</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTKAibvB7wSVCmrpECicTa1l9KeawF3Xx3j49opbgQNqpbdFIDDr2icCibZw/640?wx_fmt=png" alt></p>
+<p>图 3 BERT 模型的输入表示</p>
+<ul>
+<li><p>对于英文模型，使用了 Wordpiece 模型来产生 Subword 从而减小词表规模；对于中文模型，直接训练基于字的模型。</p>
+</li>
+<li><p>模型输入需要附加一个起始 Token，记为 [CLS]，对应最终的 Hidden State（即 Transformer 的输出）可以用来表征整个句子，用于下游的分类任务。</p>
+</li>
+<li><p>模型能够处理句间关系。为区别两个句子，用一个特殊标记符 [SEP] 进行分隔，另外针对不同的句子，将学习到的 Segment Embeddings 加到每个 Token 的 Embedding 上。</p>
+</li>
+<li><p>对于单句输入，只有一种 Segment Embedding；对于句对输入，会有两种 Segment Embedding。</p>
+</li>
+</ul>
+<p><strong>预训练目标</strong></p>
+<p>BERT 预训练过程包含两个不同的预训练任务，分别是 Masked Language Model 和 Next Sentence Prediction 任务。</p>
+<p><strong>Masked Language Model（MLM）</strong></p>
+<p>通过随机掩盖一些词（替换为统一标记符 [MASK]），然后预测这些被遮盖的词来训练双向语言模型，并且使每个词的表征参考上下文信息。</p>
+<p>这样做会产生两个缺点：（1）会造成预训练和微调时的不一致，因为在微调时 [MASK] 总是不可见的；（2）由于每个 Batch 中只有 15% 的词会被预测，因此模型的收敛速度比起单向的语言模型会慢，训练花费的时间会更长。对于第一个缺点的解决办法是，把 80% 需要被替换成 [MASK] 的词进行替换，10% 的随机替换为其他词，10% 保留原词。由于 Transformer Encoder 并不知道哪个词需要被预测，哪个词是被随机替换的，这样就强迫每个词的表达需要参照上下文信息。对于第二个缺点目前没有有效的解决办法，但是从提升收益的角度来看，付出的代价是值得的。</p>
+<p><strong>Next Sentence Prediction（NSP）</strong></p>
+<p>为了训练一个理解句子间关系的模型，引入一个下一句预测任务。这一任务的训练语料可以从语料库中抽取句子对包括两个句子 A 和 B 来进行生成，其中 50% 的概率 B 是 A 的下一个句子，50% 的概率 B 是语料中的一个随机句子。NSP 任务预测 B 是否是 A 的下一句。NSP 的目的是获取句子间的信息，这点是语言模型无法直接捕捉的。</p>
+<p>Google 的论文结果表明，这个简单的任务对问答和自然语言推理任务十分有益，但是后续一些新的研究 [15] 发现，去掉 NSP 任务之后模型效果没有下降甚至还有提升。我们在预训练过程中也发现 NSP 任务的准确率经过 1-2 个 Epoch 训练后就能达到 98%-99%，去掉 NSP 任务之后对模型效果并不会有太大的影响。</p>
+<p><strong>数据 &amp; 算力</strong></p>
+<p>Google 发布的英文 BERT 模型使用了 BooksCorpus（800M 词汇量）和英文 Wikipedia（2500M 词汇量）进行预训练，所需的计算量非常庞大。BERT 论文中指出，Google AI 团队使用了算力强大的 Cloud TPU 进行 BERT 的训练，BERT Base 和 Large 模型分别使用 4 台 Cloud TPU（16 张 TPU）和 16 台 Cloud TPU（64 张 TPU）训练了 4 天（100 万步迭代，40 个 Epoch）。但是，当前国内互联网公司主要使用 Nvidia 的 GPU 进行深度学习模型训练，因此 BERT 的预训练对于 GPU 资源提出了很高的要求。</p>
+<p><strong>MT-BERT 实践</strong></p>
+<p>美团 BERT（MT-BERT）的探索分为四个阶段：</p>
+<p>（1）开启混合精度实现训练加速。</p>
+<p>（2）在通用中文语料基础上加入大量美团点评业务语料进行模型预训练，完成领域迁移。</p>
+<p>（3）预训练过程中尝试融入知识图谱中的实体信息。</p>
+<p>（4）通过在业务数据上进行微调，支持不同类型的业务需求。</p>
+<p>MT-BERT 整体技术框架如图 4 所示：</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTLDNNhzkMNl4B0BEY0lpot4ic2MIOiabt97OjDPs0aWQxDrRUia9dg5LlQ/640?wx_fmt=png" alt>图 4 MT-BERT 整体技术框架</p>
+<p><strong>基于美团点评 AFO 平台的分布式训练</strong></p>
+<p>正如前文所述，BERT 预训练对于算力有着极大要求，我们使用的是美团内部开发的 AFO[16]（AI Framework On Yarn）框架进行 MT-BERT 预训练。AFO 框架基于 YARN 实现数千张 GPU 卡的灵活调度，同时提供基于 Horovod 的分布式训练方案，以及作业弹性伸缩与容错等能力。Horovod 是 Uber 开源的深度学习工具 [17]，它的发展吸取了 Facebook《一小时训练 ImageNet》论文[18] 与百度 Ring Allreduce[19]的优点，可为用户实现分布式训练提供帮助。根据 Uber 官方分别使用标准分布式 TensorFlow 和 Horovod 两种方案，分布式训练 Inception V3 和 ResNet-101 TensorFlow 模型的实验验证显示，随着 GPU 的数量增大，Horovod 性能损失远小于 TensorFlow，且训练速度可达到标准分布式 TensorFlow 的近两倍。相比于 Tensorflow 分布式框架，Horovod 在数百张卡的规模上依然可以保证稳定的加速比，具备非常好的扩展性。</p>
+<p>Horovod 框架的并行计算主要用到了两种分布式计算技术：控制层的 Open MPI 和数据层的 Nvidia NCCL。控制层面的主要作用是同步各个 Rank（节点），因为每个节点的运算速度不一样，运算完每一个 Step 的时间也不一样。如果没有一个同步机制，就不可能对所有的节点进行梯度平均。Horovod 在控制层面上设计了一个主从模式，Rank 0 为 Master 节点，Rank1-n 为 Worker 节点，每个 Worker 节点上都有一个消息队列，而在 Master 节点上除了一个消息队列，还有一个消息 Map。每当计算框架发来通信请求时，比如要执行 Allreduce，Horovod 并不直接执行 MPI，而是封装了这个消息并推入自己的消息队列，交给后台线程去处理。后台线程采用定时轮询的方式访问自己的消息队列，如果非空，Woker 会将自己收到的所有 Tensor 通信请求都发给 Master。因为是同步 MPI，所以每个节点会阻塞等待 MPI 完成。Master 收到 Worker 的消息后，会记录到自己的消息 Map 中。如果一个 Tensor 的通信请求出现了 n 次，也就意味着，所有的节点都已经发出了对该 Tensor 的通信请求，那么这个 Tensor 就需要且能够进行通信。Master 节点会挑选出所有符合要求的 Tensor 进行 MPI 通信。不符合要求的 Tensor 继续留在消息 Map 中，等待条件满足。决定了 Tensor 以后，Master 又会将可以进行通信的 Tensor 名字和顺序发还给各个节点，通知各个节点可以进行 Allreduce 运算。</p>
+<p><strong>混合精度加速</strong></p>
+<p>当前深度学习模型训练过程基本采用单精度（Float 32）和双精度（Double）数据类型，受限于显存大小，当网络规模很大时 Batch Size 就会很小。Batch Size 过小一方面容易导致网络学习过程不稳定而影响模型最终效果，另一方面也降低了数据吞吐效率，影响训练速度。为了加速训练及减少显存开销，Baidu Research 和 Nvidia 在 ICLR 2018 论文中 [20] 合作提出了一种 Float32（FP32）和 Float16（FP16）混合精度训练的方法，并且在图像分类和检测、语音识别和语言模型任务上进行了有效验证。Nvidia 的 Pascal 和 Volta 系列显卡除了支持标准的单精度计算外，也支持了低精度的计算，比如最新的 Tesla V100 硬件支持了 FP16 的计算加速，P4 和 P40 支持 INT8 的计算加速，而且低精度计算的峰值要远高于单精浮点的计算峰值。</p>
+<p>为了进一步加快 MT-BERT 预训练和推理速度， 我们实验了混合精度训练方式。混合精度训练指的是 FP32 和 FP16 混合的训练方式，使用混合精度训练可以加速训练过程并且减少显存开销，同时兼顾 FP32 的稳定性和 FP16 的速度。在模型计算过程中使用 FP16 加速计算过程，模型训练过程中权重会存储成 FP32 格式（FP32 Master-weights），参数更新时采用 FP32 类型。利用 FP32 Master-weights 在 FP32 数据类型下进行参数更新可有效避免溢出。此外，一些网络的梯度大部分在 FP16 的表示范围之外，需要对梯度进行放大使其可以在 FP16 的表示范围内，因此进一步采用 Loss Scaling 策略通过对 Loss 进行放缩，使得在反向传播过程中梯度在 FP16 的表示范围内。</p>
+<p>为了提高预训练效率，我们在 MT-BERT 预训练中采用了混合精度训练方式。</p>
+<p><strong>加速效果</strong></p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTjqkhmXVyTnhGZgyGubick0P1dIGDTP9hYu2aPPK2pQcZJYQ3ZuiafPwg/640?wx_fmt=png" alt>图 5 MT-BERT 开启混合精度在 Nvidia V100 上训练吞吐量的对比（Tensorflow 1.12；Cuda 10.0；Horovod  0.15.2）</p>
+<p>如图 5 所示，开启混合精度的训练方式在单机单卡和多机多卡环境下显著提升了训练速度。为了验证混合精度模型会不会影响最终效果，我们分别在美团点评业务和通用 Benchmark 数据集上进行了微调实验，结果见表 2 和表 3。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTqM0V0vc5pP011vxaduJh2unYx2ZehE2Oiaey8C0gEZIYOaHd3hSJ6jQ/640?wx_fmt=png" alt>表 2 开启混合精度训练的 MT-BERT 模型在美团点评业务 Benchmark 上效果对比</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTJholGS4kp9P2OsPPtE5v0u00aBQlAx9HsViabPjGNlxRAmHhXvlw8bQ/640?wx_fmt=png" alt>表 3 开启混合精度训练的 MT-BERT 模型在中文通用 Benchmark 上效果对比</p>
+<p>通过表 2 和表 3 结果可以发现，开启混合精度训练的 MT-BERT 模型并没有影响效果，反而训练速度提升了 2 倍多。</p>
+<p><strong>领域自适应</strong></p>
+<p>Google 发布的中文 BERT 模型是基于中文维基百科数据训练得到，属于通用领域预训练语言模型。由于美团点评积累了大量业务语料，比如用户撰写的 UGC 评论和商家商品的文本描述数据，为了充分发挥领域数据的优势，我们考虑在 Google 中文 BERT 模型上加入领域数据继续训练进行领域自适应（Domain Adaptation），使得模型更加匹配我们的业务场景。实践证明，这种 Domain-aware Continual Training 方式，有效地改进了 BERT 模型在下游任务中的表现。由于 Google 未发布中文 BERT Large 模型，我们也从头预训练了中文 MT-BERT Large 模型。</p>
+<p>我们选择了 5 个中文 Benchmark 任务以及 3 个美团点评业务 Benchmark 在内的 8 个数据集对模型效果进行验证。实验结果如表 4 所示，MT-BERT 在通用 Benchmark 和美团点评业务 Benchmark 上都取得了更好的效果。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTElMYQqq7Y2h37lhmD6T8nsh3ib2bTuHaetx6Y2xp72JBRTKjXZBS5wg/640?wx_fmt=png" alt>表 4 MT-BERT 模型和 Google BERT 模型在 8 个 Benchmark 上的效果对比</p>
+<p><strong>知识融入</strong></p>
+<p>BERT 在自然语言理解任务上取得了巨大的成功，但也存在着一些不足。其一是常识（Common Sense）的缺失。人类日常活动需要大量的常识背景知识支持，BERT 学习到的是样本空间的特征、表征，可以看作是大型的文本匹配模型，而大量的背景常识是隐式且模糊的，很难在预训练数据中进行体现。其二是缺乏对语义的理解。模型并未理解数据中蕴含的语义知识，缺乏推理能力。在美团点评搜索场景中，需要首先对用户输入的 Query 进行意图识别，以确保召回结果的准确性。比如，对于 “宫保鸡丁” 和“宫保鸡丁酱料”两个 Query，二者的 BERT 语义表征非常接近，但是蕴含的搜索意图却截然不同。前者是菜品意图，即用户想去饭店消费，而后者则是商品意图，即用户想要从超市购买酱料。在这种场景下，BERT 模型很难像正常人一样做出正确的推理判断。</p>
+<p>为了处理上述情况，我们尝试在 MT-BERT 预训练过程中融入知识图谱信息。知识图谱可以组织现实世界中的知识，描述客观概念、实体、关系。这种基于符号语义的计算模型，可以为 BERT 提供先验知识，使其具备一定的常识和推理能力。在我们团队之前的技术文章 [21] 中，介绍了 NLP 中心构建的大规模的餐饮娱乐知识图谱——美团大脑。我们通过 Knowledge-aware Masking 方法将 “美团大脑” 的实体知识融入到 MT-BERT 预训练中。</p>
+<p>BERT 在进行语义建模时，主要聚焦最原始的单字信息，却很少对实体进行建模。具体地，BERT 为了训练深层双向的语言表征，采用了 Masked LM（MLM）训练策略。该策略类似于传统的完形填空任务，即在输入端，随机地 “遮蔽” 掉部分单字，在输出端，让模型预测出这些被 “遮蔽” 的单字。模型在最初并不知道要预测哪些单字，因此它输出的每个单字的嵌入表示，都涵盖了上下文的语义信息，以便把被 “掩盖” 的单字准确的预测出来。</p>
+<p>图 6 左侧展示了 BERT 模型的 MLM 任务。输入句子是 “全聚德做的烤鸭久负盛名”。其中，“聚”，“的”，“久”3 个字在输入时被随机遮蔽，模型预训练过程中需要对这 3 个遮蔽位做出预测。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTibENR551grIibX2EEEeOFrNMkkSxyEH4YcG0wXUsIF7Rh7zfCW248WDg/640?wx_fmt=png" alt>图 6 MT-BERT 默认 Masking 策略和 Whole Word Masking 策略对比</p>
+<p>BERT 模型通过字的搭配（比如 “全 X 德”），很容易推测出被 “掩盖” 字信息（“德”），但这种做法只学习到了实体内单字之间共现关系，并没有学习到实体的整体语义表示。因此，我们使用 Knowledge-aware Masking 的方法来预训练 MT-BERT。具体的做法是，输入仍然是字，但在随机 “遮蔽” 时，不再选择遮蔽单字，而是选择 “遮蔽” 实体对应的词。这需要我们在预训练之前，对语料做分词，并将分词结果和图谱实体对齐。图 6 右侧展示了 Knowledge-aware Masking 策略，“全聚德”被随机 “遮蔽”。MT-BERT 需要根据“烤鸭”，“久负盛名” 等信息，准确的预测出 “全聚德”。通过这种方式，MT-BERT 可以学到“全聚德” 这个实体的语义表示，以及它跟上下文其他实体之间的关联，增强了模型语义表征能力。基于美团大脑中已有实体信息，我们在 MT-BERT 训练中使用了 Knowledge-aware Masking 策略，实验证明在细粒度情感分析任务上取得了显著提升。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTEElRLBicicueCZACVDCWwUMf0HKnbGfKAvTw1nP3rd0I8DV8Yomo9ickw/640?wx_fmt=png" alt>表 5 MT-BERT 在细粒度情感分析数据集上效果</p>
+<p><strong>模型轻量化</strong></p>
+<p>BERT 模型效果拔群，在多项自然语言理解任务上实现了最佳效果，但是由于其深层的网络结构和庞大的参数量，如果要部署上线，还面临很大挑战。以 Query 意图分类为例，我们基于 MT-BERT 模型微调了意图分类模型，协调工程团队进行了 1000QPS 压测实验，部署 30 张 GPU 线上卡参与运算，在线服务的 TP999 高达 50ms 之多，难以满足上线要求。</p>
+<p>为了减少模型响应时间，满足上线要求，业内主要有三种模型轻量化方案。</p>
+<ul>
+<li><p>低精度量化。在模型训练和推理中使用低精度（FP16 甚至 INT8、二值网络）表示取代原有精度（FP32）表示。</p>
+</li>
+<li><p>模型裁剪和剪枝。减少模型层数和参数规模。</p>
+</li>
+<li><p>模型蒸馏。通过知识蒸馏方法 [22] 基于原始 BERT 模型蒸馏出符合上线要求的小模型。</p>
+</li>
+</ul>
+<p>在美团点评搜索 Query 意图分类任务中，我们优先尝试了模型裁剪的方案。由于搜索 Query 长度较短（通常不超过 16 个汉字），整个 Sequence 包含的语义信息有限，裁剪掉几层 Transformer 结构对模型的语义表征能力不会有太大影响，同时又能大幅减少模型参数量和推理时间。经过实验验证，在微调过程中，我们将 MT-BERT 模型裁剪为 4 层 Transfomer 结构（MT-BERT-MINI，MBM），实验效果如图 7 所示。可以发现，Query 分类场景下，裁剪后的 MBM 没有产生较大影响。由于减少了一些不必要的参数运算，在美食和酒店两个场景下，效果还有小幅的提升。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT81l8l5y6xYXic8ZpNod6ZYXA6vg4GXteJXElXO0SicYrv6IxERKg7qqA/640?wx_fmt=png" alt>图 7 裁剪前后 MT-BERT 模型在 Query 意图分类数据集上 F1 对比</p>
+<p>MBM 在同等压测条件下，压测服务的 TP999 达到了 12-14ms，满足搜索上线要求。除了模型裁剪，为了支持更多线上需求，我们还在进行模型蒸馏实验，蒸馏后的 6 层 MT-BERT 模型在大多数下游任务中都没有显著的效果损失。值得一提的是，BERT 模型轻量化是 BERT 相关研究的重要方向，最近 Google 公布了最新 ALBERT 模型（A Lite BERT）[23]，在减少模型参数量的同时在自然语言理解数据集 GLUE 上刷新了 SOTA。</p>
+<p><strong>在美团点评业务中的应用</strong></p>
+<p>图 8 展示了基于 BERT 模型微调可以支持的任务类型，包括句对分类、单句分类、问答（机器阅读理解）和序列标注任务。</p>
+<ol>
+<li><p>句对分类任务和单句分类任务是句子级别的任务。预训练中的 NSP 任务使得 BERT 中的 “[CLS]” 位置的输出包含了整个句子对（句子）的信息，我们利用其在有标注的数据上微调模型，给出预测结果。</p>
+</li>
+<li><p>问答和序列标注任务都属于词级别的任务。预训练中的 MLM 任务使得每个 Token 位置的输出都包含了丰富的上下文语境以及 Token 本身的信息，我们对 BERT 的每个 Token 的输出都做一次分类，在有标注的数据上微调模型并给出预测。</p>
+</li>
+</ol>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVT55248M7M6lFNTibmVwsQRUUevhzf5Jt1xBtJLm3prkYSgDP0h7ZibPbA/640?wx_fmt=png" alt>图 8 BERT 微调支持的任务类型</p>
+<p>基于 MT-BERT 的微调，我们支持了美团搜索和点评搜索的多个下游任务，包括单句分类任务、句间关系任务和序列标注任务等等。</p>
+<p><strong>单句分类</strong></p>
+<p><strong>细粒度情感分析</strong></p>
+<p>美团点评作为生活服务平台，积累了大量真实用户评论。对用户评论的细粒度情感分析在深刻理解商家和用户、挖掘用户情感等方面有至关重要的价值，并且在互联网行业已有广泛应用，如个性化推荐、智能搜索、产品反馈、业务安全等领域。为了更全面更真实的描述商家各属性情况，细粒度情感分析需要判断评论文本在各个属性上的情感倾向（即正面、负面、中立）。为了优化美团点评业务场景下的细粒度情感分析效果，NLP 中心标注了包含 6 大类 20 个细粒度要素的高质量数据集，标注过程中采用严格的多人标注机制保证标注质量，并在 <a href="http://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&amp;mid=2651750254&amp;idx=2&amp;sn=10cc4d29764cde39781fe79f0094b2cd&amp;chksm=bd12a6238a652f3503ab47177d8cd386cffe24e932a174a5ba1f823f3ef8bcf8926e2e693534&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">AI Challenger 2018 细粒度情感分析比赛</a>中作为比赛数据集验证了效果，吸引了学术界和工业届大量队伍参赛。</p>
+<p>针对细粒度情感分析任务，我们设计了基于 MT-BERT 的多任务分类模型，模型结构如图 9 所示。模型架构整体分为两部分：一部分是各情感维度的参数共享层（Share Layers），另一部分为各情感维度的参数独享层（Task-specific Layers）。其中参数共享层采用了 MT-BERT 预训练语言模型得到文本的上下文表征。MT-BERT 依赖其深层网络结构以及海量数据预训练，可以更好的表征上下文信息，尤其擅长提取深层次的语义信息。参数独享层采用多路并行的 Attention+Softmax 组合结构，对文本在各个属性上的情感倾向进行分类预测。通过 MT-BERT 优化后的细粒度情感分析模型在 Macro-F1 上取得了显著提升。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_jpg/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTzp4nefv0ZNIibtLiakWiceqdX5GSvg6DDbU77yeXElibsRZshV8iagN6btQ/640?wx_fmt=jpeg" alt>图 9 基于 MT-BERT 的多任务细粒度情感分析模型架构</p>
+<p>细粒度情感分析的重要应用场景之一是大众点评的精选点评模块，如图 10 所示。精选点评模块作为点评 App 用户查看高质量评论的入口，其中精选点评标签承载着结构化内容聚合的作用，支撑着用户高效查找目标 UGC 内容的需求。细粒度情感分析能够从不同的维度去挖掘评论的情感倾向。基于细粒度情感分析的情感标签能够较好地帮助用户筛选查看，同时外露更多的 POI 信息，帮助用户高效的从评论中获取消费指南。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTHYFeE29d7eLywrHBo1POk3Zf0hW8Gn9zs79sKjuk9Z5lhSibArQaSJA/640?wx_fmt=png" alt>图 10 大众点评精选点评模块产品形态</p>
+<p><strong>Query 意图分类</strong></p>
+<p>在美团点评的搜索架构中，Deep Query Understanding（DQU）都是重要的前置模块之一。对于用户 Query，需要首先对用户搜索意图进行识别，如美食、酒店、演出等等。我们跟内部的团队合作，尝试了直接使用 MT-BERT 作为 Query 意图分类模型。为了保证模型在线 Inference 时间，我们使用裁剪后的 4 层 MT-BERT 模型（MT-BERT-MINI，MBM 模型）上线进行 Query 意图的在线意图识别，取得的业务效果如图 11 所示：</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTBviaMbnMI3DdvLHcNiaxEtMYbFuabGuGFaD6QpsOqqhoag1vic6IJiaXQQ/640?wx_fmt=png" alt>图 11 MBM 模型的业务效果</p>
+<p>同时对于搜索日志中的高频 Query，我们将预测结果以词典方式上传到缓存，进一步减少模型在线预测的 QPS 压力。MBM 累计支持了美团点评搜索 17 个业务频道的 Query 意图识别模型，相比原有模型，均有显著的提升，每个频道的识别精确度都达到 95% 以上。MBM 模型上线后，提升了搜索针对 Query 文本的意图识别能力，为下游的搜索的召回、排序及展示、频道流量报表、用户认知报表、Bad Case 归因等系统提供了更好的支持。</p>
+<p><strong>推荐理由场景化分类</strong></p>
+<p>推荐理由是点评搜索智能中心数据挖掘团队基于大众点评 UGC 为每个 POI 生产的自然语言可解释性理由。对于搜索以及推荐列表展示出来的每一个商家，我们会用一句自然语言文本来突出商家的特色和卖点，从而让用户能够对展示结果有所感知，“知其然，更知其所以然”。近年来，可解释的搜索系统越来越受到关注，给用户展示商品或内容的同时透出解释性理由，正在成为业界通行做法，这样不仅能提升系统的透明度，还能提高用户对平台的信任和接受程度，进而提升用户体验效果。在美团点评的搜索推荐场景中，推荐理由有着广泛的应用场景，起到解释展示、亮点推荐、场景化承载和个性化体现的重要作用，目前已经有 46 个业务方接入了推荐理由服务。</p>
+<p>对于不同的业务场景，对推荐理由会有不同的要求。在外卖搜索场景下，用户可能更为关注菜品和配送速度，不太关注餐馆的就餐环境和空间，这种情况下只保留符合外卖场景的推荐理由进行展示。同样地，在酒店搜索场景下，用户可能更为关注酒店特色相关的推荐理由（如交通是否方便，酒店是否近海近景区等）。</p>
+<p>我们通过内部合作，为业务方提供符合不同场景需求的推荐理由服务。推荐理由场景化分类，即给定不同业务场景定义，为每个场景标注少量数据，我们可以基于 MT-BERT 进行单句分类微调，微调方式如图 8(b) 所示。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVThqcCPmCAhlgUJ5BibunNk0c9vUwZA05yY9Ct0HXExZSLUwnskuQoIww/640?wx_fmt=png" alt>图 12 外卖和酒店场景下推荐理由</p>
+<p><strong>句间关系</strong></p>
+<p>句间关系任务是对两个短语或者句子之间的关系进行分类，常见句间关系任务如自然语言推理（Natural Language Inference, NLI）、语义相似度判断（Semantic Textual Similarity，STS）等。</p>
+<p>Query 改写是在搜索引擎中对用户搜索 Query 进行同义改写，改善搜索召回结果的一种方法。在美团和点评搜索场景中，通常一个商户或者菜品会有不同的表达方式，例如 “火锅” 也称为 “涮锅”。有时不同的词语表述相同的用户意图，例如“婚纱摄影” 和“婚纱照”，“配眼镜”和 “眼镜店”。Query 改写可以在不改变用户意图的情况下，尽可能多的召回满足用户意图的搜索结果，提升用户的搜索体验。为了减少误改写，增加准确率，需要对改写后 Query 和原 Query 做语义一致性判断，只有语义一致的 Query 改写对才能上线生效。Query 语义一致性检测属于 STS 任务。我们通过 MT-BERT 微调任务来判断改写后 Query 语义是否发生漂移，微调方式如图 8(a) 所示，把原始 Query 和改写 Query 构成句子对，即 “[CLS] text_a [SEP] text_b [SEP]” 的形式，送入到 MT-BERT 中，通过 “[CLS]” 判断两个 Query 之间关系。实验证明，基于 MT-BERT 微调的方案在 Benchmark 上准确率和召回率都超过原先的 XGBoost 分类模型。</p>
+<p><strong>序列标注</strong></p>
+<p>序列标注是 NLP 基础任务之一，给定一个序列，对序列中的每个元素做一个标记，或者说给每一个元素打一个标签，如中文命名实体识别、中文分词和词性标注等任务都属于序列标注的范畴。命名实体识别（Named Entity Recognition，NER），是指识别文本中具有特定意义的实体，主要包括人名、地名、机构名、专有名词等，以及时间、数量、货币、比例数值等文字。</p>
+<p>在美团点评业务场景下，NER 主要需求包括搜索 Query 成分分析，UGC 文本中的特定实体（标签）识别 / 抽取，以及客服对话中的槽位识别等。NLP 中心和酒店搜索算法团队合作，基于 MT-BERT 微调来优化酒店搜索 Query 成分分析任务。酒店 Query 成分分析任务中，需要识别出 Query 中城市、地标、商圈、品牌等不同成分，用于确定后续的召回策略。</p>
+<p>在酒店搜索 Query 成分分析中，我们对标签采用 “BME” 编码格式，即对一个实体，第一个字需要预测成实体的开始 B，最后一个字需要预测成实体的结束 E，中间部分则为 M。以图 13 中酒店搜索 Query 成分分析为例，对于 Query “北京昆泰酒店”，成分分析模型需要将 “北京” 识别成地点，而 “昆泰酒店” 识别成 POI。MT-BERT 预测高频酒店 Query 成分后通过缓存提供线上服务，结合后续召回策略，显著提升了酒店搜索的订单转化率。</p>
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/hEx03cFgUsWbNMYAjzI0MDaPxNsEKSVTpYt3wGdV2k0BmojPFK20ibibaZcpsibhVKtpHme9YX4X9g7Uq1bbzN3Mg/640?wx_fmt=png" alt>图 13 酒店 Query 的成分分析</p>
+<p><strong>未来展望</strong></p>
+<p><strong>1. 一站式 MT-BERT 训练和推理平台建设</strong></p>
+<p>为了降低业务方算法同学使用 MT-BERT 门槛，我们开发了 MT-BERT 一站式训练和推理平台，一期支持短文本分类和句间关系分类两种任务，目前已在美团内部开放试用。</p>
+<p>基于一站式平台，业务方算法同学上传业务训练数据和选择初始 MT-BERT 模型之后，可以提交微调任务，微调任务会自动分配到 AFO 集群空闲 GPU 卡上自动运行和进行效果验证，训练好的模型可以导出进行部署上线。</p>
+<p><strong>2. 融入知识图谱的 MT-BERT 预训练</strong></p>
+<p>正如前文所述，尽管在海量无监督语料上进行预训练语言模型取得了很大的成功，但其也存在着一定的不足。BERT 模型通过在大量语料的训练可以判断一句话是否通顺，但是却不理解这句话的语义，通过将美团大脑等知识图谱中的一些结构化先验知识融入到 MT-BERT 中，使其更好地对生活服务场景进行语义建模，是需要进一步探索的方向。</p>
+<p><strong>3. MT-BERT 模型的轻量化和小型化</strong></p>
+<p>MT-BERT 模型在各个 NLU 任务上取得了惊人的效果，由于其复杂的网络结构和庞大的参数量，在真实工业场景下上线面临很大的挑战。如何在保持模型效果的前提下，精简模型结构和参数已经成为当前热门研究方向。我们团队在低精度量化、模型裁剪和知识蒸馏上已经做了初步尝试，但是如何针对不同的任务类型选择最合适的模型轻量化方案，还需要进一步的研究和探索。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/15/美团 BERT 的探索和实践/" title="美团 BERT 的探索和实践">https://ailab-aida.github.io/2019/11/15/美团 BERT 的探索和实践/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/15/NLP - BERT_ERNIE 文本分类和部署/" rel="next" title="NLP - BERT_ERNIE 文本分类和部署">
+                  <i class="fa fa-chevron-left"></i> NLP - BERT_ERNIE 文本分类和部署
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '6add507dd94730683ec907b94bcc012a',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
