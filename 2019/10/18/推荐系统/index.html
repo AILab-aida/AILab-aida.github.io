@@ -69,7 +69,7 @@
 <meta property="og:image" content="https://github.com/alibaba/x-deeplearning/raw/master/xdl-algorithm-solution/TDM/docs/tree_structure.png">
 <meta property="og:image" content="https://github.com/alibaba/x-deeplearning/raw/master/xdl-algorithm-solution/TDM/docs/model.png">
 <meta property="og:image" content="https://github.com/alibaba/x-deeplearning/raw/master/xdl-algorithm-solution/TDM/docs/joint_training.png">
-<meta property="og:updated_time" content="2019-10-21T03:11:08.000Z">
+<meta property="og:updated_time" content="2019-11-15T06:35:08.394Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="推荐系统">
 <meta name="twitter:description" content="推荐系统架构ffm+faiss 千万级别的 item 召回性能问题，使用阿里巴巴 深度树匹配模型(TDM)做聚类。 基本概念 推荐系统：推荐技术提供用户对某个目标（兴趣）的偏好程度预测能力，基于偏好预测排序输出用户喜好的目标（兴趣）集合。 深度学习：基于深度神经网络结构的机器学习算法分支。   数据结构与算法 树：树是计算机科学中数据结构的经典类型，在数据组织上具有良好的效率。 BeamSearc">
@@ -318,7 +318,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-10-21 11:11:08" itemprop="dateModified" datetime="2019-10-21T11:11:08+08:00">2019-10-21</time>
+                <time title="修改时间：2019-11-15 14:35:08" itemprop="dateModified" datetime="2019-11-15T14:35:08+08:00">2019-11-15</time>
               </span>
             
           
@@ -403,9 +403,10 @@
 <p>实时推荐：基于 fink 的召回 ffm+排序 deepfm 使用 FTRL 优化器</p>
 <h2 id="推荐系统架构-1"><a href="#推荐系统架构-1" class="headerlink" title="推荐系统架构"></a><a href="推荐系统架构"></a>推荐系统架构</h2><p>实时推荐：</p>
 <p>0、个性化的热度指数(xgb+lr 线性模型)</p>
-<p>模型指数：ctr*stayTime+α+β+….</p>
+<p>模型指数：ctr*stayTime+α+β+…. finish*（like+comment+profile) finish * like 两个都是点击率</p>
+<p>360 模型指数：ctr*log(dur) 平均观看时长</p>
 <p>Word embedding + xgb（交叉特征 用户 性别 等作为特征放入）</p>
-<p>1、fm+lr fmemb topk faiss<br>2、ffm emb fmemb topk faiss<br>3、ffm &amp; wide&amp;deep -&gt;deepfm</p>
+<p>1、fm+lr fmemb topk faiss<br>2、ffm emb fmemb topk faiss<br>3、ffm &amp; wide&amp;deep -&gt;deepfm<br>4、Wide deep，deepfm，youtube next watch ,din，lpfebinate</p>
 <p>观察指标：时长 留存 CTR 互动指标 1 小时到 1.30 分钟</p>
 <p>时效性：90 天 30 天 1 天</p>
 <p>特征处理：</p>
@@ -541,7 +542,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

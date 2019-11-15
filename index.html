@@ -272,7 +272,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/item2vec实战/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/15/NLP - BERT_ERNIE 文本分类和部署/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -286,7 +286,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/11/08/item2vec实战/" class="post-title-link" itemprop="url">PAI item2vec实战</a>
+            <a href="/2019/11/15/NLP - BERT_ERNIE 文本分类和部署/" class="post-title-link" itemprop="url">NLP - BERT_ERNIE 文本分类和部署</a>
           
         </h1>
 
@@ -301,7 +301,7 @@
                 
               
 
-              <time title="创建时间：2019-11-08 15:24:11 / 修改时间：18:52:29" itemprop="dateCreated datePublished" datetime="2019-11-08T15:24:11+08:00">2019-11-08</time>
+              <time title="创建时间：2019-11-15 16:47:07 / 修改时间：17:01:49" itemprop="dateCreated datePublished" datetime="2019-11-15T16:47:07+08:00">2019-11-15</time>
             </span>
           
             
@@ -333,7 +333,398 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p><img src="images/word2vec1.png" alt><br><img src="images/word2vec2.png" alt><br><img src="images/word2vec3.png" alt><br><img src="images/word2vec4.png" alt><br><img src="images/word2vec5.png" alt><br><img src="images/word2vec6.png" alt><br><img src="images/word2vec7.png" alt><br><img src="images/word2vec8.png" alt></p>
+          <p>本文主要是介绍使用 Kashgari 框架实现 BERT 文本分类及使用 Tensorflow Serving 方式部署模型。</p><h2 id="数据处理"><a href="#数据处理" class="headerlink" title="数据处理"></a><a href="#数据处理" title="数据处理"></a>数据处理</h2><p>我们使用新浪微博情感分类数据集，数据集很简单，只有二分类。此外还需要下载 BERT 模型和对应的分词器。</p><ul>
+<li>下载数据链接：<a href="https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/weibo_senti_100k/intro.ipynb" target="_blank" rel="noopener">link</a></li>
+<li>下载 BERT 模型：<a href="https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip" target="_blank" rel="noopener">link</a></li>
+<li>下载 BERT 分词器：<a href="https://github.com/google-research/bert/blob/master/tokenization.py" target="_blank" rel="noopener">link</a></li>
+<li>安装 Kashgari: <code>pip install kashgari-tf</code></li>
+</ul>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/11/15/NLP - BERT_ERNIE 文本分类和部署/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/15/ernie实战/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/11/15/ernie实战/" class="post-title-link" itemprop="url">PAI ernie实战</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-15 16:37:28 / 修改时间：17:02:41" itemprop="dateCreated datePublished" datetime="2019-11-15T16:37:28+08:00">2019-11-15</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>1、推荐</p><p>基于迁移学习模型进行语义向量召回，最近 3 月 item ember 加小时增量入库 faiss、odps，统计 3 天所有用户的点击历史与 item ember join 生成用户平均向量，<br>item faiss,uesr Redis faiss docker 部署，kbs 监控</p><p>2、文本分类</p><p>基于 ernie 进时效性与非时效分类<br>1、# 进行分词处理<br>2、# 准备训练测试数据集<br>3、# 初始化 Embedding<br>4、# 使用 embedding 初始化模型<br>5、# 先只训练一轮<br>6、# evaluate 评估指标<br>7、# 保存模型 # 模型转换为 SavedModel 格式<br>8、# Tensorflor Serving 部署<br>9、# 部署好了 Tensorflow Serving 模型，但是模型的输出输出均为张量，我们还需要对输入进行预处理才能使用。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/11/15/ernie实战/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/15/TensorFlow Wide And Deep 模型/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/11/15/TensorFlow Wide And Deep 模型/" class="post-title-link" itemprop="url">TensorFlow Wide And Deep 模型</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-15 15:04:28 / 修改时间：15:24:21" itemprop="dateCreated datePublished" datetime="2019-11-15T15:04:28+08:00">2019-11-15</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>之前对 Wide And Deep 模型看过一点文章，但是没有深入了解，这两天抽出时间来仔细看了下相关代码和资料，然后写点初步的总结，总体来说还是很有意思的想法，把深度学习突破了在图像和语言领域的限制，用到了以往机器学习的领域，并且取得了更好的结果。</p><h2 id="核心思想是？"><a href="#核心思想是？" class="headerlink" title="核心思想是？"></a><strong>核心思想是？</strong></h2><blockquote>
+<p>wide and deep 模型的核心思想是结合线性模型的记忆能力（memorization）和 DNN 模型的泛化能力（generalization），在训练过程中同时优化两个模型的参数，从而达到整体模型的预测能力最优。</p>
+</blockquote>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/11/15/TensorFlow Wide And Deep 模型/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/15/向量搜索的简明数学基础/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/11/15/向量搜索的简明数学基础/" class="post-title-link" itemprop="url">向量搜索的简明数学基础</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-15 14:25:48 / 修改时间：15:25:26" itemprop="dateCreated datePublished" datetime="2019-11-15T14:25:48+08:00">2019-11-15</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>虽然 Milvus 开源向量搜索引擎（<a href="https://github.com/milvus-io/milvus/" target="_blank" rel="noopener">GitHub</a>）可以为用户隔离下面这些头疼的细节，不过多学一点向量数据的知识总是没坏处的。</p><h2 id="L2-正则化（归一化）"><a href="#L2-正则化（归一化）" class="headerlink" title="L2 正则化（归一化）"></a>L2 正则化（归一化）</h2><p>n 维原始向量空间： <img src="http://latex.codecogs.com/gif.latex?\mathbb{R}^n,&space;n&space;\in&space;\mathbb{N}" alt> （ <img src="http://latex.codecogs.com/gif.latex?\mathbb{R}" alt> 为实数， <img src="http://latex.codecogs.com/gif.latex?\mathbb{N}" alt> 为非零自然数）</p><p>原始向量： <img src="http://latex.codecogs.com/gif.latex?X&space;=&space;(x_1,&space;x_2,&space;...,&space;x_n" alt>,&space;X&space;\in&space;\mathbb{R}^n&gt;)</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/11/15/向量搜索的简明数学基础/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/item2vec实战/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/11/08/item2vec实战/" class="post-title-link" itemprop="url">PAI item2vec实战</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 15:24:11" itemprop="dateCreated datePublished" datetime="2019-11-08T15:24:11+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-15 16:34:03" itemprop="dateModified" datetime="2019-11-15T16:34:03+08:00">2019-11-15</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="/images/word2vec1.png" alt><br><img src="/images/word2vec2.png" alt><br><img src="/images/word2vec3.png" alt><br><img src="/images/word2vec4.png" alt><br>5、生成用户最近 3 天点击过的 item 序列，并过滤异常用户，一天刷文章大于 300 篇<br><img src="/images/word2vec5.png" alt><br>6、生成每个用户点击过得 item 的平均向量<br><img src="/images/word2vec6.png" alt><br>7、user、item 生成 libsvm 格式，用户侧拼接 Redis key<br><img src="/images/word2vec7.png" alt><br>8、item2vec 用户向量存 Redis，文章向量存 oss<br><img src="/images/word2vec8.png" alt></p>
 
         
       
@@ -823,398 +1214,6 @@
   </article>
 
     
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/" class="post-title-link" itemprop="url">主题模型 (Topic Model)、LDA(案例代码)</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-07 17:53:54 / 修改时间：17:57:52" itemprop="dateCreated datePublished" datetime="2019-11-07T17:53:54+08:00">2019-11-07</time>
-            </span>
-          
-            
-
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li>LDA 模型是什么</li>
-</ol><hr><p>LDA 可以分为以下 5 个步骤：</p><ul>
-<li>一个函数：gamma 函数。</li>
-<li>四个分布：二项分布、多项分布、beta 分布、Dirichlet 分布。</li>
-<li>一个概念和一个理念：共轭先验和贝叶斯框架。</li>
-<li>两个模型：pLSA、LDA。</li>
-<li>一个采样：Gibbs 采样</li>
-</ul><p>关于 LDA 有两种含义，一种是线性判别分析（Linear Discriminant Analysis），一种是概率主题模型：<strong>隐含狄利克雷分布（Latent Dirichlet Allocation，简称 LDA）</strong>，本文讲后者。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/11/07/主题模型 (Topic Model)、LDA(案例代码)/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/06/numpy 创建矩阵常用方法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/11/06/numpy 创建矩阵常用方法/" class="post-title-link" itemprop="url">numpy 创建矩阵常用方法</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-06 13:47:07" itemprop="dateCreated datePublished" datetime="2019-11-06T13:47:07+08:00">2019-11-06</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-07 17:13:35" itemprop="dateModified" datetime="2019-11-07T17:13:35+08:00">2019-11-07</time>
-              </span>
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="numpy-创建矩阵常用方法"><a href="#numpy-创建矩阵常用方法" class="headerlink" title="numpy 创建矩阵常用方法"></a>numpy 创建矩阵常用方法</h2><h3 id="arange-reshape"><a href="#arange-reshape" class="headerlink" title="arange+reshape"></a><strong>arange+reshape</strong></h3><h4 id="in"><a href="#in" class="headerlink" title="in:"></a>in:</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">n = np.arange(0, 30, 2)# start at 0 count up by 2, stop before 30</span><br><span class="line">n = n.reshape(3, 5) # reshape array to be 3x5</span><br></pre></td></tr></table></figure><h4 id="out"><a href="#out" class="headerlink" title="out:"></a>out:</h4><p><img src="https://img-blog.csdn.net/20171214190912750?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvemhvdXdlaXl1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt></p><h3 id="linspace-resize"><a href="#linspace-resize" class="headerlink" title="linspace+resize"></a><strong>linspace+resize</strong></h3>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/11/06/numpy 创建矩阵常用方法/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/05/缺失值填充的几种方法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/11/05/缺失值填充的几种方法/" class="post-title-link" itemprop="url">缺失值填充的几种方法</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-05 22:16:56 / 修改时间：22:18:51" itemprop="dateCreated datePublished" datetime="2019-11-05T22:16:56+08:00">2019-11-05</time>
-            </span>
-          
-            
-
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>面试不仅仅是一个找工作的过程，还是一个向面试官交流学习的过程。之前的某次面试中，聊到了缺失值填充方法，经面试官指点学到了一些技能，下面简要总结一下。</p><p>常见的缺失值填充方法有填充默认值、均值、众数、KNN 填充、以及把缺失值作为新的 label 通过模型来预测等方式，为了介绍这几种填充方法的使用以及填充效果，本文将在真实数据集上进行简单比较。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/11/05/缺失值填充的几种方法/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/05/深入 FFM 原理与实践/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/11/05/深入 FFM 原理与实践/" class="post-title-link" itemprop="url">深入理解FFM原理</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-11-05 21:15:26 / 修改时间：22:10:44" itemprop="dateCreated datePublished" datetime="2019-11-05T21:15:26+08:00">2019-11-05</time>
-            </span>
-          
-            
-
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>FM 和 FFM 模型是最近几年提出的模型，凭借其在数据量比较大并且特征稀疏的情况下，仍然能够得到优秀的性能和效果的特性，屡次在各大公司举办的 CTR 预估比赛中获得不错的战绩。美团技术团队在搭建 DSP 的过程中，探索并使用了 FM 和 FFM 模型进行 CTR 和 CVR 预估，并且取得了不错的效果。本文旨在把我们对 FM 和 FFM 原理的探索和应用的经验介绍给有兴趣的读者。</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/11/05/深入 FFM 原理与实践/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
   </div>
 
   
@@ -1267,7 +1266,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

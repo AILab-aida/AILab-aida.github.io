@@ -57,24 +57,27 @@
   };
 </script>
 
-  <meta name="keywords" content="算法">
+  <meta name="description" content="5、生成用户最近 3 天点击过的 item 序列，并过滤异常用户，一天刷文章大于 300 篇6、生成每个用户点击过得 item 的平均向量7、user、item 生成 libsvm 格式，用户侧拼接 Redis key8、item2vec 用户向量存 Redis，文章向量存 oss">
+<meta name="keywords" content="算法">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PAI item2vec实战">
 <meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/index.html">
 <meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="5、生成用户最近 3 天点击过的 item 序列，并过滤异常用户，一天刷文章大于 300 篇6、生成每个用户点击过得 item 的平均向量7、user、item 生成 libsvm 格式，用户侧拼接 Redis key8、item2vec 用户向量存 Redis，文章向量存 oss">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec1.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec2.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec3.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec4.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec5.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec6.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec7.png">
-<meta property="og:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec8.png">
-<meta property="og:updated_time" content="2019-11-08T10:52:29.941Z">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec1.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec2.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec3.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec4.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec5.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec6.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec7.png">
+<meta property="og:image" content="https://ailab-aida.github.io/images/word2vec8.png">
+<meta property="og:updated_time" content="2019-11-15T08:34:03.459Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="PAI item2vec实战">
-<meta name="twitter:image" content="https://ailab-aida.github.io/2019/11/08/item2vec实战/images/word2vec1.png">
+<meta name="twitter:description" content="5、生成用户最近 3 天点击过的 item 序列，并过滤异常用户，一天刷文章大于 300 篇6、生成每个用户点击过得 item 的平均向量7、user、item 生成 libsvm 格式，用户侧拼接 Redis key8、item2vec 用户向量存 Redis，文章向量存 oss">
+<meta name="twitter:image" content="https://ailab-aida.github.io/images/word2vec1.png">
   <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/item2vec实战/">
 
 
@@ -308,11 +311,19 @@
                 
               
 
-              <time title="创建时间：2019-11-08 15:24:11 / 修改时间：18:52:29" itemprop="dateCreated datePublished" datetime="2019-11-08T15:24:11+08:00">2019-11-08</time>
+              <time title="创建时间：2019-11-08 15:24:11" itemprop="dateCreated datePublished" datetime="2019-11-08T15:24:11+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-15 16:34:03" itemprop="dateModified" datetime="2019-11-15T16:34:03+08:00">2019-11-15</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -340,7 +351,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><img src="images/word2vec1.png" alt><br><img src="images/word2vec2.png" alt><br><img src="images/word2vec3.png" alt><br><img src="images/word2vec4.png" alt><br><img src="images/word2vec5.png" alt><br><img src="images/word2vec6.png" alt><br><img src="images/word2vec7.png" alt><br><img src="images/word2vec8.png" alt></p>
+        <p><img src="/images/word2vec1.png" alt><br><img src="/images/word2vec2.png" alt><br><img src="/images/word2vec3.png" alt><br><img src="/images/word2vec4.png" alt><br>5、生成用户最近 3 天点击过的 item 序列，并过滤异常用户，一天刷文章大于 300 篇<br><img src="/images/word2vec5.png" alt><br>6、生成每个用户点击过得 item 的平均向量<br><img src="/images/word2vec6.png" alt><br>7、user、item 生成 libsvm 格式，用户侧拼接 Redis key<br><img src="/images/word2vec7.png" alt><br>8、item2vec 用户向量存 Redis，文章向量存 oss<br><img src="/images/word2vec8.png" alt></p>
 
     </div>
 
@@ -391,6 +402,10 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/15/向量搜索的简明数学基础/" rel="prev" title="向量搜索的简明数学基础">
+                  向量搜索的简明数学基础 <i class="fa fa-chevron-right"></i>
+                </a>
               
             </div>
           </div>
@@ -458,7 +473,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">66</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
