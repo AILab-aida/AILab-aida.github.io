@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="线性回归 (Linear Regression) GitHub 地址 (代码加数据)1.1 什么是线性回归我们首先用弄清楚什么是线性，什么是非线性。 线性：两个变量之间的关系是一次函数关系的——图象是直线，叫做线性。 注意：题目的线性是指广义的线性，也就是数据与数据之间的关系。  非线性：两个变量之间的关系不是一次函数关系的——图象不是直线，叫做非线性。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性回归算法讲解 (算法 + 案例)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/线性回归算法讲解 (算法 + 案例)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="线性回归 (Linear Regression) GitHub 地址 (代码加数据)1.1 什么是线性回归我们首先用弄清楚什么是线性，什么是非线性。 线性：两个变量之间的关系是一次函数关系的——图象是直线，叫做线性。 注意：题目的线性是指广义的线性，也就是数据与数据之间的关系。  非线性：两个变量之间的关系不是一次函数关系的——图象不是直线，叫做非线性。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534c552ff5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534c49cf58?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534cbe249a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534cc05d8f?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534d4e3749?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534e641b9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1536ac9d2a3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf153724a4b82?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf153742a3a62?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf15375834138?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:38:49.817Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="线性回归算法讲解 (算法 + 案例)">
+<meta name="twitter:description" content="线性回归 (Linear Regression) GitHub 地址 (代码加数据)1.1 什么是线性回归我们首先用弄清楚什么是线性，什么是非线性。 线性：两个变量之间的关系是一次函数关系的——图象是直线，叫做线性。 注意：题目的线性是指广义的线性，也就是数据与数据之间的关系。  非线性：两个变量之间的关系不是一次函数关系的——图象不是直线，叫做非线性。">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534c552ff5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/线性回归算法讲解 (算法 + 案例)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>线性回归算法讲解 (算法 + 案例) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/线性回归算法讲解 (算法 + 案例)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">线性回归算法讲解 (算法 + 案例)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:20:25" itemprop="dateCreated datePublished" datetime="2019-11-08T11:20:25+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:38:49" itemprop="dateModified" datetime="2019-11-19T11:38:49+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>线性回归 (Linear Regression)</li>
+</ol><hr><p><a href="https://github.com/mantchs/machine_learning_model/tree/master/Linear%20Regression/demo" target="_blank" rel="noopener">GitHub 地址 (代码加数据)</a></p><h3 id="1-1-什么是线性回归"><a href="#1-1-什么是线性回归" class="headerlink" title="1.1 什么是线性回归"></a>1.1 什么是线性回归</h3><p>我们首先用弄清楚什么是线性，什么是非线性。</p><ul>
+<li><p>线性：两个变量之间的关系<strong>是</strong>一次函数关系的——图象<strong>是直线</strong>，叫做线性。</p>
+<p><strong>注意：题目的线性是指广义的线性，也就是数据与数据之间的关系。</strong></p>
+</li>
+<li><p>非线性：两个变量之间的关系<strong>不是</strong>一次函数关系的——图象<strong>不是直线</strong>，叫做非线性。</p>
+</li>
+</ul><a id="more"></a>
+
+
+
+
+<p>相信通过以上两个概念大家已经很清楚了，其次我们经常说的回归回归到底是什么意思呢。</p>
+<ul>
+<li>回归：人们在测量事物的时候因为客观条件所限，求得的都是测量值，而不是事物真实的值，为了能够得到真实值，无限次的进行测量，最后通过这些测量数据计算<strong>回归到真实值</strong>，这就是回归的由来。</li>
+</ul>
+<p>通俗的说就是用一个函数去逼近这个真实值，那又有人问了，线性回归不是用来做预测吗？是的，通过大量的数据我们是可以预测到<strong>真实值</strong>的。如果还是不明白，大家可以加一下我的<strong>微信：wei15693176</strong> 进行讨论。</p>
+<h3 id="1-2-线性回归要解决什么问题"><a href="#1-2-线性回归要解决什么问题" class="headerlink" title="1.2 线性回归要解决什么问题"></a>1.2 线性回归要解决什么问题</h3><p>对大量的观测数据进行处理，从而得到比较符合事物内部规律的数学表达式。也就是说寻找到数据与数据之间的规律所在，从而就可以模拟出结果，也就是对结果进行预测。解决的就是通过已知的数据得到未知的结果。例如：对房价的预测、判断信用评价、电影票房预估等。</p>
+<h3 id="1-3-线性回归的一般模型"><a href="#1-3-线性回归的一般模型" class="headerlink" title="1.3 线性回归的一般模型"></a>1.3 线性回归的一般模型</h3><p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534c552ff5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>大家看上面图片，图片上有很多个小点点，通过这些小点点我们很难预测当 x 值 = 某个值时，y 的值是多少，我们无法得知，所以，数学家是很聪明的，是否能够找到一条直线来描述这些点的趋势或者分布呢？答案是肯定的。相信大家在学校的时候都学过这样的直线，只是当时不知道这个方程在现实中是可以用来预测很多事物的。</p>
+<p>那么问题来了，什么是模型呢？先来看看下面这幅图。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534c49cf58?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>假设数据就是 <strong>x</strong>，结果是 <strong>y</strong>，那中间的模型其实就是一个<strong>方程</strong>，这是一种片面的解释，但有助于我们去理解模型到底是个什么东西。以前在学校的时候总是不理解数学建模比赛到底在做些什么，现在理解了，是从题目给的数据中找到数据与数据之间的关系，建立数学方程模型，得到结果解决现实问题。其实是和机器学习中的模型是一样的意思。那么线性回归的一般模型是什么呢？</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534cbe249a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>模型神秘的面纱已经被我们揭开了，就是以上这个公式，不要被公式吓到，只要知道模型长什么样就行了。假设 i=0，表示的是一元一次方程，是穿过坐标系中原点的一条直线，以此类推。</p>
+<h3 id="1-4-如何使用模型"><a href="#1-4-如何使用模型" class="headerlink" title="1.4 如何使用模型"></a>1.4 如何使用模型</h3><p>我们知道 x 是已知条件，通过公式求出 y。已知条件其实就是我们的数据，以预测房价的案例来说明：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534cc05d8f?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>上图给出的是某个地区房价的一些相关信息，有日期、房间数、建筑面积、房屋评分等特征，表里头的数据就是我们要的 x1、x2、x3………. 自然的表中的 price 列就是房屋的价格，也就是 y。现在需要求的就是 theta 的值了，后续步骤都需要依赖计算机来训练求解。</p>
+<h3 id="1-5-模型计算"><a href="#1-5-模型计算" class="headerlink" title="1.5 模型计算"></a>1.5 模型计算</h3><p>当然，这些计算虽然复杂，但 python 库中有现成的函数直接调用就可以求解。我们为了理解内部的计算原理，就需要一步一步的来剖析计算过程。</p>
+<p>为了容易理解模型，假设该模型是一元一次函数，我们把一组数据 x 和 y 带入模型中，会得到如下图所示线段。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534d4e3749?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>是不是觉得这条直线拟合得不够好？显然最好的效果应该是这条直线穿过所有的点才是，需要对模型进行优化，这里我们要引入一个概念。</p>
+<ul>
+<li><strong>损失函数</strong>：是用来估量你模型的预测值 f(x) 与真实值 YY 的不一致程度，损失函数越小，模型的效果就越好。</li>
+</ul>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1534e641b9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>不要看公式很复杂，其实就是一句话，(预测值 - 真实值) 的平法和的平均值，换句话说就是点到直线距离和最小。用一幅图来表示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf1536ac9d2a3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong>解释</strong>：一开始损失函数是比较大的，但随着直线的不断变化 (模型不断训练)，损失函数会越来越小，从而达到极小值点，也就是我们要得到的最终模型。</p>
+<p>这种方法我们统称为<strong>梯度下降法</strong>。随着模型的不断训练，损失函数的梯度越来越平，直至极小值点，点到直线的距离和最小，所以这条直线就会经过所有的点，这就是我们要求的模型 (函数)。</p>
+<p>以此类推，高维的线性回归模型也是一样的，利用梯度下降法优化模型，寻找极值点，这就是模型训练的过程。</p>
+<h3 id="1-6-过拟合与欠拟合-underfitting-and-overfitting"><a href="#1-6-过拟合与欠拟合-underfitting-and-overfitting" class="headerlink" title="1.6 过拟合与欠拟合 (underfitting and overfitting)"></a>1.6 过拟合与欠拟合 (underfitting and overfitting)</h3><p>在机器学习模型训练当中，模型的泛化能力越强，就越能说明这个模型表现很好。什么是模型的泛化能力？</p>
+<ul>
+<li><strong>模型的泛化能力</strong>：机器学习模型学习到的概念在它处于学习的过程中时模型没有遇见过的样本时候的表现。</li>
+</ul>
+<p>模型的泛化能力直接导致了模型会过拟合与欠拟合的情况。让我们来看看一下情况：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf153724a4b82?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>我们的目标是要实现点到直线的平方和最小，那通过以上图示显然可以看出中间那幅图的拟合程度很好，最左边的情况属于欠拟合，最右边的情况属于过拟合。</p>
+<ul>
+<li><p><strong>欠拟合</strong>：训练集的预测值，与训练集的真实值有不少的误差，称之为欠拟合。</p>
+</li>
+<li><p><strong>过拟合</strong>：训练集的预测值，完全贴合训练集的真实值，称之为过拟合。</p>
+</li>
+</ul>
+<p>欠拟合已经很明白了，就是误差比较大，而过拟合呢是训练集上表现得很好，换一批数据进行预测结果就很不理想了，泛化泛化说的就是一个通用性。</p>
+<h4 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h4><p>使用正则化项，也就是给梯度下降公式加上一个参数，即：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf153742a3a62?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>加入这个正则化项好处：</p>
+<ul>
+<li><p>控制参数幅度，不让模型 “无法无天”。</p>
+</li>
+<li><p>限制参数搜索空间</p>
+</li>
+<li><p>解决欠拟合与过拟合的问题。</p>
+</li>
+</ul>
+<p>看到这里是不是觉得很麻烦，我之前说过现在是解释线性回归模型的原理与优化，但是到了真正使用上这些方法是一句话的事，因为这些计算库别人已经准备好了，感谢开源吧！</p>
+<h3 id="1-7Python-实现代码"><a href="#1-7Python-实现代码" class="headerlink" title="1.7Python 实现代码"></a>1.7Python 实现代码</h3><p><a href="https://github.com/mantchs/machine_learning_model/tree/master/Linear%20Regression/demo" target="_blank" rel="noopener">GitHub 地址 (代码加数据)</a></p>
+<p><a href="#">寻觅互联网，少有机器学习通俗易懂之算法讲解、案例等，项目立于这一问题之上，整理一份基本算法讲解 + 案例于文档，供大家学习之。通俗易懂之文章亦不可以面概全，但凡有不正确或争议之处，望告知，自当不吝赐教！</a></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/18/167bf15375834138?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>欢迎添加微信交流！请备注 “机器学习”。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/线性回归算法讲解 (算法 + 案例)/" title="线性回归算法讲解 (算法 + 案例)">https://ailab-aida.github.io/2019/11/08/线性回归算法讲解 (算法 + 案例)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/逻辑回归算法讲解 (算法 + 案例)/" rel="next" title="逻辑回归算法讲解 (算法 + 案例)">
+                  <i class="fa fa-chevron-left"></i> 逻辑回归算法讲解 (算法 + 案例)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例)/" rel="prev" title="岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例)">
+                  岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例) <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-什么是线性回归"><span class="nav-number">1.</span> <span class="nav-text">1.1 什么是线性回归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-线性回归要解决什么问题"><span class="nav-number">2.</span> <span class="nav-text">1.2 线性回归要解决什么问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-线性回归的一般模型"><span class="nav-number">3.</span> <span class="nav-text">1.3 线性回归的一般模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-如何使用模型"><span class="nav-number">4.</span> <span class="nav-text">1.4 如何使用模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-模型计算"><span class="nav-number">5.</span> <span class="nav-text">1.5 模型计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-过拟合与欠拟合-underfitting-and-overfitting"><span class="nav-number">6.</span> <span class="nav-text">1.6 过拟合与欠拟合 (underfitting and overfitting)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方法"><span class="nav-number">6.1.</span> <span class="nav-text">解决方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7Python-实现代码"><span class="nav-number">7.</span> <span class="nav-text">1.7Python 实现代码</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '1da8d4e735017f24743af6a0e5c63fbd',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

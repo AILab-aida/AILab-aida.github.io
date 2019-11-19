@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是 textRNN textRNN 指的是利用 RNN 循环神经网络解决文本分类问题，文本分类是自然语言处理的一个基本任务，试图推断出给定文本 (句子、文档等) 的标签或标签集合。文本分类的应用非常广泛，如： 垃圾邮件分类：2 分类问题，判断邮件是否为垃圾邮件 情感分析：2 分类问题：判断文本情感是积极还是消极；多分类问题：判断文本情感属于 {非常消极，消极，中立，积极，非常积极} 中的哪一">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="textRNN &amp; textCNN 的网络结构与代码实现！">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是 textRNN textRNN 指的是利用 RNN 循环神经网络解决文本分类问题，文本分类是自然语言处理的一个基本任务，试图推断出给定文本 (句子、文档等) 的标签或标签集合。文本分类的应用非常广泛，如： 垃圾邮件分类：2 分类问题，判断邮件是否为垃圾邮件 情感分析：2 分类问题：判断文本情感是积极还是消极；多分类问题：判断文本情感属于 {非常消极，消极，中立，积极，非常积极} 中的哪一">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523d5419b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523e46c35?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523e013cd?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086524273ee2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086529849eaf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd08652a0274cc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086548ed43fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd08655eff91ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:30:47.511Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="textRNN &amp; textCNN 的网络结构与代码实现！">
+<meta name="twitter:description" content="什么是 textRNN textRNN 指的是利用 RNN 循环神经网络解决文本分类问题，文本分类是自然语言处理的一个基本任务，试图推断出给定文本 (句子、文档等) 的标签或标签集合。文本分类的应用非常广泛，如： 垃圾邮件分类：2 分类问题，判断邮件是否为垃圾邮件 情感分析：2 分类问题：判断文本情感是积极还是消极；多分类问题：判断文本情感属于 {非常消极，消极，中立，积极，非常积极} 中的哪一">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523d5419b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>textRNN & textCNN 的网络结构与代码实现！ | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">textRNN & textCNN 的网络结构与代码实现！
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:50:25" itemprop="dateCreated datePublished" datetime="2019-11-08T11:50:25+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:30:47" itemprop="dateModified" datetime="2019-11-19T11:30:47+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是 textRNN</li>
+</ol><hr><p><strong>textRNN 指的是利用 RNN 循环神经网络解决文本分类问题</strong>，文本分类是自然语言处理的一个基本任务，试图推断出给定文本 (句子、文档等) 的标签或标签集合。</p><p>文本分类的应用非常广泛，如：</p><ul>
+<li>垃圾邮件分类：2 分类问题，判断邮件是否为垃圾邮件</li>
+<li>情感分析：2 分类问题：判断文本情感是积极还是消极；多分类问题：判断文本情感属于 {非常消极，消极，中立，积极，非常积极} 中的哪一类。</li>
+<li>新闻主题分类：判断一段新闻属于哪个类别，如财经、体育、娱乐等。根据类别标签的数量，可以是 2 分类也可以是多分类。</li>
+<li>自动问答系统中的问句分类</li>
+<li>社区问答系统中的问题分类：多标签多分类 (对一段文本进行多分类，该文本可能有多个标签)，如知乎看山杯</li>
+<li>让 AI 做法官：基于案件事实描述文本的罚金等级分类 (多分类) 和法条分类(多标签多分类)</li>
+<li>判断新闻是否为机器人所写：2 分类</li>
+</ul><a id="more"></a>
+
+
+
+
+<h3 id="1-1-textRNN-的原理"><a href="#1-1-textRNN-的原理" class="headerlink" title="1.1 textRNN 的原理"></a>1.1 textRNN 的原理</h3><p>在一些自然语言处理任务中，当对序列进行处理时，我们一般会采用循环神经网络 RNN，尤其是它的一些变种，如 LSTM(更常用)，GRU。当然我们也可以把 RNN 运用到文本分类任务中。</p>
+<p>这里的文本可以一个句子，文档 (短文本，若干句子) 或篇章(长文本)，因此每段文本的长度都不尽相同。在对文本进行分类时，我们一般会指定一个固定的输入序列 / 文本长度：该长度可以是最长文本 / 序列的长度，此时其他所有文本 / 序列都要进行填充以达到该长度；该长度也可以是训练集中所有文本 / 序列长度的均值，此时对于过长的文本 / 序列需要进行截断，过短的文本则进行填充。总之，要使得训练集中所有的文本 / 序列长度相同，该长度除之前提到的设置外，也可以是其他任意合理的数值。在测试时，也需要对测试集中的文本 / 序列做同样的处理。</p>
+<p>假设训练集中所有文本 / 序列的长度统一为 n，我们需要对文本进行分词，并使用词嵌入得到每个词固定维度的向量表示。对于每一个输入文本 / 序列，我们可以在 RNN 的每一个时间步长上输入文本中一个单词的向量表示，计算当前时间步长上的隐藏状态，然后用于当前时间步骤的输出以及传递给下一个时间步长并和下一个单词的词向量一起作为 RNN 单元输入，然后再计算下一个时间步长上 RNN 的隐藏状态，以此重复… 直到处理完输入文本中的每一个单词，由于输入文本的长度为 n，所以要经历 n 个时间步长。</p>
+<p>基于 RNN 的文本分类模型非常灵活，有多种多样的结构。接下来，我们主要介绍两种典型的结构。</p>
+<ol>
+<li>textRNN 网络结构</li>
+</ol>
+<hr>
+<h3 id="2-1-structure-1"><a href="#2-1-structure-1" class="headerlink" title="2.1 structure 1"></a>2.1 structure 1</h3><p><strong>流程</strong>：embedding—-&gt;BiLSTM—-&gt;concat final output/average all output——-&gt;softmax layer</p>
+<p>结构图如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523d5419b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>一般取前向 / 反向 LSTM 在最后一个时间步长上隐藏状态，然后进行拼接，在经过一个 softmax 层 (输出层使用 softmax 激活函数) 进行一个多分类；或者取前向 / 反向 LSTM 在每一个时间步长上的隐藏状态，对每一个时间步长上的两个隐藏状态进行拼接，然后对所有时间步长上拼接后的隐藏状态取均值，再经过一个 softmax 层 (输出层使用 softmax 激活函数) 进行一个多分类(2 分类的话使用 sigmoid 激活函数)。</p>
+<p><strong>上述结构也可以添加 dropout/L2 正则化或 BatchNormalization 来防止过拟合以及加速模型训练。</strong></p>
+<h3 id="2-2-structure-2"><a href="#2-2-structure-2" class="headerlink" title="2.2 structure 2"></a>2.2 structure 2</h3><p>流程：embedding—&gt;BiLSTM——&gt;(dropout)—&gt;concat ouput—-&gt;UniLSTM—-&gt;(droput)—&gt;softmax layer</p>
+<p>结构图如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523e46c35?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>与之前结构不同的是，在双向 LSTM(上图不太准确，底层应该是一个双向 LSTM)的基础上又堆叠了一个单向的 LSTM。把双向 LSTM 在每一个时间步长上的两个隐藏状态进行拼接，作为上层单向 LSTM 每一个时间步长上的一个输入，最后取上层单向 LSTM 最后一个时间步长上的隐藏状态，再经过一个 softmax 层 (输出层使用 softamx 激活函数，2 分类的话则使用 sigmoid) 进行一个多分类。</p>
+<h3 id="2-3-总结"><a href="#2-3-总结" class="headerlink" title="2.3 总结"></a>2.3 总结</h3><p>TextRNN 的结构非常灵活，可以任意改变。比如把 LSTM 单元替换为 GRU 单元，把双向改为单向，添加 dropout 或 BatchNormalization 以及再多堆叠一层等等。TextRNN 在文本分类任务上的效果非常好，与 TextCNN 不相上下，但 RNN 的训练速度相对偏慢，一般 2 层就已经足够多了。</p>
+<ol>
+<li>什么是 textCNN</li>
+</ol>
+<hr>
+<p>在 “卷积神经⽹络” 中我们探究了如何使⽤⼆维卷积神经⽹络来处理⼆维图像数据。在之前的语⾔模型和⽂本分类任务中，我们将⽂本数据看作是只有⼀个维度的时间序列，并很⾃然地使⽤循环神经⽹络来表征这样的数据。<strong>其实，我们也可以将⽂本当作⼀维图像，从而可以⽤⼀维卷积神经⽹络来捕捉临近词之间的关联。本节将介绍将卷积神经⽹络应⽤到⽂本分析的开创性⼯作之⼀：textCNN</strong>。</p>
+<h3 id="3-1-⼀维卷积层"><a href="#3-1-⼀维卷积层" class="headerlink" title="3.1 ⼀维卷积层"></a>3.1 ⼀维卷积层</h3><p>在介绍模型前我们先来解释⼀维卷积层的⼯作原理。与⼆维卷积层⼀样，⼀维卷积层使⽤⼀维的互相关运算。在⼀维互相关运算中，卷积窗口从输⼊数组的最左⽅开始，按从左往右的顺序，依次在输⼊数组上滑动。当卷积窗口滑动到某⼀位置时，窗口中的输⼊⼦数组与核数组按元素相乘并求和，得到输出数组中相应位置的元素。如下图所⽰，输⼊是⼀个宽为 7 的⼀维数组，核数组的宽为 2。可以看到输出的宽度为 7 - 2 + 1 = 6，且第⼀个元素是由输⼊的最左边的宽为 2 的⼦数组与核数组按元素相乘后再相加得到的：0 <em>×</em> 1 + 1 × 2 = 2。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086523e013cd?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>多输⼊通道的⼀维互相关运算也与多输⼊通道的⼆维互相关运算类似：在每个通道上，将核与相应的输⼊做⼀维互相关运算，并将通道之间的结果相加得到输出结果。下图展⽰了含 3 个输⼊ 通道的⼀维互相关运算，其中阴影部分为第⼀个输出元素及其计算所使⽤的输⼊和核数组元素： 0 <em>×</em> 1 + 1 <em>×</em> 2 + 1 <em>×</em> 3 + 2 <em>×</em> 4 + 2 <em>×</em> (-1) + 3 <em>×</em> (-3) = 2。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086524273ee2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>由⼆维互相关运算的定义可知，多输⼊通道的⼀维互相关运算可以看作单输⼊通道的⼆维互相关运算。如下图所⽰，我们也可以将上图中多输⼊通道的⼀维互相关运算以等价的单输⼊通道的⼆维互相关运算呈现。这⾥核的⾼等于输⼊的⾼。下图的阴影部分为第⼀个输出元素及其计算所使⽤的输⼊和核数组元素：2 <em>×</em> (-1) + 3 <em>×</em> (-3) + 1 <em>×</em> 3 + 2 <em>×</em> 4 + 0 <em>×</em> 1 + 1 <em>×</em> 2 = 2。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086529849eaf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>以上都是输出都只有⼀个通道。我们在 “多输⼊通道和多输出通道” ⼀节中介绍了如何在⼆维卷积层中指定多个输出通道。类似地，我们也可以在⼀维卷积层指定多个输出通道，从而拓展卷积层中的模型参数。</p>
+<h3 id="3-2-时序最⼤池化层"><a href="#3-2-时序最⼤池化层" class="headerlink" title="3. 2 时序最⼤池化层"></a>3. 2 时序最⼤池化层</h3><p>类似地，我们有⼀维池化层。textCNN 中使⽤的时序最⼤池化（max-over-time pooling）层实际上对应⼀维全局最⼤池化层：假设输⼊包含多个通道，各通道由不同时间步上的数值组成，各通道的输出即该通道所有时间步中最⼤的数值。因此，时序最⼤池化层的输⼊在各个通道上的时间步数可以不同。为提升计算性能，我们常常将不同⻓度的时序样本组成⼀个小批量，并通过在较短序列后附加特殊字符（如 0）令批量中各时序样本⻓度相同。这些⼈为添加的特殊字符当然是⽆意义的。由于时序最⼤池化的主要⽬的是抓取时序中最重要的特征，它通常能使模型不受⼈为添加字符的影响。</p>
+<h3 id="3-3-textCNN-模型"><a href="#3-3-textCNN-模型" class="headerlink" title="3.3 textCNN 模型"></a>3.3 textCNN 模型</h3><p>textCNN 模型主要使⽤了⼀维卷积层和时序最⼤池化层。假设输⼊的⽂本序列由 <em>n</em> 个词组成，每个词⽤ <em>d</em> 维的词向量表⽰。那么输⼊样本的宽为 <em>n</em>，⾼为 1，输⼊通道数为 <em>d</em>。textCNN 的计算主要分为以下⼏步：</p>
+<ol>
+<li>定义多个⼀维卷积核，并使⽤这些卷积核对输⼊分别做卷积计算。宽度不同的卷积核可能会捕捉到不同个数的相邻词的相关性。</li>
+<li>对输出的所有通道分别做时序最⼤池化，再将这些通道的池化输出值连结为向量。</li>
+<li>通过全连接层将连结后的向量变换为有关各类别的输出。这⼀步可以使⽤丢弃层应对过拟合。</li>
+</ol>
+<p>下图⽤⼀个例⼦解释了 textCNN 的设计。这⾥的输⼊是⼀个有 11 个词的句⼦，每个词⽤ 6 维词向量表⽰。因此输⼊序列的宽为 11，输⼊通道数为 6。给定 2 个⼀维卷积核，核宽分别为 2 和 4，输出通道数分别设为 4 和 5。因此，⼀维卷积计算后，4 个输出通道的宽为 11 - 2 + 1 = 10，而其他 5 个通道的宽为 11 - 4 + 1 = 8。尽管每个通道的宽不同，我们依然可以对各个通道做时序最⼤池化，并将 9 个通道的池化输出连结成⼀个 9 维向量。最终，使⽤全连接将 9 维向量变换为 2 维输出，即正⾯情感和负⾯情感的预测。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd08652a0274cc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>代码实现</li>
+</ol>
+<hr>
+<p>清华新闻分类数据集下载：<a href="https://www.lanzous.com/i5t0lsd" target="_blank" rel="noopener">www.lanzous.com/i5t0lsd</a></p>
+<ul>
+<li><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/NLP/16.4%20textRNN%20%26%20textCNN/textRNN.ipynb" target="_blank" rel="noopener">textRNN 实现新闻分类</a></li>
+<li><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/NLP/16.4%20textRNN%20%26%20textCNN/textCNN.ipynb" target="_blank" rel="noopener">textCNN 实现新闻分类</a></li>
+</ul>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086548ed43fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://blog.csdn.net/sdu_hao/article/details/88080791" target="_blank" rel="noopener">基于 TextRNN 的文本分类原理</a></li>
+<li><a href="https://www.lanzous.com/i5lqo4f" target="_blank" rel="noopener">动手学深度学习</a></li>
+</ul>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd08655eff91ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/" title="textRNN & textCNN 的网络结构与代码实现！">https://ailab-aida.github.io/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/XLNet 预训练模型，看这篇就够了！(代码实现)/" rel="next" title="XLNet 预训练模型，看这篇就够了！(代码实现)">
+                  <i class="fa fa-chevron-left"></i> XLNet 预训练模型，看这篇就够了！(代码实现)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/" rel="prev" title="seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)">
+                  seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现) <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-textRNN-的原理"><span class="nav-number">1.</span> <span class="nav-text">1.1 textRNN 的原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-structure-1"><span class="nav-number">2.</span> <span class="nav-text">2.1 structure 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-structure-2"><span class="nav-number">3.</span> <span class="nav-text">2.2 structure 2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-总结"><span class="nav-number">4.</span> <span class="nav-text">2.3 总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-⼀维卷积层"><span class="nav-number">5.</span> <span class="nav-text">3.1 ⼀维卷积层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-时序最⼤池化层"><span class="nav-number">6.</span> <span class="nav-text">3. 2 时序最⼤池化层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-textCNN-模型"><span class="nav-number">7.</span> <span class="nav-text">3.3 textCNN 模型</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'ba7ed13397fcc72237058920af27d0c8',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="信用卡欺诈预测案例 这是一道 kaggle 上的题目。我们都知道信用卡，能够透支一大笔钱来供自己消费，正因为这一点，不法分子就利用信用卡进一特性来实施欺诈行为。银行为了能够检测出这一欺诈行为，通过机器学习模型进行智能识别，提前冻结该账户，避免造成银行的损失。那么我们应该通过什么方式来提高这种识别精度呢！这就是今天要说的主题，多模型融合预测。使用到的模型算法有：KNN、SVM、Logistic R">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模型集成 (多模型) 讲解(算法 + 案例)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/模型集成 (多模型) 讲解(算法 + 案例)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="信用卡欺诈预测案例 这是一道 kaggle 上的题目。我们都知道信用卡，能够透支一大笔钱来供自己消费，正因为这一点，不法分子就利用信用卡进一特性来实施欺诈行为。银行为了能够检测出这一欺诈行为，通过机器学习模型进行智能识别，提前冻结该账户，避免造成银行的损失。那么我们应该通过什么方式来提高这种识别精度呢！这就是今天要说的主题，多模型融合预测。使用到的模型算法有：KNN、SVM、Logistic R">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041824327672e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/16804182423ae2e6?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041824334d458?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/1680418243b6a890?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/16804182436cd42d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/1680418243c758f0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041826e8d9714?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/1680418273e74cea?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/1680418280eea032?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041829db8fd13?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041829515a124?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:50:50.720Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="模型集成 (多模型) 讲解(算法 + 案例)">
+<meta name="twitter:description" content="信用卡欺诈预测案例 这是一道 kaggle 上的题目。我们都知道信用卡，能够透支一大笔钱来供自己消费，正因为这一点，不法分子就利用信用卡进一特性来实施欺诈行为。银行为了能够检测出这一欺诈行为，通过机器学习模型进行智能识别，提前冻结该账户，避免造成银行的损失。那么我们应该通过什么方式来提高这种识别精度呢！这就是今天要说的主题，多模型融合预测。使用到的模型算法有：KNN、SVM、Logistic R">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/12/31/168041824327672e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/模型集成 (多模型) 讲解(算法 + 案例)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>模型集成 (多模型) 讲解(算法 + 案例) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/模型集成 (多模型) 讲解(算法 + 案例)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">模型集成 (多模型) 讲解(算法 + 案例)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:21:08" itemprop="dateCreated datePublished" datetime="2019-11-08T11:21:08+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:50:50" itemprop="dateModified" datetime="2019-11-19T11:50:50+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>信用卡欺诈预测案例</li>
+</ol><hr><p>这是一道 kaggle 上的题目。</p><p>我们都知道信用卡，能够透支一大笔钱来供自己消费，正因为这一点，不法分子就利用信用卡进一特性来实施欺诈行为。银行为了能够检测出这一欺诈行为，通过机器学习模型进行智能识别，提前冻结该账户，避免造成银行的损失。那么我们应该通过什么方式来提高这种识别精度呢！这就是今天要说的主题，多模型融合预测。使用到的模型算法有：<strong>KNN、SVM、Logistic Regression(LR)、Random Forest</strong>。</p><a id="more"></a>
+
+
+
+<p>我会讲到<strong>如何使用多模型进行融合计算 (模型集成)、模型评估、超参数调节、K 折交叉验证</strong>等，力求能够讲得清楚，希望大家通过这篇博文能够了解到一个完整的机器学习算法到底是怎样的，如有讲得不到位亦或是错误的地方，望告知！</p>
+<p>以下我们正式开始介绍。</p>
+<p><strong>数据集下载：</strong><a href="https://v2.fangcloud.com/share/a63342d8bd816c43f281dab455" target="_blank" rel="noopener">v2.fangcloud.com/share/a6334…</a></p>
+<p><a href="https://github.com/mantchs/machine_learning_model/tree/master/Model%20Ensemble" target="_blank" rel="noopener">GitHub 完整代码</a></p>
+<p><strong>GitHub 完整代码：</strong></p>
+<ol>
+<li>模型集成 (model ensemble)</li>
+</ol>
+<hr>
+<p>我们先从概念着手，这是我们的地基，要建起高楼大厦，首先地基要稳。</p>
+<ul>
+<li><strong> 多模型：</strong> 分类问题是以多个模型计算出的结果进行投票决定最终答案，线性问题以多个模型计算出来的结果求取均值作为预测数值。</li>
+</ul>
+<p>那么多模型融合存在着多种实现方法：<strong>Bagging 思想、Stacking、Adaboost。</strong></p>
+<h3 id="2-1Bagging"><a href="#2-1Bagging" class="headerlink" title="2.1Bagging"></a>2.1Bagging</h3><p>Bagging 是 bootstrap aggregating。Bagging 思想就是从总体样本当中随机取一部分样本进行训练，通过多次这样的结果，进行投票亦或求取平均值作为结果输出，这就极大可能的避免了不好的样本数据，从而提高准确度。因为有些是不好的样本，相当于噪声，模型学入噪声后会使准确度不高。一句话概括就是：<strong>群众的力量是伟大的，集体智慧是惊人的。</strong></p>
+<p>而反观多模型，其实也是一样的，利用多个模型的结果进行投票亦或求取均值作为最终的输出，用的就是 Bagging 的思想。</p>
+<h3 id="2-2Stacking"><a href="#2-2Stacking" class="headerlink" title="2.2Stacking"></a>2.2Stacking</h3><p>stacking 是一种分层模型集成框架。以两层为例，第一层由多个基学习器组成，其输入为原始训练集，第二层的模型则是以第一层基学习器的输出作为训练集进行再训练，从而得到完整的 stacking 模型。如果是多层次的话，以此类推。一句话概括：<strong>站在巨人的肩膀上，能看得更远。</strong></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/168041824327672e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-3Adaboost"><a href="#2-3Adaboost" class="headerlink" title="2.3Adaboost"></a>2.3Adaboost</h3><p>所谓的 AdaBoost 的核心思想其实是，既然找一个强分类器不容易，那么我们干脆就不找了吧！我们可以去找多个弱分类器，这是比较容易实现的一件事情，然后再集成这些弱分类器就有可能达到强分类器的效果了，其中这里的弱分类器真的是很弱，你只需要构建一个比瞎猜的效果好一点点的分类器就可以了。一句话概括：<strong>坚守一万小时定律，努力学习。</strong></p>
+<h3 id="2-4-图解模型集成"><a href="#2-4-图解模型集成" class="headerlink" title="2.4 图解模型集成"></a>2.4 图解模型集成</h3><p><img src="https://user-gold-cdn.xitu.io/2018/12/31/16804182423ae2e6?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>案例总流程</li>
+</ol>
+<hr>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/168041824334d458?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li><p>首先拉取数据到 python 中。</p>
+</li>
+<li><p>将数据划分成训练集和测试集，训练集由于分类极度不平衡，所以采取下采样工作，使分类比例达到一致。</p>
+</li>
+<li><p>将训练集送入模型中训练，同时以 K 折交叉验证方法来进行超参数调节，哪一组超参数表现好，就选择哪一组超参数。</p>
+</li>
+<li><p>寻找到超参数后，用同样的方法寻找决策边界，至此模型训练完成。</p>
+</li>
+<li><p>使用模型集成预测测试集，并使用 ROC 曲线分析法，得到模型的评估指标。</p>
+</li>
+</ol>
+<p>4) 初始化工作</p>
+<hr>
+<p>啥都不说，先上代码，这里需要说明的就是 sklearn.model_selection 这个类库，因为老版本和新版本的区别还是很大的，如果巡行报错，尝试着升级 sklearn 库。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"># 数据读取与计算</span><br><span class="line">import pandas as  pd</span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># 数据预处理与模型选择</span><br><span class="line">from sklearn.preprocessing import StandardScaler</span><br><span class="line">from sklearn.model_selection import train_test_split</span><br><span class="line">from sklearn.linear_model import LogisticRegression</span><br><span class="line">from sklearn.model_selection import KFold</span><br><span class="line">from sklearn.model_selection import cross_val_score</span><br><span class="line">from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, roc_auc_score, roc_curve, recall_score, classification_report</span><br><span class="line">import itertools</span><br><span class="line"></span><br><span class="line"># 随机森林与SVM</span><br><span class="line">from sklearn.ensemble import RandomForestClassifier</span><br><span class="line">from sklearn.svm import SVC</span><br><span class="line">from sklearn.neighbors import KNeighborsClassifier</span><br><span class="line">from scipy import stats</span><br><span class="line"></span><br><span class="line">import warnings</span><br><span class="line">warnings.filterwarnings(&quot;ignore&quot;)</span><br><span class="line"></span><br><span class="line"># 一些基本参数设定</span><br><span class="line">mode = 2        #投票个数阈值</span><br><span class="line">ratio = 1       #负样本倍率</span><br><span class="line">iteration1 = 1  #总流程循环次数</span><br><span class="line">show_best_c = True  #是否显示最优超参数</span><br><span class="line">show_bdry = True    #是否显示决策边界</span><br><span class="line"></span><br><span class="line">##读取数据,删除无用的时间特征。</span><br><span class="line">data=pd.read_csv(&apos;creditcard.csv&apos;)</span><br><span class="line">data.drop(&apos;Time&apos;,axis=1,inplace=True)</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<ol>
+<li>数据下采样</li>
+</ol>
+<hr>
+<p>先回答什么是数据下采样：</p>
+<p><strong> 数据下采样：</strong> 数据集中正样本和负样本的比例严重失调，这会给模型的学习带来很大的困扰，例如，正样本有 100 个，而负样本只有 1 个，模型只是看到了正样本，而学习不到负样本，这回造成模型对负样本的预测能力几乎为 0。所以为了避免这种数据倾斜，处理数据使得正样本和负样本的数量基本均等，这样的模型泛化能力才会高。</p>
+<p>反观<strong>数据上采样</strong>也是一样的，只不过是基准样本不一样而已。</p>
+<p>这里的数据处理采用下标的方式，较容易运算。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#欺诈类的样本下标</span><br><span class="line">fraud_indices=np.array(data[data.Class==1].index)</span><br><span class="line">#进行随机排列</span><br><span class="line">np.random.shuffle(fraud_indices)</span><br><span class="line"></span><br><span class="line">#获取正常样本下标</span><br><span class="line">normal_indices=np.array(data[data.Class==0].index)</span><br><span class="line">np.random.shuffle(normal_indices)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#划分训练集和测试集</span><br><span class="line">train_normal_indices, train_fraud_indices, test_normal_indices</span><br><span class="line">	,test_fraud_indices = split_train_test(normal_indices,fraud_indices)</span><br><span class="line"></span><br><span class="line">##合并测试集</span><br><span class="line">test_indices=np.concatenate([test_normal_indices,test_fraud_indices])</span><br><span class="line"></span><br><span class="line">#通过下标选取测试集数据，[表示选取行,表示选取列]</span><br><span class="line">test_data=data.iloc[test_indices,:]</span><br><span class="line">x_test=test_data.ix[:,test_data.columns != &apos;Class&apos;]</span><br><span class="line">y_test=test_data.ix[:,test_data.columns == &apos;Class&apos;]</span><br><span class="line"></span><br><span class="line">#数据下采样，调用下采样函数 getTrainingSample</span><br><span class="line">x_train_undersample,y_train_undersample,train_normal_pos=getTrainingSample(</span><br><span class="line">train_fraud_indices,train_normal_indices,data,0,ratio)</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p>getTrainingSample 函数如下，由于代码显示效果不行，所以以图代替，文章开头已有源代码链接，注解已写得很清楚，不需重复赘述：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/1680418243b6a890?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>模型训练</li>
+</ol>
+<hr>
+<h3 id="6-1KNN"><a href="#6-1KNN" class="headerlink" title="6.1KNN"></a>6.1KNN</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#用不同的模型进行训练</span><br><span class="line">models_dict = &#123;&apos;knn&apos; : knn_module, &apos;svm_rbf&apos;: svm_rbf_module, &apos;svm_poly&apos;: svm_poly_module,</span><br><span class="line">&apos;lr&apos;: lr_module, &apos;rf&apos;: rf_module&#125;</span><br><span class="line"></span><br><span class="line">#knn中取不同的k值(超参数)</span><br><span class="line">c_param_range_knn=[3,5,7,9]</span><br><span class="line">#自定义cross_validation_recall，使用循环找出最适合的超参数。</span><br><span class="line">best_c_knn=cross_validation_recall(x,y, c_param_range_knn,models_dict, &apos;knn&apos;)</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p>cross_validation_recall 函数如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/16804182436cd42d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>这里有几个概念需要解释一下，以防大家看不懂。</p>
+<ul>
+<li><p><strong>K 折交叉验证：</strong>K 折交叉验证 (k-fold cross-validation) 首先将所有数据分割成 K 个子样本，不重复的选取其中一个子样本作为测试集，其他 K-1 个样本用来训练。共重复 K 次，平均 K 次的结果或者使用其它指标，最终得到一个单一估测。</p>
+<p>这个方法的优势在于，保证每个子样本都参与训练且都被测试，降低泛化误差。其中，10 折交叉验证是最常用的。</p>
+</li>
+<li><p><strong>ROC 曲线</strong>：评估模型好坏的方式，已有人解释非常清楚，此处不再赘述，欲了解请点击：</p>
+<p><a href="https://www.cnblogs.com/gatherstars/p/6084696.html" target="_blank" rel="noopener">www.cnblogs.com/gatherstars…</a></p>
+</li>
+</ul>
+<p>接下来就是真正的模型训练函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def knn_module(x,y,indices, c_param, bdry=None):</span><br><span class="line">    #超参数赋值</span><br><span class="line">    knn=KNeighborsClassifier(n_neighbors=c_param)</span><br><span class="line">    #ravel把数组变平</span><br><span class="line">    knn.fit(x.iloc[indices[0],:], y.iloc[indices[0],:].values.ravel())</span><br><span class="line">    y_pred_undersample = knn.predict(x.iloc[indices[1],:].values)</span><br><span class="line"></span><br><span class="line">    return y_pred_undersample</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p>模型评估，计算召回率和 auc 值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#计算召回率和auc</span><br><span class="line">#y_t是真实值，y_p是预测值</span><br><span class="line">def compute_recall_and_auc(y_t, y_p):</span><br><span class="line">    #混淆矩阵 https://www.cnblogs.com/zhixingheyi/p/8097782.html</span><br><span class="line">    #  https://blog.csdn.net/xierhacker/article/details/70903617</span><br><span class="line">    cnf_matrix=confusion_matrix(y_t,y_p)</span><br><span class="line">    #设置numpy的打印精度</span><br><span class="line">    np.set_printoptions(precision=2)</span><br><span class="line">    recall_score = cnf_matrix[0,0]/(cnf_matrix[1,0]+cnf_matrix[0,0])</span><br><span class="line"></span><br><span class="line">    #Roc曲线</span><br><span class="line">    # https://www.cnblogs.com/gatherstars/p/6084696.html</span><br><span class="line">    fpr, tpr,thresholds = roc_curve(y_t,y_p)</span><br><span class="line">    roc_auc= auc(fpr,tpr)</span><br><span class="line">    return recall_score , roc_auc</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<h3 id="6-2-SVM-RBF"><a href="#6-2-SVM-RBF" class="headerlink" title="6.2 SVM-RBF"></a>6.2 SVM-RBF</h3><p>径向基函数（RBF）做 SVM 的核函数。</p>
+<p>欲想了解核函数：<a href="https://blog.csdn.net/v_JULY_v/article/details/7624837#commentBox" target="_blank" rel="noopener">blog.csdn.net/v_JULY_v/ar…</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># SVM-RBF中不同的参数</span><br><span class="line">c_param_range_svm_rbf=[0.01,0.1,1,10,100]</span><br><span class="line">best_c_svm_rbf = cross_validation_recall(x,y,c_param_range_svm_rbf, models_dict, &apos;svm_rbf&apos;)</span><br><span class="line"></span><br><span class="line">def svm_rbf_module(x, y, indices, c_param, bdry= 0.5):</span><br><span class="line">    svm_rbf = SVC(C=c_param, probability=True)</span><br><span class="line">    svm_rbf.fit(x.iloc[indices[0],:], y.iloc[indices[0],:].values.ravel())</span><br><span class="line">    y_pred_undersample = svm_rbf.predict_proba(x.iloc[indices[1],:].values)[:,1] &gt;= bdry#True/Flase</span><br><span class="line">    return y_pred_undersample</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<h3 id="6-3-SVM-POLY"><a href="#6-3-SVM-POLY" class="headerlink" title="6.3 SVM-POLY"></a>6.3 SVM-POLY</h3><p>多项式（POLY）做 SVM 的核函数。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/1680418243c758f0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>训练函数为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def svm_poly_module(x,y, indices, c_param, bdry=0.5):</span><br><span class="line">    svm_poly=SVC(C=c_param[0], kernel=&apos;poly&apos;, degree= c_param[1], probability=True)</span><br><span class="line">    svm_poly.fit(x.iloc[indices[0],:], y.iloc[indices[0],:].values.ravel())</span><br><span class="line">    y_pred_undersample = svm_poly.predict_proba(x.iloc[indices[1],:].values)[:,1] &gt;= bdry</span><br><span class="line">    return y_pred_undersample</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<h3 id="6-4-Logistic-Regression"><a href="#6-4-Logistic-Regression" class="headerlink" title="6.4 Logistic Regression"></a>6.4 Logistic Regression</h3><p>逻辑回归模型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 逻辑回归当中的正则化强度</span><br><span class="line">c_param_range_lr=[0.01,0.1,1,10,100]</span><br><span class="line">best_c_lr = cross_validation_recall(x,y, c_param_range_lr, models_dict, &apos;lr&apos;)</span><br><span class="line"></span><br><span class="line">def lr_module(x,y, indices, c_param, bdry=0.5):</span><br><span class="line">    # penalty惩罚系数</span><br><span class="line">    lr = LogisticRegression(C=c_param,penalty=&apos;11&apos;)</span><br><span class="line">    lr.fit(X.iloc[indices[0],:], y.iloc[indices[0],:].values.ravel())</span><br><span class="line">    y_pred_undersample= lr.predict_proba(X.iloc[indices[1],:].values)[:,1]&gt;=bdry</span><br><span class="line">    return y_pred_undersample</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<h3 id="6-5-Random-Forest"><a href="#6-5-Random-Forest" class="headerlink" title="6.5 Random Forest"></a>6.5 Random Forest</h3><p>随机森林模型，欲知超参数含义请点击：</p>
+<p><a href="https://www.cnblogs.com/harvey888/p/6512312.html" target="_blank" rel="noopener">www.cnblogs.com/harvey888/p…</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 随机森林里调参</span><br><span class="line">c_param_range_rf = [2,5,10,15,20]</span><br><span class="line">best_c_rf= cross_validation_recall(X, y, c_param_range_rf, models_dict, &apos;rf&apos;)</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/168041826e8d9714?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="6-6-决策边界"><a href="#6-6-决策边界" class="headerlink" title="6.6 决策边界"></a>6.6 决策边界</h3><p>在具有两个类的统计分类问题中，决策边界或决策表面是超曲面，其将基础向量空间划分为两个集合，一个集合。 分类器将决策边界一侧的所有点分类为属于一个类，而将另一侧的所有点分类为属于另一个类。</p>
+<p>所以这一步我们要做的就是根据 AUC 值找出模型最好的决策边界值，也就是概率值。大于这一概率值为正样本，反之为负样本。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># 交叉验证确定合适的决策边界阈值</span><br><span class="line">fold = KFold(4,shuffle=True)</span><br><span class="line"></span><br><span class="line"># 定义各个模型的计算公式</span><br><span class="line">def lr_bdry_module(recall_acc, roc_auc):</span><br><span class="line">    return 0.9*recall_acc+0.1*roc_auc</span><br><span class="line">def svm_rbf_bdry_module(recall_acc, roc_auc):</span><br><span class="line">    return recall_acc*roc_auc</span><br><span class="line">def svm_poly_bdry_module(recall_acc, roc_auc):</span><br><span class="line">    return recall_acc*roc_auc</span><br><span class="line">def rf_bdry_module(recall_acc, roc_auc):</span><br><span class="line">    return 0.5*recall_acc+0.5*roc_auc</span><br><span class="line">bdry_dict = &#123;&apos;lr&apos;: lr_bdry_module,&apos;svm_rbf&apos;: svm_rbf_bdry_module,</span><br><span class="line">             &apos;svm_poly&apos;: svm_poly_bdry_module, &apos;rf&apos;: rf_bdry_module&#125;</span><br><span class="line"></span><br><span class="line"># decision_boundary是一个计算决策边界的函数</span><br><span class="line">best_bdry_svm_rbf= decision_boundary(x, y, fold, best_c_svm_rbf, bdry_dict, models_dict, &apos;svm_rbf&apos;)</span><br><span class="line">best_bdry_svm_poly = decision_boundary(x, y, fold, best_c_svm_poly, bdry_dict, models_dict, 						&apos;svm_poly&apos;)</span><br><span class="line">best_bdry_lr = decision_boundary(x, y, fold, best_c_lr, bdry_dict, models_dict, &apos;lr&apos;)</span><br><span class="line">best_bdry_rf = decision_boundary(x, y, fold, best_c_rf, bdry_dict, models_dict, &apos;rf&apos;)</span><br><span class="line">best_bdry = [0.5, best_bdry_svm_rbf, best_bdry_svm_poly, best_bdry_lr, best_bdry_rf]</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p>decision_boundary 函数为，与前面寻找超参数大致相同：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/1680418273e74cea?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="6-7-模型建模"><a href="#6-7-模型建模" class="headerlink" title="6.7 模型建模"></a>6.7 模型建模</h3><p>寻找到最优的超参数和决策边界后，就可以正式开始训练各个模型了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># 最优参数建模</span><br><span class="line">knn = KNeighborsClassifier(n_neighbors = int(best_c_knn))</span><br><span class="line">knn.fit(x.values, y.values.ravel())</span><br><span class="line"></span><br><span class="line">svm_rbf = SVC(C=best_c_svm_rbf, probability = True)</span><br><span class="line">svm_rbf.fit(x.values, y.values.ravel())</span><br><span class="line"></span><br><span class="line">svm_poly = SVC(C=best_c_svm_poly[0], kernel = &apos;poly&apos;, degree = best_c_svm_poly[1], probability = True)</span><br><span class="line">svm_poly.fit(x.values, y.values.ravel())</span><br><span class="line"></span><br><span class="line">lr = LogisticRegression(C = best_c_lr, penalty =&apos;l1&apos;, warm_start = False)</span><br><span class="line">lr.fit(x.values, y.values.ravel())</span><br><span class="line"></span><br><span class="line">rf = RandomForestClassifier(n_jobs=-1, n_estimators = 100, criterion = &apos;entropy&apos;,</span><br><span class="line">max_features = &apos;auto&apos;, max_depth = None,</span><br><span class="line">min_samples_split  = int(best_c_rf), random_state=0)</span><br><span class="line">rf.fit(x.values, y.values.ravel())</span><br><span class="line"></span><br><span class="line">models = [knn,svm_rbf,svm_poly, lr, rf]</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<ol>
+<li>结果</li>
+</ol>
+<hr>
+<h3 id="7-1-预测"><a href="#7-1-预测" class="headerlink" title="7.1 预测"></a>7.1 预测</h3><p>使用之前划分的测试集运用以上训练出来的模型进行预测，预测使用的是模型集成的投票机制。</p>
+<p>我们先来看看预测的代码：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/1680418280eea032?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>模型集成投票代码：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/168041829db8fd13?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="7-2-模型评估"><a href="#7-2-模型评估" class="headerlink" title="7.2 模型评估"></a>7.2 模型评估</h3><p>使用 AUC 进行模型评估，预测部分代码已经记录有相关指标数据，只要计算平均得分就可以。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#计算平均得分</span><br><span class="line">mean_recall_score = np.mean(recall_score_list)</span><br><span class="line">std_recall_score = np.std(recall_score_list)​</span><br><span class="line"></span><br><span class="line">mean_auc= np.mean(auc_list)</span><br><span class="line">std_auc = np.std(auc_list)</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<ol>
+<li>完整代码</li>
+</ol>
+<hr>
+<p><strong>数据集下载：</strong><a href="https://v2.fangcloud.com/share/a63342d8bd816c43f281dab455" target="_blank" rel="noopener">v2.fangcloud.com/share/a6334…</a></p>
+<p><a href="https://github.com/mantchs/machine_learning_model/tree/master/Model%20Ensemble" target="_blank" rel="noopener">GitHub 完整代码</a></p>
+<p>.</p>
+<p>.</p>
+<p>.</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/12/31/168041829515a124?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>欢迎添加微信交流！请备注 “机器学习”。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/模型集成 (多模型) 讲解(算法 + 案例)/" title="模型集成 (多模型) 讲解(算法 + 案例)">https://ailab-aida.github.io/2019/11/08/模型集成 (多模型) 讲解(算法 + 案例)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例)/" rel="next" title="岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例)">
+                  <i class="fa fa-chevron-left"></i> 岭回归 (L2)、lasso 回归 (L1)、ElasticNet 讲解 (算法 + 案例)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/NLP 从词袋到 Word2Vec 的文本表示/" rel="prev" title="NLP 从词袋到 Word2Vec 的文本表示">
+                  NLP 从词袋到 Word2Vec 的文本表示 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1Bagging"><span class="nav-number">1.</span> <span class="nav-text">2.1Bagging</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2Stacking"><span class="nav-number">2.</span> <span class="nav-text">2.2Stacking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3Adaboost"><span class="nav-number">3.</span> <span class="nav-text">2.3Adaboost</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-图解模型集成"><span class="nav-number">4.</span> <span class="nav-text">2.4 图解模型集成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1KNN"><span class="nav-number">5.</span> <span class="nav-text">6.1KNN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-SVM-RBF"><span class="nav-number">6.</span> <span class="nav-text">6.2 SVM-RBF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-SVM-POLY"><span class="nav-number">7.</span> <span class="nav-text">6.3 SVM-POLY</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-Logistic-Regression"><span class="nav-number">8.</span> <span class="nav-text">6.4 Logistic Regression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-Random-Forest"><span class="nav-number">9.</span> <span class="nav-text">6.5 Random Forest</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-决策边界"><span class="nav-number">10.</span> <span class="nav-text">6.6 决策边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-7-模型建模"><span class="nav-number">11.</span> <span class="nav-text">6.7 模型建模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-预测"><span class="nav-number">12.</span> <span class="nav-text">7.1 预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-模型评估"><span class="nav-number">13.</span> <span class="nav-text">7.2 模型评估</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '7c32c1587dd8fc2fef09b998a1dc7548',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

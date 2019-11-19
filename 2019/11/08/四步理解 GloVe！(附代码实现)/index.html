@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="说说 GloVe 正如 GloVe 论文的标题而言，GloVe 的全称叫 Global Vectors for Word Representation，它是一个基于全局词频统计（count-based &amp;amp; overall statistics）的词表征（word representation）工具，它可以把一个单词表达成一个由实数组成的向量，这些向量捕捉到了单词之间一些语义特性，比如相似">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="四步理解 GloVe！(附代码实现)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/四步理解 GloVe！(附代码实现)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="说说 GloVe 正如 GloVe 论文的标题而言，GloVe 的全称叫 Global Vectors for Word Representation，它是一个基于全局词频统计（count-based &amp;amp; overall statistics）的词表征（word representation）工具，它可以把一个单词表达成一个由实数组成的向量，这些向量捕捉到了单词之间一些语义特性，比如相似">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708bf04252a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=w_i%5ET%5Ctilde%7Bw_j%7D%2Bb_i%2B%5Ctilde%7Bb%7D_j%3Dlog(X_%7Bij%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w_i%5ET%E5%92%8C%5Ctilde%7Bw%7D_j">
+<meta property="og:image" content="https://juejin.im/equation?tex=b_i%E5%92%8C%5Ctilde%7Bb%7D_j">
+<meta property="og:image" content="https://juejin.im/equation?tex=J%3D%5Csum_%7Bi%2Cj%3D1%7D%5EVf(X_%7Bij%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=f(X_%7Bij%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=X_%7Bij%7D%3D0">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708cd31a8ac?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708c840d5a7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=w%2B%5Ctilde%7Bw%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708c99a8023?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:41:39.293Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="四步理解 GloVe！(附代码实现)">
+<meta name="twitter:description" content="说说 GloVe 正如 GloVe 论文的标题而言，GloVe 的全称叫 Global Vectors for Word Representation，它是一个基于全局词频统计（count-based &amp;amp; overall statistics）的词表征（word representation）工具，它可以把一个单词表达成一个由实数组成的向量，这些向量捕捉到了单词之间一些语义特性，比如相似">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708bf04252a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/四步理解 GloVe！(附代码实现)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>四步理解 GloVe！(附代码实现) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/四步理解 GloVe！(附代码实现)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">四步理解 GloVe！(附代码实现)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:37:34" itemprop="dateCreated datePublished" datetime="2019-11-08T11:37:34+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:41:39" itemprop="dateModified" datetime="2019-11-19T11:41:39+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>说说 GloVe</li>
+</ol><hr><p>正如 GloVe 论文的标题而言，<strong>GloVe 的全称叫 Global Vectors for Word Representation，它是一个基于全局词频统计（count-based &amp; overall statistics）的词表征（word representation）工具，它可以把一个单词表达成一个由实数组成的向量，这些向量捕捉到了单词之间一些语义特性，比如相似性（similarity）、类比性（analogy）等。</strong> 我们通过对向量的运算，比如欧几里得距离或者 cosine 相似度，可以计算出两个单词之间的语义相似性。</p><a id="more"></a>
+
+
+<ol>
+<li>GloVe 的实现步骤</li>
+</ol>
+<hr>
+<h3 id="2-1-构建共现矩阵"><a href="#2-1-构建共现矩阵" class="headerlink" title="2.1 构建共现矩阵"></a>2.1 构建共现矩阵</h3><p><strong>什么是共现矩阵？</strong></p>
+<p>共现矩阵顾名思义就是共同出现的意思，词文档的共现矩阵主要用于发现主题 (topic)，用于主题模型，如 LSA。</p>
+<p>局域窗中的 word-word 共现矩阵可以挖掘语法和语义信息，<strong>例如：</strong></p>
+<ul>
+<li>I like deep learning.</li>
+<li>I like NLP.</li>
+<li>I enjoy flying</li>
+</ul>
+<p>有以上三句话，设置滑窗为 2，可以得到一个词典：<strong>{“I like”,”like deep”,”deep learning”,”like NLP”,”I enjoy”,”enjoy flying”,”I like”}</strong>。</p>
+<p>我们可以得到一个共现矩阵 (对称矩阵)：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708bf04252a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>中间的每个格子表示的是行和列组成的词组在词典中共同出现的次数，也就体现了<strong>共现</strong>的特性。</p>
+<p><strong>GloVe 的共现矩阵</strong></p>
+<p>根据语料库（corpus）构建一个共现矩阵（Co-ocurrence Matrix）X，<strong>矩阵中的每一个元素 Xij 代表单词 i 和上下文单词 j 在特定大小的上下文窗口（context window）内共同出现的次数。</strong>一般而言，这个次数的最小单位是 1，但是 GloVe 不这么认为：它根据两个单词在上下文窗口的距离 d，提出了一个衰减函数（decreasing weighting）：decay=1/d 用于计算权重，也就是说<strong>距离越远的两个单词所占总计数（total count）的权重越小</strong>。</p>
+<h3 id="2-2-词向量和共现矩阵的近似关系"><a href="#2-2-词向量和共现矩阵的近似关系" class="headerlink" title="2.2 词向量和共现矩阵的近似关系"></a>2.2 词向量和共现矩阵的近似关系</h3><p>构建词向量（Word Vector）和共现矩阵（Co-ocurrence Matrix）之间的近似关系，论文的作者提出以下的公式可以近似地表达两者之间的关系：</p>
+<p><img src="https://juejin.im/equation?tex=w_i%5ET%5Ctilde%7Bw_j%7D%2Bb_i%2B%5Ctilde%7Bb%7D_j%3Dlog(X_%7Bij%7D" alt>&gt;)</p>
+<p>其中，<img src="https://juejin.im/equation?tex=w_i%5ET%E5%92%8C%5Ctilde%7Bw%7D_j" alt> 是我们最终要求解的词向量；<img src="https://juejin.im/equation?tex=b_i%E5%92%8C%5Ctilde%7Bb%7D_j" alt> 分别是两个词向量的 bias term。当然你对这个公式一定有非常多的疑问，比如它到底是怎么来的，为什么要使用这个公式，为什么要构造两个词向量 <script type="math/tex">w_i^T 和 \ tilde{w}_j</script>？请参考文末的参考文献。</p>
+<h3 id="2-3-构造损失函数"><a href="#2-3-构造损失函数" class="headerlink" title="2.3 构造损失函数"></a>2.3 构造损失函数</h3><p>有了 2.2 的公式之后我们就可以构造它的 loss function 了：</p>
+<p><img src="https://juejin.im/equation?tex=J%3D%5Csum_%7Bi%2Cj%3D1%7D%5EVf(X_%7Bij%7D" alt>(w<em>i%5ET%5Ctilde%7Bw%7D_j%2Bb_i%2B%5Ctilde%7Bb%7D_j-log(X</em>%7Bij%7D))%5E2&gt;)</p>
+<p>这个 loss function 的基本形式就是最简单的 mean square loss，只不过在此基础上加了一个权重函数 <img src="https://juejin.im/equation?tex=f(X_%7Bij%7D" alt>&gt;)，那么这个函数起了什么作用，为什么要添加这个函数呢？我们知道在一个语料库中，肯定存在很多单词他们在一起出现的次数是很多的（frequent co-occurrences），那么我们希望：</p>
+<ul>
+<li>这些单词的权重要大于那些很少在一起出现的单词（rare co-occurrences），所以这个函数要是非递减函数（non-decreasing）；</li>
+<li>但我们也不希望这个权重过大（overweighted），当到达一定程度之后应该不再增加；</li>
+<li>如果两个单词没有在一起出现，也就是 <img src="https://juejin.im/equation?tex=X_%7Bij%7D%3D0" alt>，那么他们应该不参与到 loss function 的计算当中去，也就是 f(x) 要满足 f(0)=0。</li>
+</ul>
+<p>满足以上三个条件的函数有很多，论文作者采用了如下形式的分段函数：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708cd31a8ac?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>这个函数图像如下所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708c840d5a7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-4-训练-GloVe-模型"><a href="#2-4-训练-GloVe-模型" class="headerlink" title="2.4 训练 GloVe 模型"></a>2.4 训练 GloVe 模型</h3><p>虽然很多人声称 GloVe 是一种无监督（unsupervised learing）的学习方式（因为它确实不需要人工标注 label），但其实它还是有 label 的，这个 label 就是以上公式中的 log(Xij)，而公式中的向量 <img src="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D" alt> 就是要不断更新 / 学习的参数，所以本质上它的训练方式跟监督学习的训练方法没什么不一样，都是基于梯度下降的。</p>
+<p>具体地，这篇论文里的实验是这么做的：<strong> 采用了 AdaGrad 的梯度下降算法，对矩阵 X 中的所有非零元素进行随机采样，学习曲率（learning rate）设为 0.05，在 vector size 小于 300 的情况下迭代了 50 次，其他大小的 vectors 上迭代了 100 次，直至收敛。</strong> 最终学习得到的是两个 vector 是 <img src="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D" alt>，因为 X 是对称的（symmetric），所以从原理上讲 <img src="https://juejin.im/equation?tex=w%E5%92%8C%5Ctilde%7Bw%7D" alt> 是也是对称的，他们唯一的区别是初始化的值不一样，而导致最终的值不一样。</p>
+<p>所以这两者其实是等价的，都可以当成最终的结果来使用。<strong>但是为了提高鲁棒性，我们最终会选择两者之和</strong> <img src="https://juejin.im/equation?tex=w%2B%5Ctilde%7Bw%7D" alt> <strong> 作为最终的 vector（两者的初始化不同相当于加了不同的随机噪声，所以能提高鲁棒性）。</strong> 在训练了 400 亿个 token 组成的语料后，得到的实验结果如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/24/16cc1708c99a8023?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>这个图一共采用了三个指标：语义准确度，语法准确度以及总体准确度。那么我们不难发现 Vector Dimension 在 300 时能达到最佳，而 context Windows size 大致在 6 到 10 之间。</p>
+<ol>
+<li>GloVe 与 LSA、Word2Vec 的比较</li>
+</ol>
+<hr>
+<p>LSA（Latent Semantic Analysis）是一种比较早的 count-based 的词向量表征工具，它也是基于 co-occurance matrix 的，只不过采用了基于奇异值分解（SVD）的矩阵分解技术对大矩阵进行降维，而我们知道 SVD 的复杂度是很高的，所以它的计算代价比较大。还有一点是它对所有单词的统计权重都是一致的。而这些缺点在 GloVe 中被一一克服了。</p>
+<p>而 word2vec 最大的缺点则是没有充分利用所有的语料，所以 GloVe 其实是把两者的优点结合了起来。从这篇论文给出的实验结果来看，GloVe 的性能是远超 LSA 和 word2vec 的，但网上也有人说 GloVe 和 word2vec 实际表现其实差不多。</p>
+<ol>
+<li>代码实现</li>
+</ol>
+<hr>
+<p><strong>生成词向量</strong></p>
+<p>下载 GitHub 项目：<a href="https://github.com/stanfordnlp/GloVe/archive/master.zip" target="_blank" rel="noopener">github.com/stanfordnlp…</a></p>
+<p>解压后，进入目录执行</p>
+<p>make</p>
+<p>进行编译操作。</p>
+<p>然后执行 sh demo.sh 进行训练并生成词向量文件：vectors.txt 和 vectors.bin</p>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/NLP/16.3%20GloVe/GloVe.ipynb" target="_blank" rel="noopener">GloVe 代码实现</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.fanyeong.com/2018/02/19/glove-in-detail/" target="_blank" rel="noopener">GloVe 详解</a></li>
+<li><a href="https://blog.csdn.net/weixin_41510260/article/details/90046989" target="_blank" rel="noopener">NLP 从词袋到 Word2Vec 的文本表示</a></li>
+</ul>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/四步理解 GloVe！(附代码实现)/" title="四步理解 GloVe！(附代码实现)">https://ailab-aida.github.io/2019/11/08/四步理解 GloVe！(附代码实现)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/" rel="next" title="NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)">
+                  <i class="fa fa-chevron-left"></i> NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/激活函数、正向传播、反向传播及 softmax 分类器，一篇就够了！/" rel="prev" title="激活函数、正向传播、反向传播及 softmax 分类器，一篇就够了！">
+                  激活函数、正向传播、反向传播及 softmax 分类器，一篇就够了！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-构建共现矩阵"><span class="nav-number">1.</span> <span class="nav-text">2.1 构建共现矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-词向量和共现矩阵的近似关系"><span class="nav-number">2.</span> <span class="nav-text">2.2 词向量和共现矩阵的近似关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-构造损失函数"><span class="nav-number">3.</span> <span class="nav-text">2.3 构造损失函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-训练-GloVe-模型"><span class="nav-number">4.</span> <span class="nav-text">2.4 训练 GloVe 模型</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '2f26265812c66110fd52cc709fd1bb3a',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

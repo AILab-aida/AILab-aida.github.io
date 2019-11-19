@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是 KNN 1.1 KNN 的通俗解释何谓 K 近邻算法，即 K-Nearest Neighbor algorithm，简称 KNN 算法，单从名字来猜想，可以简单粗暴的认为是：K 个最近的邻居，当 K=1 时，算法便成了最近邻算法，即寻找最近的那个邻居。用官方的话来说，所谓 K 近邻算法，即是给定一个训练数据集，对新的输入实例，在训练数据集中找到与该实例最邻近的 K 个实例（也就是上面所说">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是 KNN 1.1 KNN 的通俗解释何谓 K 近邻算法，即 K-Nearest Neighbor algorithm，简称 KNN 算法，单从名字来猜想，可以简单粗暴的认为是：K 个最近的邻居，当 K=1 时，算法便成了最近邻算法，即寻找最近的那个邻居。用官方的话来说，所谓 K 近邻算法，即是给定一个训练数据集，对新的输入实例，在训练数据集中找到与该实例最邻近的 K 个实例（也就是上面所说">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026713bbdbdc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c502671136f947?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=d(x%2Cy">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(x_1-x_2">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(x_1-x_2">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D(x_%7B1k%7D-x_%7B2k%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(a-b">
+<meta property="og:image" content="https://juejin.im/equation?tex=%7Cx_1-x_2%7C%2B%7Cy_1-y_2%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%7Cx_1-x_2%7C%2B%7Cy_1-y_2%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Cx_%7B1k%7D-x_%7B2k%7D%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=D_%7BChebyshev%7D(p%2Cq">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Clim_%7Bx%20%5Cto%20%5Cinfty%7D(%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7Cp_i-q_i%7C%5Ek">
+<meta property="og:image" content="https://juejin.im/equation?tex=D_%7BChess%7D%3Dmax(%7Cx_2-x_1%7C%2C%7Cy_2-y_1%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3Dmax(%7Cx_2-x_1%7C%2C%7Cy_2-y_1%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3Dmax_i(%7Cx_%7B1i%7D-x_%7B2i%7D%7C">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3Dlim_%7Bk%5Cto%5Cinfin%7D(%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7Cx_%7B1i%7D-x_%7B2i%7D%7C%5Ek">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%5Bp%5D%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Cx_%7B1k%7D-x_%7B2k%7D%7C%5Ep%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=X%5E*%3D%5Cfrac%7BX-m%7D%7Bs%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D(%5Cfrac%7Bx_%7B1k%7D-x_%7B2k%7D%7D%7Bs_k%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=D(X">
+<meta property="og:image" content="https://juejin.im/equation?tex=D(X_i%2CX_j">
+<meta property="og:image" content="https://juejin.im/equation?tex=D_B(p%2Cq">
+<meta property="og:image" content="https://juejin.im/equation?tex=BC(p%2Cq">
+<meta property="og:image" content="https://juejin.im/equation?tex=cos%5Ctheta%3D%5Cfrac%7Bx_1x_2%2By_1y_2%7D%7B%5Csqrt%7Bx_1%5E2%2By_1%5E2%7D%5Csqrt%7Bx_2%5E2%2By_2%5E2%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=cos%5Ctheta%3D%5Cfrac%7Ba*b%7D%7B%7Ca%7C%7Cb%7C%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267114b6f1c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026713c6fcc3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026719e6078c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c502671c1262ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026786ebc7f4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026784783e62?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c502677f1aecff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026784c8f96e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c502678897559b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267aa09aa2e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267ad980686?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267b25b81bb?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267b7edd5f3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267c5104ae7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267d1004cbf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267d5d39c49?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267dc6cf83e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d910782f8?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:37:23.515Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！">
+<meta name="twitter:description" content="什么是 KNN 1.1 KNN 的通俗解释何谓 K 近邻算法，即 K-Nearest Neighbor algorithm，简称 KNN 算法，单从名字来猜想，可以简单粗暴的认为是：K 个最近的邻居，当 K=1 时，算法便成了最近邻算法，即寻找最近的那个邻居。用官方的话来说，所谓 K 近邻算法，即是给定一个训练数据集，对新的输入实例，在训练数据集中找到与该实例最邻近的 K 个实例（也就是上面所说">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c5026713bbdbdc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！ | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:34:11" itemprop="dateCreated datePublished" datetime="2019-11-08T11:34:11+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:37:23" itemprop="dateModified" datetime="2019-11-19T11:37:23+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是 KNN</li>
+</ol><hr><h3 id="1-1-KNN-的通俗解释"><a href="#1-1-KNN-的通俗解释" class="headerlink" title="1.1 KNN 的通俗解释"></a>1.1 KNN 的通俗解释</h3><p>何谓 K 近邻算法，即 K-Nearest Neighbor algorithm，简称 KNN 算法，单从名字来猜想，可以简单粗暴的认为是：K 个最近的邻居，当 K=1 时，算法便成了最近邻算法，即寻找最近的那个邻居。</p><p>用官方的话来说，所谓 K 近邻算法，即是给定一个训练数据集，对新的输入实例，<strong>在训练数据集中找到与该实例最邻近的 K 个实例（也就是上面所说的 K 个邻居），这 K 个实例的多数属于某个类，就把该输入实例分类到这个类中。</strong></p><a id="more"></a>
+
+
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026713bbdbdc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c502671136f947?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>如上图所示，有两类不同的样本数据，分别用蓝色的小正方形和红色的小三角形表示，而图正中间的那个绿色的圆所标示的数据则是待分类的数据。也就是说，现在，我们不知道中间那个绿色的数据是从属于哪一类（蓝色小正方形 or 红色小三角形），KNN 就是解决这个问题的。</p>
+<p>如果 K=3，绿色圆点的最近的 3 个邻居是 2 个红色小三角形和 1 个蓝色小正方形，少数从属于多数，基于统计的方法，判定绿色的这个待分类点属于红色的三角形一类。</p>
+<p>如果 K=5，绿色圆点的最近的 5 个邻居是 2 个红色三角形和 3 个蓝色的正方形，还是少数从属于多数，基于统计的方法，判定绿色的这个待分类点属于蓝色的正方形一类。</p>
+<p><strong>于此我们看到，当无法判定当前待分类点是从属于已知分类中的哪一类时，我们可以依据统计学的理论看它所处的位置特征，衡量它周围邻居的权重，而把它归为 (或分配) 到权重更大的那一类。这就是 K 近邻算法的核心思想。</strong></p>
+<h3 id="1-2-近邻的距离度量"><a href="#1-2-近邻的距离度量" class="headerlink" title="1.2 近邻的距离度量"></a>1.2 近邻的距离度量</h3><p>我们看到，K 近邻算法的核心在于找到实例点的邻居，这个时候，问题就接踵而至了，如何找到邻居，邻居的判定标准是什么，用什么来度量。这一系列问题便是下面要讲的距离度量表示法。</p>
+<p><strong>有哪些距离度量的表示法</strong> (普及知识点，可以跳过)：</p>
+<ol>
+<li><p><strong>欧氏距离</strong>，最常见的两点之间或多点之间的距离表示法，又称之为欧几里得度量，它定义于欧几里得空间中，如点 x = (x1,…,xn) 和 y = (y1,…,yn) 之间的距离为：</p>
+<p><img src="https://juejin.im/equation?tex=d(x%2Cy" alt>%3D%5Csqrt%7B(x<em>1-y_1)%5E2%2B(x_2-y_2)%5E2%2B…%2B(x_n-y_n)%5E2%7D%3D%5Csqrt%7B%5Csum</em>%7Bi%3D1%7D%5E%7Bn%7D(x_i-y_i)%5E2%7D&gt;)</p>
+<ul>
+<li><p>二维平面上两点 a(x1,y1) 与 b(x2,y2) 间的欧氏距离：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(x_1-x_2" alt>%5E2%2B(y_1-y_2)%5E2%7D&gt;)</p>
+</li>
+<li><p>三维空间两点 a(x1,y1,z1) 与 b(x2,y2,z2) 间的欧氏距离：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(x_1-x_2" alt>%5E2%2B(y_1-y_2)%5E2%2B(z_1-z_2)%5E2%7D&gt;)</p>
+</li>
+<li><p>两个 n 维向量 a(x11,x12,…,x1n) 与 b(x21,x22,…,x2n) 间的欧氏距离：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D(x_%7B1k%7D-x_%7B2k%7D" alt>%5E2%7D&gt;)</p>
+<p>也可以用表示成向量运算的形式：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B(a-b" alt>(a-b)%5ET%7D&gt;)</p>
+</li>
+</ul>
+</li>
+<li><p><strong>曼哈顿距离</strong>，我们可以定义曼哈顿距离的正式意义为 L1 - 距离或城市区块距离，也就是在欧几里得空间的固定直角坐标系上两点所形成的线段对轴产生的投影的距离总和。例如在平面上，坐标（x1, y1）的点 P1 与坐标（x2, y2）的点 P2 的曼哈顿距离为：<img src="https://juejin.im/equation?tex=%7Cx_1-x_2%7C%2B%7Cy_1-y_2%7C" alt>，要注意的是，曼哈顿距离依赖座标系统的转度，而非系统在座标轴上的平移或映射。</p>
+<p>通俗来讲，想象你在曼哈顿要从一个十字路口开车到另外一个十字路口，驾驶距离是两点间的直线距离吗？显然不是，除非你能穿越大楼。而实际驾驶距离就是这个 “曼哈顿距离”，此即曼哈顿距离名称的来源， 同时，曼哈顿距离也称为城市街区距离 (City Block distance)。</p>
+<ul>
+<li><p>二维平面两点 a(x1,y1) 与 b(x2,y2) 间的曼哈顿距离</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%7Cx_1-x_2%7C%2B%7Cy_1-y_2%7C" alt></p>
+</li>
+<li><p>两个 n 维向量 a(x11,x12,…,x1n) 与 b(x21,x22,…,x2n) 间的曼哈顿距离</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Cx_%7B1k%7D-x_%7B2k%7D%7C" alt></p>
+</li>
+</ul>
+</li>
+<li><p><strong>切比雪夫距离</strong>，若二个向量或二个点 p 、and q，其座标分别为 Pi 及 qi，则两者之间的切比雪夫距离定义如下：</p>
+<p><img src="https://juejin.im/equation?tex=D_%7BChebyshev%7D(p%2Cq" alt>%3Dmax_i(%7Cp_i-q_i%7C)&gt;)</p>
+<p>这也等于以下 Lp 度量的极值：<img src="https://juejin.im/equation?tex=%5Clim_%7Bx%20%5Cto%20%5Cinfty%7D(%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7Cp_i-q_i%7C%5Ek" alt>%5E%7B1%2Fk%7D&gt;)，因此切比雪夫距离也称为 L∞ 度量。</p>
+<p>以数学的观点来看，切比雪夫距离是由一致范数（uniform norm）（或称为上确界范数）所衍生的度量，也是超凸度量（injective metric space）的一种。</p>
+<p>在平面几何中，若二点 p 及 q 的直角坐标系坐标为 (x1,y1) 及(x2,y2)，则切比雪夫距离为：</p>
+<p><img src="https://juejin.im/equation?tex=D_%7BChess%7D%3Dmax(%7Cx_2-x_1%7C%2C%7Cy_2-y_1%7C" alt>&gt;)</p>
+<p><strong>玩过国际象棋的朋友或许知道，国王走一步能够移动到相邻的 8 个方格中的任意一个。那么国王从格子 (x1,y1) 走到格子 (x2,y2) 最少需要多少步？。你会发现最少步数总是 max( | x2-x1 | , | y2-y1 | ) 步 。有一种类似的一种距离度量方法叫切比雪夫距离。</strong></p>
+<ul>
+<li><p>二维平面两点 a(x1,y1) 与 b(x2,y2) 间的切比雪夫距离 ：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3Dmax(%7Cx_2-x_1%7C%2C%7Cy_2-y_1%7C" alt>&gt;)</p>
+</li>
+<li><p>两个 n 维向量 a(x11,x12,…,x1n) 与 b(x21,x22,…,x2n) 间的切比雪夫距离：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3Dmax_i(%7Cx_%7B1i%7D-x_%7B2i%7D%7C" alt>&gt;)</p>
+<p>这个公式的另一种等价形式是</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3Dlim_%7Bk%5Cto%5Cinfin%7D(%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7Cx_%7B1i%7D-x_%7B2i%7D%7C%5Ek" alt>%5E%7B1%2Fk%7D&gt;)</p>
+</li>
+</ul>
+</li>
+<li><p><strong>闵可夫斯基距离</strong> (Minkowski Distance)，闵氏距离不是一种距离，而是一组距离的定义。</p>
+<p>两个 n 维变量 a(x11,x12,…,x1n) 与 b(x21,x22,…,x2n) 间的闵可夫斯基距离定义为：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%5Bp%5D%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D%7Cx_%7B1k%7D-x_%7B2k%7D%7C%5Ep%7D" alt></p>
+<p>其中 p 是一个变参数。 当 p=1 时，就是曼哈顿距离 当 p=2 时，就是欧氏距离 当 p→∞ 时，就是切比雪夫距离<br>根据变参数的不同，闵氏距离可以表示一类的距离。</p>
+</li>
+<li><p><strong>标准化欧氏距离</strong>，标准化欧氏距离是针对简单欧氏距离的缺点而作的一种改进方案。标准欧氏距离的思路：既然数据各维分量的分布不一样，那先将各个分量都 “标准化” 到均值、方差相等。至于均值和方差标准化到多少，先复习点统计学知识。</p>
+<p>假设样本集 X 的数学期望或均值 (mean) 为 m，标准差 (standard deviation，方差开根) 为 s，那么 X 的“标准化变量”X * 表示为：(X-m）/s，而且标准化变量的数学期望为 0，方差为 1。 即，样本集的标准化过程 (standardization) 用公式描述就是：</p>
+<p><img src="https://juejin.im/equation?tex=X%5E*%3D%5Cfrac%7BX-m%7D%7Bs%7D" alt></p>
+<p>标准化后的值 = (标准化前的值 － 分量的均值) / 分量的标准差    经过简单的推导就可以得到两个 n 维向量 a(x11,x12,…,x1n) 与 b(x21,x22,…,x2n) 间的标准化欧氏距离的公式：</p>
+<p><img src="https://juejin.im/equation?tex=d_%7B12%7D%3D%5Csqrt%7B%5Csum_%7Bk%3D1%7D%5E%7Bn%7D(%5Cfrac%7Bx_%7B1k%7D-x_%7B2k%7D%7D%7Bs_k%7D" alt>%5E2%7D&gt;)</p>
+</li>
+<li><p><strong>马氏距离</strong></p>
+<p>有 M 个样本向量 X1~Xm，协方差矩阵记为 S，均值记为向量 μ，则其中样本向量 X 到 u 的马氏距离表示为：</p>
+<p><img src="https://juejin.im/equation?tex=D(X" alt>%3D%5Csqrt%7B(X-u)%5ETS%5E%7B-1%7D(X_i-X_j)%7D&gt;)</p>
+<ul>
+<li><p>若协方差矩阵是单位矩阵（各个样本向量之间独立同分布）, 则公式就成了, 也就是欧氏距离了：</p>
+<p><img src="https://juejin.im/equation?tex=D(X_i%2CX_j" alt>%3D%5Csqrt%7B(X_i-X_j)%5ET(X_i-X_j)%7D&gt;)</p>
+</li>
+<li><p>若协方差矩阵是对角矩阵，公式变成了标准化欧氏距离。</p>
+</li>
+</ul>
+<p>马氏距离的优缺点：量纲无关，排除变量之间的相关性的干扰。</p>
+</li>
+<li><p><strong>巴氏距离</strong></p>
+<p>在统计中，巴氏距离距离测量两个离散或连续概率分布的相似性。它与衡量两个统计样品或种群之间的重叠量的巴氏距离系数密切相关。巴氏距离距离和巴氏距离系数以 20 世纪 30 年代曾在印度统计研究所工作的一个统计学家 A. Bhattacharya 命名。同时，Bhattacharyya 系数可以被用来确定两个样本被认为相对接近的，它是用来测量中的类分类的可分离性。</p>
+<p>对于离散概率分布 p 和 q 在同一域 X，它被定义为：</p>
+<p><img src="https://juejin.im/equation?tex=D_B(p%2Cq" alt>%3D-ln(BC(p%2Cq))&gt;)</p>
+<p>其中：</p>
+<p><img src="https://juejin.im/equation?tex=BC(p%2Cq" alt>%3D%5Csum<em>%7Bx%5Cin</em>%7B%7DX%7D%5Csqrt%7Bp(x)q(x)%7D&gt;)</p>
+<p>是 Bhattacharyya 系数。</p>
+</li>
+<li><p><strong>汉明距离</strong></p>
+<p>两个等长字符串 s1 与 s2 之间的汉明距离定义为将其中一个变为另外一个所需要作的最小替换次数。例如字符串 “1111” 与“1001”之间的汉明距离为 2。应用：信息编码（为了增强容错性，应使得编码间的最小汉明距离尽可能大）。</p>
+</li>
+<li><p><strong>夹角余弦</strong></p>
+<p>几何中夹角余弦可用来衡量两个向量方向的差异，机器学习中借用这一概念来衡量样本向量之间的差异。</p>
+<ul>
+<li><p>在二维空间中向量 A(x1,y1) 与向量 B(x2,y2) 的夹角余弦公式：</p>
+<p><img src="https://juejin.im/equation?tex=cos%5Ctheta%3D%5Cfrac%7Bx_1x_2%2By_1y_2%7D%7B%5Csqrt%7Bx_1%5E2%2By_1%5E2%7D%5Csqrt%7Bx_2%5E2%2By_2%5E2%7D%7D" alt></p>
+</li>
+<li><p>两个 n 维样本点 a(x11,x12,…,x1n) 和 b(x21,x22,…,x2n) 的夹角余弦：</p>
+<p><img src="https://juejin.im/equation?tex=cos%5Ctheta%3D%5Cfrac%7Ba*b%7D%7B%7Ca%7C%7Cb%7C%7D" alt></p>
+</li>
+</ul>
+<p>夹角余弦取值范围为 [-1,1]。夹角余弦越大表示两个向量的夹角越小，夹角余弦越小表示两向量的夹角越大。当两个向量的方向重合时夹角余弦取最大值 1，当两个向量的方向完全相反夹角余弦取最小值 - 1。</p>
+</li>
+<li><p><strong>杰卡德相似系数</strong></p>
+</li>
+</ol>
+<pre><code>两个集合 A 和 B 的交集元素在 A，B 的并集中所占的比例，称为两个集合的杰卡德相似系数，用符号 J(A,B) 表示。杰卡德相似系数是衡量两个集合的相似度一种指标。
+
+![](https://juejin.im/equation?tex=J(A%2CB)%3D%5Cfrac%7B%7CA%5Ccap_%7B%7DB%7C%7D%7B%7CA%5Ccup_%7B%7DB%7C%7D)
+
+与杰卡德相似系数相反的概念是杰卡德距离：
+
+![](https://juejin.im/equation?tex=J_%7B%5Cdelta%7D(A%2CB)%3D1-J(A%2CB)%3D%5Cfrac%7B%7CA%5Ccup_%7B%7DB%7C-%7CA%5Ccap_%7B%7DB%7C%7D%7B%7CA%5Ccup_%7B%7DB%7C%7D)
+</code></pre><ol>
+<li><strong>皮尔逊系数</strong></li>
+</ol>
+<pre><code>在统计学中，皮尔逊积矩相关系数用于度量两个变量 X 和 Y 之间的相关（线性相关），其值介于 - 1 与 1 之间。通常情况下通过以下取值范围判断变量的相关强度：
+
+0.8-1.0 极强相关 0.6-0.8 强相关 0.4-0.6 中等程度相关 0.2-0.4 弱相关 0.0-0.2 极弱相关或无相关
+</code></pre><p>简单说来，各种 “距离” 的应用场景简单概括为，</p>
+<ul>
+<li>空间：欧氏距离，</li>
+<li>路径：曼哈顿距离，国际象棋国王：切比雪夫距离，</li>
+<li>以上三种的统一形式: 闵可夫斯基距离，</li>
+<li>加权：标准化欧氏距离，</li>
+<li>排除量纲和依存：马氏距离，</li>
+<li>向量差距：夹角余弦，</li>
+<li>编码差别：汉明距离，</li>
+<li>集合近似度：杰卡德类似系数与距离，</li>
+<li>相关：相关系数与相关距离。</li>
+</ul>
+<h3 id="1-3-K-值选择"><a href="#1-3-K-值选择" class="headerlink" title="1.3 K 值选择"></a>1.3 K 值选择</h3><ol>
+<li>如果选择较小的 K 值，就相当于用较小的领域中的训练实例进行预测，“学习”近似误差会减小，只有与输入实例较近或相似的训练实例才会对预测结果起作用，与此同时带来的问题是 “学习” 的估计误差会增大，换句话说，<strong>K 值的减小就意味着整体模型变得复杂，容易发生过拟合；</strong></li>
+<li>如果选择较大的 K 值，就相当于用较大领域中的训练实例进行预测，其优点是可以减少学习的估计误差，但缺点是学习的近似误差会增大。这时候，与输入实例较远（不相似的）训练实例也会对预测器作用，使预测发生错误，且 <strong>K 值的增大就意味着整体的模型变得简单。</strong></li>
+<li>K=N，则完全不足取，因为此时无论输入实例是什么，都只是简单的预测它属于在训练实例中最多的累，模型过于简单，忽略了训练实例中大量有用信息。</li>
+</ol>
+<p>在实际应用中，K 值一般取一个比较小的数值，<strong>例如采用交叉验证法（简单来说，就是一部分样本做训练集，一部分做测试集）来选择最优的 K 值。</strong></p>
+<h3 id="1-4-KNN-最近邻分类算法的过程"><a href="#1-4-KNN-最近邻分类算法的过程" class="headerlink" title="1.4 KNN 最近邻分类算法的过程"></a>1.4 KNN 最近邻分类算法的过程</h3><ol>
+<li>计算测试样本和训练样本中每个样本点的距离（常见的距离度量有欧式距离，马氏距离等）；</li>
+<li>对上面所有的距离值进行排序；</li>
+<li>选前 k 个最小距离的样本；</li>
+<li><p>根据这 k 个样本的标签进行投票，得到最后的分类类别；</p>
+</li>
+<li><p>KDD 的实现：KD 树</p>
+</li>
+</ol>
+<hr>
+<p>Kd - 树是 K-dimension tree 的缩写，是对数据点在 k 维空间（如二维 (x，y)，三维 (x，y，z)，k 维 (x1，y，z..)）中划分的一种数据结构，主要应用于多维空间关键数据的搜索（如：范围搜索和最近邻搜索）。本质上说，Kd - 树就是一种平衡二叉树。</p>
+<p>首先必须搞清楚的是，k-d 树是一种空间划分树，说白了，就是把整个空间划分为特定的几个部分，然后在特定空间的部分内进行相关搜索操作。想像一个三维 (多维有点为难你的想象力了) 空间，kd 树按照一定的划分规则把这个三维空间划分了多个空间，如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267114b6f1c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-1-构建-KD-树"><a href="#2-1-构建-KD-树" class="headerlink" title="2.1 构建 KD 树"></a>2.1 构建 KD 树</h3><p>kd 树构建的伪代码如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026713c6fcc3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>再举一个简单直观的实例来介绍 k-d 树构建算法。假设有 6 个二维数据点 {(2,3)，(5,4)，(9,6)，(4,7)，(8,1)，(7,2)}，数据点位于二维空间内，如下图所示。为了能有效的找到最近邻，k-d 树采用分而治之的思想，即将整个空间划分为几个小部分，首先，粗黑线将空间一分为二，然后在两个子空间中，细黑直线又将整个空间划分为四部分，最后虚黑直线将这四部分进一步划分。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026719e6078c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>6 个二维数据点 {(2,3)，(5,4)，(9,6)，(4,7)，(8,1)，(7,2)} 构建 kd 树的具体步骤为：</p>
+<ol>
+<li>确定：split 域 = x。具体是：6 个数据点在 x，y 维度上的数据方差分别为 39，28.63，所以在 x 轴上方差更大，故 split 域值为 x；</li>
+<li>确定：Node-data = （7,2）。具体是：根据 x 维上的值将数据排序，6 个数据的中值 (所谓中值，即中间大小的值) 为 7，所以 Node-data 域位数据点（7,2）。这样，该节点的分割超平面就是通过（7,2）并垂直于：split=x 轴的直线 x=7；</li>
+<li>确定：左子空间和右子空间。具体是：分割超平面 x=7 将整个空间分为两部分：x&lt;=7 的部分为左子空间，包含 3 个节点 ={(2,3),(5,4),(4,7)}；另一部分为右子空间，包含 2 个节点 ={(9,6)，(8,1)}；</li>
+<li>如上算法所述，kd 树的构建是一个递归过程，我们对左子空间和右子空间内的数据重复根节点的过程就可以得到一级子节点（5,4）和（9,6），同时将空间和数据集进一步细分，如此往复直到空间中只包含一个数据点。</li>
+</ol>
+<p>与此同时，经过对上面所示的空间划分之后，我们可以看出，点 (7,2) 可以为根结点，从根结点出发的两条红粗斜线指向的 (5,4) 和(9,6)则为根结点的左右子结点，而 (2,3)，(4,7) 则为 (5,4) 的左右孩子 (通过两条细红斜线相连)，最后，(8,1) 为(9,6)的左孩子(通过细红斜线相连)。如此，便形成了下面这样一棵 k-d 树：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c502671c1262ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong>对于 n 个实例的 k 维数据来说，建立 kd-tree 的时间复杂度为 O(k_n_logn)。</strong></p>
+<p>k-d 树算法可以分为两大部分，除了上部分有关 k-d 树本身这种数据结构建立的算法，另一部分是在建立的 k-d 树上各种诸如插入，删除，查找 (最邻近查找) 等操作涉及的算法。下面，咱们依次来看 kd 树的插入、删除、查找操作。</p>
+<h3 id="2-2-KD-树的插入"><a href="#2-2-KD-树的插入" class="headerlink" title="2.2 KD 树的插入"></a>2.2 KD 树的插入</h3><p>元素插入到一个 K-D 树的方法和二叉检索树类似。本质上，在偶数层比较 x 坐标值，而在奇数层比较 y 坐标值。当我们到达了树的底部，（也就是当一个空指针出现），我们也就找到了结点将要插入的位置。生成的 K-D 树的形状依赖于结点插入时的顺序。给定 N 个点，其中一个结点插入和检索的平均代价是 O(log2N)。</p>
+<p>插入的过程如下:</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026786ebc7f4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>应该清楚，这里描述的插入过程中，每个结点将其所在的平面分割成两部分。因比，Chicago 将平面上所有结点分成两部分，一部分所有的结点 x 坐标值小于 35，另一部分结点的 x 坐标值大于或等于 35。同样 Mobile 将所有 x 坐标值大于 35 的结点以分成两部分，一部分结点的 Y 坐标值是小于 10，另一部分结点的 Y 坐标值大于或等于 10。后面的 Toronto、Buffalo 也按照一分为二的规则继续划分。</p>
+<h3 id="2-3-KD-树的删除"><a href="#2-3-KD-树的删除" class="headerlink" title="2.3 KD 树的删除"></a>2.3 KD 树的删除</h3><p>KD 树的删除可以用递归程序来实现。我们假设希望从 K-D 树中删除结点（a,b）。如果（a,b）的两个子树都为空，则用空树来代替（a,b）。否则，在（a,b）的子树中寻找一个合适的结点来代替它，譬如 (c,d)，则递归地从 K-D 树中删除（c,d）。一旦(c,d) 已经被删除，则用（c,d）代替（a,b）。假设 (a,b) 是一个 X 识别器，那么，它得替代节点要么是（a,b）左子树中的 X 坐标最大值的结点，要么是（a,b）右子树中 x 坐标最小值的结点。</p>
+<p>下面来举一个实际的例子 (来源：中国地质大学电子课件，原课件错误已经在下文中订正)，如下图所示，原始图像及对应的 kd 树，现在要删除图中的 A 结点，请看一系列删除步骤：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026784783e62?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>要删除上图中结点 A，选择结点 A 的右子树中 X 坐标值最小的结点，这里是 C，C 成为根，如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c502677f1aecff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>从 C 的右子树中找出一个结点代替先前 C 的位置，</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c5026784c8f96e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>这里是 D，并将 D 的左子树转为它的右子树，D 代替先前 C 的位置，如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c502678897559b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>在 D 的新右子树中，找 X 坐标最小的结点，这里为 H，H 代替 D 的位置，</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267aa09aa2e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>在 D 的右子树中找到一个 Y 坐标最小的值，这里是 I，将 I 代替原先 H 的位置，从而 A 结点从图中顺利删除，如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267ad980686?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>从 K-D 树中删除一个结点是代价很高的，很清楚删除子树的根受到子树中结点个数的限制。用 TPL（T）表示树 T 总的路径长度。可看出树中子树大小的总和为 TPL（T）+N。 以随机方式插入 N 个点形成树的 TPL 是 O(N*log2N), 这就意味着从一个随机形成的 K-D 树中删除一个随机选取的结点平均代价的上界是 O(log2N) 。</p>
+<h3 id="2-4-KD-树的最近邻搜索算法"><a href="#2-4-KD-树的最近邻搜索算法" class="headerlink" title="2.4 KD 树的最近邻搜索算法"></a>2.4 KD 树的最近邻搜索算法</h3><p>k-d 树查询算法的伪代码如下所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267b25b81bb?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>我写了一个递归版本的二维 kd tree 的搜索函数你对比的看看：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267b7edd5f3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong>举例</strong></p>
+<p>星号表示要查询的点查询点（2，4.5）。通过二叉搜索，顺着搜索路径很快就能找到最邻近的近似点。而找到的叶子节点并不一定就是最邻近的，最邻近肯定距离查询点更近，应该位于以查询点为圆心且通过叶子节点的圆域内。为了找到真正的最近邻，还需要进行相关的‘回溯’操作。也就是说，算法首先沿搜索路径反向查找是否有距离查询点更近的数据点。</p>
+<ol>
+<li><strong>二叉树搜索</strong>：先从（7,2）查找到（5,4）节点，在进行查找时是由 y = 4 为分割超平面的，由于查找点为 y 值为 4.5，因此进入右子空间查找到（4,7），形成搜索路径 &lt;(7,2)，(5,4)，(4,7)&gt;，但（4,7）与目标查找点的距离为 3.202，而（5,4）与查找点之间的距离为 3.041，所以（5,4）为查询点的最近点；</li>
+<li><strong>回溯查找</strong>：以（2，4.5）为圆心，以 3.041 为半径作圆，如下图所示。可见该圆和 y = 4 超平面交割，所以需要进入（5,4）左子空间进行查找，也就是将（2,3）节点加入搜索路径中得 &lt;(7,2)，(2,3)&gt;；于是接着搜索至（2,3）叶子节点，（2,3）距离（2,4.5）比（5,4）要近，所以最近邻点更新为（2，3），最近距离更新为 1.5；</li>
+<li>回溯查找至（5,4），直到最后回溯到根结点（7,2）的时候，以（2,4.5）为圆心 1.5 为半径作圆，并不和 x = 7 分割超平面交割，如下图所示。至此，搜索路径回溯完，返回最近邻点（2,3），最近距离 1.5。</li>
+</ol>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267c5104ae7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267d1004cbf?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-5-kd-树近邻搜索算法的改进：BBF-算法"><a href="#2-5-kd-树近邻搜索算法的改进：BBF-算法" class="headerlink" title="2.5 kd 树近邻搜索算法的改进：BBF 算法"></a>2.5 kd 树近邻搜索算法的改进：BBF 算法</h3><p>实例点是随机分布的，那么 kd 树搜索的平均计算复杂度是 O（logN），这里的 N 是训练实例树。所以说，kd 树更适用于训练实例数远大于空间维数时的 k 近邻搜索，当空间维数接近训练实例数时，<strong>它的效率会迅速下降，一降降到 “解放前”：线性扫描的速度。</strong></p>
+<p>也正因为上述 k 最近邻搜索算法的第 4 个步骤中的所述：“回退到根结点时，搜索结束”，每个最近邻点的查询比较完成过程最终都要回退到根结点而结束，而导致了许多不必要回溯访问和比较到的结点，这些多余的损耗在高维度数据查找的时候，搜索效率将变得相当之地下，那有什么办法可以改进这个原始的 kd 树最近邻搜索算法呢？</p>
+<p>从上述标准的 kd 树查询过程可以看出其搜索过程中的 “回溯” 是由 “查询路径” 决定的，并没有考虑查询路径上一些数据点本身的一些性质。一个简单的改进思路就是将 “查询路径” 上的结点进行排序，如按各自分割超平面（也称 bin）与查询点的距离排序，<strong>也就是说，回溯检查总是从优先级最高（Best Bin）的树结点开始。</strong></p>
+<p>还是以上面的查询（2,4.5）为例，搜索的算法流程为：</p>
+<ol>
+<li>将（7,2）压人优先队列中；</li>
+<li>提取优先队列中的（7,2），由于（2,4.5）位于（7,2）分割超平面的左侧，所以检索其左子结点（5,4）。</li>
+<li>同时，根据 BBF 机制” 搜索左 / 右子树，就把对应这一层的兄弟结点即右 / 左结点存进队列”，将其（5,4）对应的兄弟结点即右子结点（9,6）压人优先队列中</li>
+<li>此时优先队列为 {（9,6）}，最佳点为（7,2）；然后一直检索到叶子结点（4,7），此时优先队列为{（2,3），（9,6）}，“最佳点” 则为（5,4）；</li>
+<li>提取优先级最高的结点（2,3），重复步骤 2，直到优先队列为空。</li>
+</ol>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267d5d39c49?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-6-KD-树的应用"><a href="#2-6-KD-树的应用" class="headerlink" title="2.6 KD 树的应用"></a>2.6 KD 树的应用</h3><p>SIFT+KD_BBF 搜索算法，详细参考文末的参考文献。</p>
+<ol>
+<li>关于 KNN 的一些问题</li>
+</ol>
+<hr>
+<ol>
+<li><p>在 k-means 或 kNN，我们是用欧氏距离来计算最近的邻居之间的距离。为什么不用曼哈顿距离？</p>
+<p><strong> 答：</strong> 我们不用曼哈顿距离，因为它只计算水平或垂直距离，有维度的限制。另一方面，欧式距离可用于任何空间的距离计算问题。因为，数据点可以存在于任何空间，欧氏距离是更可行的选择。例如：想象一下国际象棋棋盘，象或车所做的移动是由曼哈顿距离计算的，因为它们是在各自的水平和垂直方向的运动。</p>
+</li>
+<li><p>KD-Tree 相比 KNN 来进行快速图像特征比对的好处在哪里?</p>
+<p>答：极大的节约了时间成本．点线距离如果 &gt;  最小点，无需回溯上一层，如果 &lt;, 则再上一层寻找。</p>
+</li>
+</ol>
+<p>4) 参考文献</p>
+<hr>
+<p><a href="http://blog.csdn.net/v_july_v/article/details/8203674" target="_blank" rel="noopener">从 K 近邻算法、距离度量谈到 KD 树、SIFT+BBF 算法</a></p>
+<ol>
+<li>手写数字识别案例</li>
+</ol>
+<hr>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/tree/master/Machine%20Learning/9.%20KNN/handwritingClass" target="_blank" rel="noopener">KNN 手写数字识别系统</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267dc6cf83e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/7/28/16c3798d910782f8?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/" title="一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！">https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/" rel="next" title="K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！">
+                  <i class="fa fa-chevron-left"></i> K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)/" rel="prev" title="CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)">
+                  CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码) <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-KNN-的通俗解释"><span class="nav-number">1.</span> <span class="nav-text">1.1 KNN 的通俗解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-近邻的距离度量"><span class="nav-number">2.</span> <span class="nav-text">1.2 近邻的距离度量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-K-值选择"><span class="nav-number">3.</span> <span class="nav-text">1.3 K 值选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-KNN-最近邻分类算法的过程"><span class="nav-number">4.</span> <span class="nav-text">1.4 KNN 最近邻分类算法的过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-构建-KD-树"><span class="nav-number">5.</span> <span class="nav-text">2.1 构建 KD 树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-KD-树的插入"><span class="nav-number">6.</span> <span class="nav-text">2.2 KD 树的插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-KD-树的删除"><span class="nav-number">7.</span> <span class="nav-text">2.3 KD 树的删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-KD-树的最近邻搜索算法"><span class="nav-number">8.</span> <span class="nav-text">2.4 KD 树的最近邻搜索算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-kd-树近邻搜索算法的改进：BBF-算法"><span class="nav-number">9.</span> <span class="nav-text">2.5 kd 树近邻搜索算法的改进：BBF 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-KD-树的应用"><span class="nav-number">10.</span> <span class="nav-text">2.6 KD 树的应用</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '35e0103b2e8060fd740da7e66ad291d3',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="聚类算法都是无监督学习吗? 什么是聚类算法？聚类是一种机器学习技术，它涉及到数据点的分组。给定一组数据点，我们可以使用聚类算法将每个数据点划分为一个特定的组。理论上，同一组中的数据点应该具有相似的属性和 / 或特征，而不同组中的数据点应该具有高度不同的属性和 / 或特征。聚类是一种无监督学习的方法，是许多领域中常用的统计数据分析技术。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="聚类算法都是无监督学习吗? 什么是聚类算法？聚类是一种机器学习技术，它涉及到数据点的分组。给定一组数据点，我们可以使用聚类算法将每个数据点划分为一个特定的组。理论上，同一组中的数据点应该具有相似的属性和 / 或特征，而不同组中的数据点应该具有高度不同的属性和 / 或特征。聚类是一种无监督学习的方法，是许多领域中常用的统计数据分析技术。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://juejin.im/equation?tex=u%5E1%2Cu%5E2%2C...%2Cu%5Ek">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e957557d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=J(c%5E%7B(1">
+<meta property="og:image" content="https://juejin.im/equation?tex=u_%7Bc%5E%7B(i">
+<meta property="og:image" content="https://juejin.im/equation?tex=x%5E%7B(i">
+<meta property="og:image" content="https://juejin.im/equation?tex=c%5E%7B(1">
+<meta property="og:image" content="https://juejin.im/equation?tex=u_1%2Cu_2%2C...%2Cu_k">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e943882d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e96b221a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e9461b5b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=u_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Csum_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cpi_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=p(x">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/2/16c50267dc6cf83e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/7/21/16c12bc817e21ec4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:32:57.345Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！">
+<meta name="twitter:description" content="聚类算法都是无监督学习吗? 什么是聚类算法？聚类是一种机器学习技术，它涉及到数据点的分组。给定一组数据点，我们可以使用聚类算法将每个数据点划分为一个特定的组。理论上，同一组中的数据点应该具有相似的属性和 / 或特征，而不同组中的数据点应该具有高度不同的属性和 / 或特征。聚类是一种无监督学习的方法，是许多领域中常用的统计数据分析技术。">
+<meta name="twitter:image" content="https://juejin.im/equation?tex=u%5E1%2Cu%5E2%2C...%2Cu%5Ek">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！ | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:33:58" itemprop="dateCreated datePublished" datetime="2019-11-08T11:33:58+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:32:57" itemprop="dateModified" datetime="2019-11-19T11:32:57+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>聚类算法都是无监督学习吗?</li>
+</ol><hr><p>什么是聚类算法？聚类是一种机器学习技术，它涉及到数据点的分组。给定一组数据点，我们可以使用聚类算法将每个数据点划分为一个特定的组。理论上，同一组中的数据点应该具有相似的属性和 / 或特征，而不同组中的数据点应该具有高度不同的属性和 / 或特征。<strong>聚类是一种无监督学习的方法</strong>，是许多领域中常用的统计数据分析技术。</p><a id="more"></a>
+
+
+<p>常用的算法包括 <strong>K-MEANS、高斯混合模型（Gaussian Mixed Model，GMM）、自组织映射神经网络（Self-Organizing Map，SOM）</strong></p>
+<ol>
+<li>k-means(k 均值) 算法</li>
+</ol>
+<hr>
+<h3 id="2-1-算法过程"><a href="#2-1-算法过程" class="headerlink" title="2.1 算法过程"></a>2.1 算法过程</h3><p>K - 均值是最普及的聚类算法，算法接受一个未标记的数据集，然后将数据聚类成不同的组。</p>
+<p>K - 均值是一个迭代算法，假设我们想要将数据聚类成 n 个组，其方法为:</p>
+<ul>
+<li>首先选择 𝐾 个随机的点，称为聚类中心（cluster centroids）；</li>
+<li>对于数据集中的每一个数据，按照距离 𝐾 个中心点的距离，将其与距离最近的中心点关联起来，与同一个中心点关联的所有点聚成一类。</li>
+<li>计算每一个组的平均值，将该组所关联的中心点移动到平均值的位置。</li>
+<li>重复步骤，直至中心点不再变化。</li>
+</ul>
+<p>用 <img src="https://juejin.im/equation?tex=u%5E1%2Cu%5E2%2C...%2Cu%5Ek" alt> 来表示聚类中心，用 𝑐(1),𝑐(2),…,𝑐(𝑚) 来存储与第 𝑖 个实例数据最近的聚类中心的索引，K - 均值算法的伪代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Repeat &#123;</span><br><span class="line">    for i = 1 to m</span><br><span class="line">    c(i) := index (form 1 to K) of cluster centroid closest to x(i)</span><br><span class="line">    for k = 1 to K</span><br><span class="line">    μk := average (mean) of points assigned to cluster k</span><br><span class="line">&#125;</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+<p>算法分为两个步骤，第一个 for 循环是赋值步骤，即：对于每一个样例 𝑖，计算其应该属于的类。第二个 for 循环是聚类中心的移动，即：对于每一个类 𝐾，重新计算该类的质心。</p>
+<p>K - 均值算法也可以很便利地用于将数据分为许多不同组，即使在没有非常明显区分的组群的情况下也可以。下图所示的数据集包含身高和体重两项特征构成的，利用 K - 均值算法将数据分为三类，用于帮助确定将要生产的 T - 恤衫的三种尺寸。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e957557d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="2-2-损失函数"><a href="#2-2-损失函数" class="headerlink" title="2.2 损失函数"></a>2.2 损失函数</h3><p>K - 均值最小化问题，是要最小化所有的数据点与其所关联的聚类中心点之间的距离之和，因此 K - 均值的代价函数（又称畸变函数 Distortion function）为：</p>
+<p><img src="https://juejin.im/equation?tex=J(c%5E%7B(1" alt>%7D%2Cc%5E%7B(2)%7D%2C…%2Cc%5E%7B(m)%7D%2Cu<em>1%2C…%2Cu_k)%3D%5Cfrac%7B1%7D%7Bm%7D%5Csum</em>%7Bi%3D1%7D%5E%7Bm%7D%7C%7CX%5E%7B(1)%7D-u_%7Bc%5E%7B(i)%7D%7D%7C%7C%5E2&gt;)</p>
+<p>其中 <img src="https://juejin.im/equation?tex=u_%7Bc%5E%7B(i" alt>%7D%7D&gt;) 代表与 <img src="https://juejin.im/equation?tex=x%5E%7B(i" alt>%7D&gt;) 最近的聚类中心点。 我们的的优化目标便是找出使得代价函数最小的 <img src="https://juejin.im/equation?tex=c%5E%7B(1" alt>%7D%2Cc%5E%7B(2)%7D%2C…%2Cc%5E%7B(m)%7D&gt;) 和 <img src="https://juejin.im/equation?tex=u_1%2Cu_2%2C...%2Cu_k" alt> 。</p>
+<h3 id="2-3-k-值的选择"><a href="#2-3-k-值的选择" class="headerlink" title="2.3 k 值的选择"></a>2.3 k 值的选择</h3><p>在运行 K - 均值算法的之前，我们首先要随机初始化所有的聚类中心点，下面介绍怎样做：</p>
+<ol>
+<li>我们应该选择 𝐾 &lt; 𝑚，即聚类中心点的个数要小于所有训练集实例的数量。</li>
+<li>随机选择 𝐾 个训练实例，然后令 𝐾 个聚类中心分别与这 𝐾 个训练实例相等 K - 均值的一个问题在于，它有可能会停留在一个局部最小值处，而这取决于初始化的情况。</li>
+</ol>
+<p>为了解决这个问题，我们通常需要多次运行 K - 均值算法，每一次都重新进行随机初始化，最后再比较多次运行 K - 均值的结果，选择代价函数最小的结果。这种方法在 𝐾 较小的时候（2—10）还是可行的，<strong>但是如果 𝐾 较大，这么做也可能不会有明显地改善。</strong></p>
+<p>没有所谓最好的选择聚类数的方法，通常是需要根据不同的问题，人工进行选择的。选择的时候思考我们运用 K - 均值算法聚类的动机是什么。有一个可能会谈及的方法叫作 <strong>“肘部法则”</strong>。关 于 “肘部法则”，我们所需要做的是改变 𝐾 值，也就是聚类类别数目的总数。我们用一个聚类来运行 K 均值聚类方法。这就意味着，所有的数据都会分到一个聚类里，然后计算成本函数或者计算畸变函数 𝐽。𝐾 代表聚类数字。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e943882d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>我们可能会得到一条类似于这样的曲线。像一个人的肘部。这就是 “肘部法则” 所做的，让我们来看这样一个图，看起来就好像有一个很清楚的肘在那儿。你会发现这种模式，它的畸变值会迅速下降，从 1 到 2，从 2 到 3 之后，你会在 3 的时候达到一个肘点。在此之后，畸变值就下降的非常慢，看起来就像使用 3 个聚类来进行聚类是正确的，<strong> 这是因为那个点是曲线的肘点，畸变值下降得很快，𝐾 = 3 之后就下降得很慢，那么我们就选 𝐾 = 3。</strong> 当你应用 “肘部法则” 的时候，如果你得到了一个像上面这样的图，那么这将是一种用来选择聚类个数的合理方法。</p>
+<h3 id="2-4-KNN-与-K-means-区别？"><a href="#2-4-KNN-与-K-means-区别？" class="headerlink" title="2.4 KNN 与 K-means 区别？"></a>2.4 KNN 与 K-means 区别？</h3><p>K 最近邻 (k-Nearest Neighbor，KNN) 分类算法，是一个理论上比较成熟的方法，也是最简单的机器学习算法之一。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>KNN</th>
+<th>K-Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>| 1.KNN 是分类算法</p>
+<ol>
+<li>属于监督学习</li>
+<li>训练数据集是带 label 的数据 | 1.K-Means 是聚类算法</li>
+<li>属于非监督学习</li>
+<li>训练数据集是无 label 的数据，是杂乱无章的，经过聚类后变得有序，先无序，后有序。 |<br>| 没有明显的前期训练过程，属于 memory based learning | 有明显的前期训练过程 |<br>| K 的含义：一个样本 x，对它进行分类，就从训练数据集中，在 x 附近找离它最近的 K 个数据点，这 K 个数据点，类别 c 占的个数最多，就把 x 的 label 设为 c。 | K 的含义：K 是人工固定好的数字，假设数据集合可以分为 K 个蔟，那么就利用训练数据来训练出这 K 个分类。 |</li>
+</ol>
+<p><strong>相似点</strong></p>
+<p>都包含这样的过程，给定一个点，在数据集中找离它最近的点。即二者都用到了 NN(Nears Neighbor) 算法思想。</p>
+<h3 id="2-5-K-Means-优缺点及改进"><a href="#2-5-K-Means-优缺点及改进" class="headerlink" title="2.5 K-Means 优缺点及改进"></a>2.5 K-Means 优缺点及改进</h3><p>k-means：在大数据的条件下，会耗费大量的时间和内存。 优化 k-means 的建议：</p>
+<ol>
+<li><p>减少聚类的数目 K。因为，每个样本都要跟类中心计算距离。</p>
+</li>
+<li><p>减少样本的特征维度。比如说，通过 PCA 等进行降维。</p>
+</li>
+<li><p>考察其他的聚类算法，通过选取 toy 数据，去测试不同聚类算法的性能。</p>
+</li>
+<li><p>hadoop 集群，K-means 算法是很容易进行并行计算的。</p>
+</li>
+<li><p>算法可能找到局部最优的聚类，而不是全局最优的聚类。使用改进的二分 k-means 算法。</p>
+<p>二分 k-means 算法：首先将整个数据集看成一个簇，然后进行一次 k-means（k=2）算法将该簇一分为二，并计算每个簇的误差平方和，选择平方和最大的簇迭代上述过程再次一分为二，直至簇数达到用户指定的 k 为止，此时可以达到的全局最优。</p>
+</li>
+</ol>
+<p>3) 高斯混合模型 (GMM)</p>
+<hr>
+<h3 id="3-1-GMM-的思想"><a href="#3-1-GMM-的思想" class="headerlink" title="3.1 GMM 的思想"></a>3.1 GMM 的思想</h3><p>高斯混合模型（Gaussian Mixed Model，GMM）也是一种常见的聚类算法，与 K 均值算法类似，同样使用了 EM 算法进行迭代计算。高斯混合模型假设每个簇的数据都是符合高斯分布（又叫正态分布）的，当前<strong>数据呈现的分布就是各个簇的高斯分布叠加在一起的结果。</strong></p>
+<p>第一张图是一个数据分布的样例，如果只用一个高斯分布来拟合图中的数据，图 中所示的椭圆即为高斯分布的二倍标准差所对应的椭圆。直观来说，图中的数据 明显分为两簇，因此只用一个高斯分布来拟和是不太合理的，需要推广到用多个 高斯分布的叠加来对数据进行拟合。第二张图是用两个高斯分布的叠加来拟合得到的结果。<strong> 这就引出了高斯混合模型，即用多个高斯分布函数的线形组合来对数据分布进行拟合。</strong> 理论上，高斯混合模型可以拟合出任意类型的分布。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e96b221a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt><img src="https://user-gold-cdn.xitu.io/2019/7/25/16c29105e9461b5b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>高斯混合模型的核心思想是，假设数据可以看作从多个高斯分布中生成出来 的。在该假设下，每个单独的分模型都是标准高斯模型，其均值 <img src="https://juejin.im/equation?tex=u_i" alt> 和方差 <img src="https://juejin.im/equation?tex=%5Csum_i" alt> 是待估计的参数。此外，每个分模型都还有一个参数 <img src="https://juejin.im/equation?tex=%5Cpi_i" alt>，可以理解为权重或生成数据的概 率。高斯混合模型的公式为：</p>
+<p><img src="https://juejin.im/equation?tex=p(x" alt>%3D%5Csum_%7Bi%3D1%7D%5E%7Bk%7D%5Cpi_iN(x%7Cu_i%2C%5Csum_i)&gt;)</p>
+<p>通常我们并不能直接得到高斯混合模型的参数，而是观察到了一系列 数据点，给出一个类别的数量 K 后，希望求得最佳的 K 个高斯分模型。因此，高斯 混合模型的计算，便成了最佳的均值 μ，方差 Σ、权重 π 的寻找，这类问题通常通过 最大似然估计来求解。遗憾的是，此问题中直接使用最大似然估计，得到的是一 个复杂的非凸函数，目标函数是和的对数，难以展开和对其求偏导。</p>
+<p><strong> 在这种情况下，可以用 EM 算法。 </strong>EM 算法是在最大化目标函数时，先固定一个变量使整体函数变为凸优化函数，求导得到最值，然后利用最优参数更新被固定的变量，进入下一个循环。具体到高 斯混合模型的求解，EM 算法的迭代过程如下。</p>
+<p>首先，初始随机选择各参数的值。然后，重复下述两步，直到收敛。</p>
+<ul>
+<li>E 步骤。根据当前的参数，计算每个点由某个分模型生成的概率。</li>
+<li>M 步骤。使用 E 步骤估计出的概率，来改进每个分模型的均值，方差和权重。</li>
+</ul>
+<blockquote>
+<p>高斯混合模型是一个生成式模型。可以这样理解数据的生成过程，假设一个最简单的情况，即只有两个一维标准高斯分布的分模型 <em>N</em>(0,1) 和 <em>N</em>(5,1)，其权重分别为 0.7 和 0.3。那么，在生成第一个数据点时，先按照权重的比例，随机选择一个分布，比如选择第一个高斯分布，接着从 <em>N</em>(0,1) 中生成一个点，如 −0.5，便是第一个数据点。在生成第二个数据点时，随机选择到第二个高斯分布 <em>N</em>(5,1)，生成了第二个点 4.7。如此循环执行，便生成出了所有的数据点。</p>
+</blockquote>
+<p>也就是说，我们并不知道最佳的 K 个高斯分布的各自 3 个参数，也不知道每个 数据点究竟是哪个高斯分布生成的。所以每次循环时，先固定当前的高斯分布不 变，获得每个数据点由各个高斯分布生成的概率。然后固定该生成概率不变，根据数据点和生成概率，获得一个组更佳的高斯分布。循环往复，直到参数的不再变化，或者变化非常小时，便得到了比较合理的一组高斯分布。</p>
+<h3 id="3-2-GMM-与-K-Means-相比"><a href="#3-2-GMM-与-K-Means-相比" class="headerlink" title="3.2 GMM 与 K-Means 相比"></a>3.2 GMM 与 K-Means 相比</h3><p>高斯混合模型与 K 均值算法的相同点是：</p>
+<ul>
+<li>它们都是可用于聚类的算法；</li>
+<li>都需要 指定 K 值；</li>
+<li>都是使用 EM 算法来求解；</li>
+<li>都往往只能收敛于局部最优。</li>
+</ul>
+<p>而它相比于 K 均值算法的优点是，可以给出一个样本属于某类的概率是多少；不仅仅可以用于聚类，还可以用于概率密度的估计；并且可以用于生成新的样本点。</p>
+<ol>
+<li>聚类算法如何评估</li>
+</ol>
+<hr>
+<p>由于数据以及需求的多样性，没有一种算法能够适用于所有的数据类型、数 据簇或应用场景，似乎每种情况都可能需要一种不同的评估方法或度量标准。例 如，K 均值聚类可以用误差平方和来评估，但是基于密度的数据簇可能不是球形， 误差平方和则会失效。在许多情况下，判断聚类算法结果的好坏强烈依赖于主观 解释。尽管如此，聚类算法的评估还是必需的，它是聚类分析中十分重要的部分之一。</p>
+<p>聚类评估的任务是估计在数据集上进行聚类的可行性，以及聚类方法产生结 果的质量。这一过程又分为三个子任务。</p>
+<ol>
+<li><p><strong>估计聚类趋势。</strong></p>
+<p>这一步骤是检测数据分布中是否存在非随机的簇结构。如果数据是基本随机 的，那么聚类的结果也是毫无意义的。我们可以观察聚类误差是否随聚类类别数 量的增加而单调变化，如果数据是基本随机的，即不存在非随机簇结构，那么聚 类误差随聚类类别数量增加而变化的幅度应该较不显著，并且也找不到一个合适 的 K 对应数据的真实簇数。</p>
+</li>
+<li><p><strong>判定数据簇数。</strong></p>
+<p>确定聚类趋势之后，我们需要找到与真实数据分布最为吻合的簇数，据此判定聚类结果的质量。数据簇数的判定方法有很多，例如手肘法和 Gap Statistic 方 法。需要说明的是，用于评估的最佳数据簇数可能与程序输出的簇数是不同的。 例如，有些聚类算法可以自动地确定数据的簇数，但可能与我们通过其他方法确 定的最优数据簇数有所差别。</p>
+</li>
+<li><p><strong>测定聚类质量。</strong></p>
+<p>在无监督的情况下，我们可以通过考察簇的分离情况和簇的紧 凑情况来评估聚类的效果。定义评估指标可以展现面试者实际解决和分析问题的 能力。事实上测量指标可以有很多种，以下列出了几种常用的度量指标，更多的 指标可以阅读相关文献。</p>
+<p>轮廓系数、均方根标准偏差、R 方（R-Square）、改进的 HubertΓ 统计。</p>
+</li>
+</ol>
+<p>5) 代码实现</p>
+<hr>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/Machine%20Learning/7.%20Clustering/GMM.ipynb" target="_blank" rel="noopener">高斯混合模型代码</a></p>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/Machine%20Learning/7.%20Clustering/K-Means.ipynb" target="_blank" rel="noopener">K-Means 代码</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/2/16c50267dc6cf83e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/7/21/16c12bc817e21ec4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/" title="K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！">https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/从似然函数到 EM 算法 (附代码实现)/" rel="next" title="从似然函数到 EM 算法 (附代码实现)">
+                  <i class="fa fa-chevron-left"></i> 从似然函数到 EM 算法 (附代码实现)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/" rel="prev" title="一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！">
+                  一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-算法过程"><span class="nav-number">1.</span> <span class="nav-text">2.1 算法过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-损失函数"><span class="nav-number">2.</span> <span class="nav-text">2.2 损失函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-k-值的选择"><span class="nav-number">3.</span> <span class="nav-text">2.3 k 值的选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-KNN-与-K-means-区别？"><span class="nav-number">4.</span> <span class="nav-text">2.4 KNN 与 K-means 区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-K-Means-优缺点及改进"><span class="nav-number">5.</span> <span class="nav-text">2.5 K-Means 优缺点及改进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-GMM-的思想"><span class="nav-number">6.</span> <span class="nav-text">3.1 GMM 的思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-GMM-与-K-Means-相比"><span class="nav-number">7.</span> <span class="nav-text">3.2 GMM 与 K-Means 相比</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '801f47f922fcc2bb23d604a8c28980d3',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

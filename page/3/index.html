@@ -272,7 +272,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/大数据业务介绍/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -286,7 +286,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/大数据业务介绍/" class="post-title-link" itemprop="url">大数据业务介绍</a>
+            <a href="/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/" class="post-title-link" itemprop="url">神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！</a>
           
         </h1>
 
@@ -301,11 +301,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:36:51 / 修改时间：20:06:16" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:51+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:37:02" itemprop="dateCreated datePublished" datetime="2019-11-08T11:37:02+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:41:22" itemprop="dateModified" datetime="2019-11-19T11:41:22+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -314,7 +322,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/大数据/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -333,11 +341,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">点我达大数据团队初创于2015年，随着公司业务发展，大数据对于公司的业务发展发挥了越来越大的作用，目前服务的用户/团队包含BI、产品运营、运力中心以及技术内部应用的数据服务等</span><br></pre></td></tr></table></figure><p>目前大数据主要的结构如下：</p><p><img src="http://tech.dianwoda.com/content/images/2017/08/newstructure-7.png" alt> 从最下面一层往上依次为：</p><p><strong>一、接入层</strong></p><p><strong>1、DataX</strong></p><p>a) dataX 是一个 ETL 工具，阿里出品<br>b) 采用 Framework + plugin 架构构建，幸运的是自带了常用的插件，比如 MysqlReader、HdfsWriter 等<br>c) Standalone，无中心，每个实例之间无关联<br>d) 性能强劲、相对于 sqoop，配置更简单<br>e) 稳定高效，我们引入 DataX 以来，从来没有在数据传输上出过问题<br><img src="http://tech.dianwoda.com/content/images/2017/08/datax-1.png" alt></p>
+          <ol>
+<li>训练误差和泛化误差</li>
+</ol><hr><p>机器学习模型在训练数据集和测试数据集上的表现。如果你改变过实验中的模型结构或者超参数，你也许发现了：当模型在训练数据集上更准确时，它在测试数据集上却不⼀定更准确。这是为什么呢？</p><p>因为存在着训练误差和泛化误差：</p><ul>
+<li><strong> 训练误差：</strong> 模型在训练数据集上表现出的误差。</li>
+<li><strong> 泛化误差：</strong> 模型在任意⼀个测试数据样本上表现出的误差的期望，并常常通过测试数据集上的误差来近似。</li>
+</ul>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/大数据业务介绍/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -366,7 +379,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/XGBoost 在线出餐预测服务介绍/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -380,7 +393,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/XGBoost 在线出餐预测服务介绍/" class="post-title-link" itemprop="url">XGBoost 在线出餐预测服务介绍</a>
+            <a href="/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/" class="post-title-link" itemprop="url">强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！</a>
           
         </h1>
 
@@ -395,11 +408,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:36:40 / 修改时间：19:54:28" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:40+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:36:51" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:51+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:43:27" itemprop="dateModified" datetime="2019-11-19T11:43:27+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -408,7 +429,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -427,11 +448,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h5 id="1-项目背景和算法简介"><a href="#1-项目背景和算法简介" class="headerlink" title="1. 项目背景和算法简介"></a>1. 项目背景和算法简介</h5><p>点我达是一家致力于提供城市即时物流配送服务公司。在餐饮外卖行业，商家从接受外卖订单到做出餐品做并打包完毕所需要的时间，称为出餐时间。实现准确预测该时间，可以让派单系统确定合理的派单时间，对于出餐慢的订单，可以延迟派单，从而减少配送员在商家的等餐时间，提升配送员的体验，提高配送效率。</p>
+          <ol>
+<li>什么是强化学习</li>
+</ol><hr><p>其他许多机器学习算法中学习器都是学得怎样做，而强化学习（Reinforcement Learning, RL）是在尝试的过程中学习到在特定的情境下选择哪种行动可以得到最大的回报。在很多场景中，当前的行动不仅会影响当前的 rewards，还会影响之后的状态和一系列的 rewards。RL 最重要的 3 个特定在于：</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/XGBoost 在线出餐预测服务介绍/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -460,7 +483,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/机器学习在出餐时间预测上的探索/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/迁移学习 (Transfer)，面试看这些就够了！(附代码)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -474,7 +497,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/机器学习在出餐时间预测上的探索/" class="post-title-link" itemprop="url">机器学习在出餐时间预测上的探索</a>
+            <a href="/2019/11/08/迁移学习 (Transfer)，面试看这些就够了！(附代码)/" class="post-title-link" itemprop="url">迁移学习 (Transfer)，面试看这些就够了！(附代码)</a>
           
         </h1>
 
@@ -489,11 +512,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:36:30 / 修改时间：20:09:11" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:30+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:36:41" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:41+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:43:16" itemprop="dateModified" datetime="2019-11-19T11:43:16+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -502,7 +533,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -521,107 +552,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h4 id="一-项目背景"><a href="#一-项目背景" class="headerlink" title="一. 项目背景"></a>一. 项目背景</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/1-1.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/2-1.png" alt></p>
-<h4 id="二-算法简介"><a href="#二-算法简介" class="headerlink" title="二. 算法简介"></a>二. 算法简介</h4><h6 id="2-1-模型选型依据"><a href="#2-1-模型选型依据" class="headerlink" title="2.1 模型选型依据"></a>2.1 模型选型依据</h6><p><img src="http://tech.dianwoda.com/content/images/2017/09/3-1.png" alt></p>
-<h6 id="2-2-XGBoost-算法剖析"><a href="#2-2-XGBoost-算法剖析" class="headerlink" title="2.2 XGBoost 算法剖析"></a>2.2 XGBoost 算法剖析</h6><p><img src="http://tech.dianwoda.com/content/images/2017/09/4-1-.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/5-1.png" alt></p>
-<h4 id="三-数据清洗"><a href="#三-数据清洗" class="headerlink" title="三. 数据清洗"></a>三. 数据清洗</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/7-1.png" alt></p>
-<h6 id="3-1-剔除骑手到店立即取餐的样本"><a href="#3-1-剔除骑手到店立即取餐的样本" class="headerlink" title="3.1 剔除骑手到店立即取餐的样本"></a>3.1 剔除骑手到店立即取餐的样本</h6><p><img src="http://tech.dianwoda.com/content/images/2017/09/8-1.png" alt></p>
-<h6 id="3-2-剔除多个订单同时离店的样本"><a href="#3-2-剔除多个订单同时离店的样本" class="headerlink" title="3.2 剔除多个订单同时离店的样本"></a>3.2 剔除多个订单同时离店的样本</h6><p><img src="http://tech.dianwoda.com/content/images/2017/09/9.png" alt></p>
-<h6 id="3-3-利用模型剔除异常值"><a href="#3-3-利用模型剔除异常值" class="headerlink" title="3.3 利用模型剔除异常值"></a>3.3 利用模型剔除异常值</h6><p><img src="http://tech.dianwoda.com/content/images/2017/09/10-1.png" alt></p>
-<h4 id="四-特征构建"><a href="#四-特征构建" class="headerlink" title="四. 特征构建"></a>四. 特征构建</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/11-1.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/12-1.png" alt></p>
-<h4 id="五-餐品文本挖掘"><a href="#五-餐品文本挖掘" class="headerlink" title="五. 餐品文本挖掘"></a>五. 餐品文本挖掘</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/13.png" alt></p>
-<h4 id="六-特征选择"><a href="#六-特征选择" class="headerlink" title="六. 特征选择"></a>六. 特征选择</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/14.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/15.png" alt></p>
-<h4 id="七-模型融合"><a href="#七-模型融合" class="headerlink" title="七. 模型融合"></a>七. 模型融合</h4><p><img src="http://tech.dianwoda.com/content/images/2017/09/15-1-.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/16.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/17.png" alt> <img src="http://tech.dianwoda.com/content/images/2017/09/18.png" alt></p>
-
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-        <article itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/特征工程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="AILab-aida">
-      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
-      <meta itemprop="image" content="/images/avatar.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="AILab-aida">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-            
-            <a href="/2019/10/28/特征工程/" class="post-title-link" itemprop="url">特征工程</a>
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              
-                
-              
-
-              <time title="创建时间：2019-10-28 19:36:12 / 修改时间：20:02:05" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:12+08:00">2019-10-28</time>
-            </span>
-          
-            
-
-            
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在之前学习机器学习技术中，很少关注特征工程 (Feature Engineering)，而且机器学习的书中基本上是已经处理好的数据或者作者自己构造的虚拟的数据。所以在机器学习的实践中，可能会选择使用这些算法，但是常常不知道怎么提取特征来建模。因此，结合网上的资料和项目中的经验试着来总结一下。</p><p>特征是对于分析和解决问题有用、有意义的属性。例如：<br>在表格数据中，表格中的一行是一个观测，但是表格的一列可能才是特征；<br>在机器视觉中，一幅图像是一个观测，但是图中的一条线可能才是特征；<br>在自然语言处理中，一个文本是一个观测，但是其中的段落或者词频可能才是一种特征；<br>在语音识别中，一段语音是一个观测，但是一个词或者音素才是一种特征。</p>
+          <ol>
+<li>什么是迁移学习</li>
+</ol><hr><p>迁移学习 (Transfer Learning) 是一种机器学习方法，就是把为任务 A 开发的模型作为初始点，重新使用在为任务 B 开发模型的过程中。迁移学习是通过从已学习的相关任务中转移知识来改进学习的新任务，虽然大多数机器学习算法都是为了解决单个任务而设计的，但是促进迁移学习的算法的开发是机器学习社区持续关注的话题。 迁移学习对人类来说很常见，例如，我们可能会发现学习识别苹果可能有助于识别梨，或者学习弹奏电子琴可能有助于学习钢琴。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/特征工程/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/迁移学习 (Transfer)，面试看这些就够了！(附代码)/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -650,7 +587,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/模型上线和 pmml 简介/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -664,7 +601,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/模型上线和 pmml 简介/" class="post-title-link" itemprop="url">模型上线和 pmml 简介</a>
+            <a href="/2019/11/08/白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！/" class="post-title-link" itemprop="url">白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！</a>
           
         </h1>
 
@@ -679,11 +616,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:36:02 / 修改时间：20:04:13" itemprop="dateCreated datePublished" datetime="2019-10-28T19:36:02+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:36:30" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:30+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:47:11" itemprop="dateModified" datetime="2019-11-19T11:47:11+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -692,7 +637,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -711,11 +656,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>1、R+pmml+spark+airflow 调度<br>其他团队用 R 语言训练模型并转为 pmml 文件，然后我们使用 spark 将这个 pmml 文件封装为 jar，使用 airflow 提交到 yarn。 <code>val is: InputStream = fs.open(path) val pmml: PMML = PMMLUtil.unmarshal(is) modelEvaluator = ModelEvaluatorFactory.newInstance.newModelEvaluator(pmml)</code></p>
+          <ol>
+<li>什么是 LSTM</li>
+</ol><hr><p>在你阅读这篇文章时候，你都是基于自己已经拥有的对先前所见词的理解来推断当前词的真实含义。我们不会将所有的东西都全部丢弃，然后用空白的大脑进行思考。我们的思想拥有持久性。LSTM 就是具备了这一特性。</p><p>这篇将介绍另⼀种常⽤的⻔控循环神经⽹络：<strong> ⻓短期记忆（long short-term memory，LSTM）[1]。</strong> 它⽐⻔控循环单元的结构稍微复杂⼀点，也是为了解决在 RNN 网络中梯度衰减的问题，是 GRU 的一种扩展。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/模型上线和 pmml 简介/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -744,7 +691,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/FM 模型/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -758,7 +705,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/FM 模型/" class="post-title-link" itemprop="url">FM 模型</a>
+            <a href="/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/" class="post-title-link" itemprop="url">三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现</a>
           
         </h1>
 
@@ -773,11 +720,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:26:48 / 修改时间：19:59:32" itemprop="dateCreated datePublished" datetime="2019-10-28T19:26:48+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:36:20" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:20+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:43:47" itemprop="dateModified" datetime="2019-11-19T11:43:47+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -786,7 +741,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -805,11 +760,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a><a href="#1-背景" title="1. 背景"></a>1. 背景</h2><p>FM 模型是最近几年提出的模型，凭借其在数据量比较大并且特征稀疏的情况下，忍让能够得到优秀的性能和效果，屡次在各大公司举办的 CTR 预估比赛中获得不错的战绩。</p><p>在计算广告领域，点击率 CTR（click-through rate）和转化率 CVR（conversion rate）是衡量广告流量的两个关键指标。准确的估计 CTR、CVR 对于提高流量的价值，增加广告收入有重要的指导作用。预估 CTR、CVR，业界常用的方法由人工特征工程 + LR（Logistic Regression）、GBDT（Gradient Boosting Decision Tree）+LR、FM（Factorization Machine）和 FFM（Field-aware Factorization Machine）模型。在这些模型中，FM 和 FFM 近年来表现突出，分别在 Criteo 和 Avazu 举办的 CTR 预测竞赛中夺得冠军。</p>
+          <ol>
+<li>什么是 GRU</li>
+</ol><hr><p>在循环神经⽹络中的梯度计算⽅法中，我们发现，当时间步数较⼤或者时间步较小时，<strong> 循环神经⽹络的梯度较容易出现衰减或爆炸。虽然裁剪梯度可以应对梯度爆炸，但⽆法解决梯度衰减的问题。</strong> 通常由于这个原因，循环神经⽹络在实际中较难捕捉时间序列中时间步距离较⼤的依赖关系。</p><p><strong> 门控循环神经⽹络（gated recurrent neural network）的提出，正是为了更好地捕捉时间序列中时间步距离较⼤的依赖关系。</strong> 它通过可以学习的⻔来控制信息的流动。其中，门控循环单元（gatedrecurrent unit，GRU）是⼀种常⽤的门控循环神经⽹络。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/FM 模型/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -838,7 +795,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/FFM 模型/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -852,7 +809,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/FFM 模型/" class="post-title-link" itemprop="url">FFM 模型</a>
+            <a href="/2019/11/08/通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)/" class="post-title-link" itemprop="url">通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)</a>
           
         </h1>
 
@@ -867,11 +824,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:26:29 / 修改时间：20:08:16" itemprop="dateCreated datePublished" datetime="2019-10-28T19:26:29+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:36:10" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:10+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:39:52" itemprop="dateModified" datetime="2019-11-19T11:39:52+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -880,7 +845,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -899,11 +864,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a><a href="#1-背景" title="1. 背景"></a>1. 背景</h2><p>FFM（Field-aware Factorization Machine）最初的概念来自 Yu-Chin Juan（阮毓钦，毕业于中国台湾大学，现在美国 Criteo 工作）与其比赛队员，是他们借鉴了来自 Michael Jahrer 的论文 <a href="https://kaggle2.blob.core.windows.net/competitions/kddcup2012/2748/media/Opera.pdf" target="_blank" rel="noopener">[1]</a> 中的 field 概念提出了 FM 的升级版模型。通过引入 field 的概念，FFM 把相同性质的特征归于同一个 field。</p>
+          <ol>
+<li>什么是 RNN</li>
+</ol><hr><blockquote>
+<p>循环神经网络（Recurrent Neural Network, RNN）是一类以序列（sequence）数据为输入，在序列的演进方向进行递归（recursion）且所有节点（循环单元）按链式连接的递归神经网络（recursive neural network）</p>
+</blockquote><h3 id="1-1-RNN-的应用"><a href="#1-1-RNN-的应用" class="headerlink" title="1.1 RNN 的应用"></a>1.1 RNN 的应用</h3>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/FFM 模型/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -932,7 +901,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/面试常问问题复习/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -946,7 +915,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/面试常问问题复习/" class="post-title-link" itemprop="url">面试常问问题复习</a>
+            <a href="/2019/11/08/CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)/" class="post-title-link" itemprop="url">CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)</a>
           
         </h1>
 
@@ -961,11 +930,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 19:25:52 / 修改时间：19:47:43" itemprop="dateCreated datePublished" datetime="2019-10-28T19:25:52+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:35:23" itemprop="dateCreated datePublished" datetime="2019-11-08T11:35:23+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:35:10" itemprop="dateModified" datetime="2019-11-19T11:35:10+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -974,7 +951,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -993,11 +970,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="1-xgboost-原理"><a href="#1-xgboost-原理" class="headerlink" title="1. xgboost 原理"></a><a href="#1-xgboost原理" title="1. xgboost原理"></a>1. xgboost 原理</h2><h3 id="1-简介："><a href="#1-简介：" class="headerlink" title="1. 简介："></a><a href="#1-简介：" title="1. 简介："></a>1. 简介：</h3><p>​ XGBoost 是 boosting 算法的其中一种。Boosting 算法的思想是将许多弱分类器集成在一起形成一个强分类器。因为 XGBoost 是一种提升树模型，所以它是将许多树模型集成在一起，形成一个很强的分类器。而所用到的树模型则是 <strong>CART 回归树模型</strong>。</p>
+          <ol>
+<li>什么是 CNN</li>
+</ol><hr><blockquote>
+<p>卷积神经网络（Convolutional Neural Networks, CNN）是一类包含<a href="https://baike.baidu.com/item/%E5%8D%B7%E7%A7%AF/9411006" target="_blank" rel="noopener">卷积</a>计算且具有深度结构的<a href="https://baike.baidu.com/item/%E5%89%8D%E9%A6%88%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/7580523" target="_blank" rel="noopener">前馈神经网络</a>（Feedforward Neural Networks），是<a href="https://baike.baidu.com/item/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3729729" target="_blank" rel="noopener">深度学习</a>（deep learning）的代表算法之一。</p>
+</blockquote><p>我们先来看卷积神经网络各个层级结构图：</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/面试常问问题复习/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/CNN-- 卷积神经网络从 R-CNN 到 Faster R-CNN 的理解 (CIFAR10 分类代码)/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1026,7 +1007,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/SVM 支持向量机/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -1040,7 +1021,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/SVM 支持向量机/" class="post-title-link" itemprop="url">SVM 支持向量机</a>
+            <a href="/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/" class="post-title-link" itemprop="url">一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！</a>
           
         </h1>
 
@@ -1055,11 +1036,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 16:34:58 / 修改时间：19:57:13" itemprop="dateCreated datePublished" datetime="2019-10-28T16:34:58+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:34:11" itemprop="dateCreated datePublished" datetime="2019-11-08T11:34:11+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:37:23" itemprop="dateModified" datetime="2019-11-19T11:37:23+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -1068,7 +1057,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -1087,11 +1076,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>通俗来讲，它是一种<strong>二分类</strong>模型，其基本模型定义为特征空间上的间隔最大的线性分类器，其学习策略便是<strong>间隔最大化</strong>，最终可转化为一个凸二次规划问题的求解。</p><h1 id="SVM"><a href="#SVM" class="headerlink" title="SVM"></a><a href="#SVM" title="SVM"></a>SVM</h1><h2 id="SVM-的目标函数基本型"><a href="#SVM-的目标函数基本型" class="headerlink" title="SVM 的目标函数基本型"></a><a href="#SVM的目标函数基本型" title="SVM的目标函数基本型"></a>SVM 的目标函数基本型</h2><p>min12w2min12w2min \frac{1}{2}w^2s.t.yi(wTxi+b)≥1,i=1,2,…,ms.t.yi(wTxi+b)≥1,i=1,2,…,ms.t. y_i(w^Tx_i+b)\ge1, i=1,2,…,m</p>
+          <ol>
+<li>什么是 KNN</li>
+</ol><hr><h3 id="1-1-KNN-的通俗解释"><a href="#1-1-KNN-的通俗解释" class="headerlink" title="1.1 KNN 的通俗解释"></a>1.1 KNN 的通俗解释</h3><p>何谓 K 近邻算法，即 K-Nearest Neighbor algorithm，简称 KNN 算法，单从名字来猜想，可以简单粗暴的认为是：K 个最近的邻居，当 K=1 时，算法便成了最近邻算法，即寻找最近的那个邻居。</p><p>用官方的话来说，所谓 K 近邻算法，即是给定一个训练数据集，对新的输入实例，<strong>在训练数据集中找到与该实例最邻近的 K 个实例（也就是上面所说的 K 个邻居），这 K 个实例的多数属于某个类，就把该输入实例分类到这个类中。</strong></p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/SVM 支持向量机/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/一看就懂的 K 近邻算法 (KNN)，K-D 树，并实现手写数字识别！/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1120,7 +1111,7 @@
   
   
   <div class="post-block home">
-    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/10/28/PythonLib - 机器学习库专题/">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="AILab-aida">
@@ -1134,7 +1125,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
             
-            <a href="/2019/10/28/PythonLib - 机器学习库专题/" class="post-title-link" itemprop="url">PythonLib - 机器学习库专题</a>
+            <a href="/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/" class="post-title-link" itemprop="url">K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！</a>
           
         </h1>
 
@@ -1149,11 +1140,19 @@
                 
               
 
-              <time title="创建时间：2019-10-28 16:03:18 / 修改时间：17:07:13" itemprop="dateCreated datePublished" datetime="2019-10-28T16:03:18+08:00">2019-10-28</time>
+              <time title="创建时间：2019-11-08 11:33:58" itemprop="dateCreated datePublished" datetime="2019-11-08T11:33:58+08:00">2019-11-08</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:32:57" itemprop="dateModified" datetime="2019-11-19T11:32:57+08:00">2019-11-19</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -1162,7 +1161,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
 
                 
                 
@@ -1181,11 +1180,117 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Posted on 2019-02-22 | Modified: 2019-03-17 | In <a href="https://vel.life/categories/Notes/" target="_blank" rel="noopener">Notes</a> | <a href="https://vel.life/PythonLib-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%BA%93%E4%B8%93%E9%A2%98/#comments" target="_blank" rel="noopener">0</a> |</p><p>Words count in article: 1,347 | Reading time ≈ 6</p><p><a href="https://vel.life/Intro-to-Python-Libs/PythonLib.png" target="_blank" rel="noopener"><img src="https://vel.life/Intro-to-Python-Libs/PythonLib.png" alt></a></p><p>Python 库简介 - 机器学习库专题。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#回归</span><br><span class="line">from sklearn.linear_model import LinearRegression #线性回归</span><br><span class="line">from sklearn.linear_model import Ridge #岭回归，可选alpha=.5</span><br><span class="line">from sklearn.linear_model import BayesianRidge #贝叶斯岭回归</span><br><span class="line">from sklearn.linear_model import Lasso #Lasso回归</span><br><span class="line">from sklearn.tree import DecisionTreeRegressor #决策树回归</span><br><span class="line">from sklearn.ensemble import RandomForestRegressor #随机森林回归</span><br><span class="line">#分类</span><br><span class="line">from sklearn.linear_model import LogisticRegression #逻辑回归</span><br><span class="line">from sklearn.svm import SVC, LinearSVC #支持向量机</span><br><span class="line">from sklearn.ensemble import RandomForestClassifier #随机森林分类器</span><br><span class="line">from sklearn.neighbors import KNeighborsClassifier #K近邻</span><br><span class="line">from sklearn.naive_bayes import GaussianNB</span><br><span class="line">from sklearn.linear_model import Perceptron #感知机</span><br><span class="line">from sklearn.linear_model import SGDClassifier #随机梯度下降分类器</span><br><span class="line">from sklearn.tree import DecisionTreeClassifier #决策树分类器</span><br><span class="line">#特征工程</span><br><span class="line">import sklearn.preprocessing as preprocessing</span><br></pre></td></tr></table></figure>
+          <ol>
+<li>聚类算法都是无监督学习吗?</li>
+</ol><hr><p>什么是聚类算法？聚类是一种机器学习技术，它涉及到数据点的分组。给定一组数据点，我们可以使用聚类算法将每个数据点划分为一个特定的组。理论上，同一组中的数据点应该具有相似的属性和 / 或特征，而不同组中的数据点应该具有高度不同的属性和 / 或特征。<strong>聚类是一种无监督学习的方法</strong>，是许多领域中常用的统计数据分析技术。</p>
           <!--noindex-->
           
             <div class="post-button text-center">
-              <a class="btn" href="/2019/10/28/PythonLib - 机器学习库专题/#more" rel="contents">
+              <a class="btn" href="/2019/11/08/K-Means(K 均值)、GMM(高斯混合模型)，通俗易懂，先收藏了！/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+        <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block home">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/从似然函数到 EM 算法 (附代码实现)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+            
+            <a href="/2019/11/08/从似然函数到 EM 算法 (附代码实现)/" class="post-title-link" itemprop="url">从似然函数到 EM 算法 (附代码实现)</a>
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:33:44" itemprop="dateCreated datePublished" datetime="2019-11-08T11:33:44+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:47:45" itemprop="dateModified" datetime="2019-11-19T11:47:45+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ol>
+<li>什么是 EM 算法</li>
+</ol><hr><p>最大期望算法（Expectation-maximization algorithm，又译为期望最大化算法），是在概率模型中寻找参数最大似然估计或者最大后验估计的算法，其中概率模型依赖于无法观测的隐性变量。</p><p>最大期望算法经过两个步骤交替进行计算，</p><p><strong>第一步</strong>是计算期望（E），利用对隐藏变量的现有估计值，计算其最大似然估计值； <strong>第二步</strong>是最大化（M），最大化在 E 步上求得的最大似然值来计算参数的值。M 步上找到的参数估计值被用于下一个 E 步计算中，这个过程不断交替进行。</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/11/08/从似然函数到 EM 算法 (附代码实现)/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1213,7 +1318,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1261,7 +1366,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-count">109</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

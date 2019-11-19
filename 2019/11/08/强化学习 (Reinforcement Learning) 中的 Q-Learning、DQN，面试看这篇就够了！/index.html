@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是强化学习 其他许多机器学习算法中学习器都是学得怎样做，而强化学习（Reinforcement Learning, RL）是在尝试的过程中学习到在特定的情境下选择哪种行动可以得到最大的回报。在很多场景中，当前的行动不仅会影响当前的 rewards，还会影响之后的状态和一系列的 rewards。RL 最重要的 3 个特定在于：">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是强化学习 其他许多机器学习算法中学习器都是学得怎样做，而强化学习（Reinforcement Learning, RL）是在尝试的过程中学习到在特定的情境下选择哪种行动可以得到最大的回报。在很多场景中，当前的行动不仅会影响当前的 rewards，还会影响之后的状态和一系列的 rewards。RL 最重要的 3 个特定在于：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a57af13c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a58edcee?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=R%3Dr_1%2Br_2%2Br_3%2B...%2Br_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=R_t%3Dr_t%2Br_%7Bt%2B1%7D%2Br_%7Bt%2B2%7D%2B...%2Br_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=R_t%3Dr_1%2B%5Cgamma_%7B%7Dr_%7Bt%2B1%7D%2B%5Cgamma%5E2r_%7Bt%2B2%7D%2B...%2B%5Cgamma%5E%7Bn-1%7Dr_n">
+<meta property="og:image" content="https://juejin.im/equation?tex=R_t%3Dr_t%2B%5Cgamma(r_%7Bt%2B1%7D%2B%5Cgamma(r_%7Bt%2B2%7D%2B...">
+<meta property="og:image" content="https://juejin.im/equation?tex=Q(s_t%2Ca_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cpi(s">
+<meta property="og:image" content="https://juejin.im/equation?tex=Q(s_t%2Ca_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0dc74ff8e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b1338135c6?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a68a3347?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:43:27.580Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！">
+<meta name="twitter:description" content="什么是强化学习 其他许多机器学习算法中学习器都是学得怎样做，而强化学习（Reinforcement Learning, RL）是在尝试的过程中学习到在特定的情境下选择哪种行动可以得到最大的回报。在很多场景中，当前的行动不仅会影响当前的 rewards，还会影响之后的状态和一系列的 rewards。RL 最重要的 3 个特定在于：">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a57af13c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！ | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:36:51" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:51+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:43:27" itemprop="dateModified" datetime="2019-11-19T11:43:27+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是强化学习</li>
+</ol><hr><p>其他许多机器学习算法中学习器都是学得怎样做，而强化学习（Reinforcement Learning, RL）是在尝试的过程中学习到在特定的情境下选择哪种行动可以得到最大的回报。在很多场景中，当前的行动不仅会影响当前的 rewards，还会影响之后的状态和一系列的 rewards。RL 最重要的 3 个特定在于：</p><a id="more"></a>
+
+
+<ol>
+<li>基本是以一种闭环的形式；</li>
+<li>不会直接指示选择哪种行动（actions）；</li>
+<li>一系列的 actions 和奖励信号（reward signals）都会影响之后较长的时间。</li>
+</ol>
+<blockquote>
+<p>强化学习（Reinforcement Learning, RL），又称再励学习、评价学习或增强学习，是<a href="https://baike.baidu.com/item/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/217599" target="_blank" rel="noopener">机器学习</a>的范式和<a href="https://baike.baidu.com/item/%E6%96%B9%E6%B3%95%E8%AE%BA/82748" target="_blank" rel="noopener">方法论</a>之一，用于描述和解决<a href="https://baike.baidu.com/item/%E6%99%BA%E8%83%BD%E4%BD%93/9446647" target="_blank" rel="noopener">智能体</a>（agent）在与环境的交互过程中通过学习策略以达成回报最大化或实现特定目标的问题 [1] 。</p>
+</blockquote>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a57af13c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>上图中 agent 代表自身，如果是自动驾驶，agent 就是车；如果你玩游戏它就是你当前控制的游戏角色，如马里奥，马里奥往前走时环境就一直在发生变化，有小怪物或者障碍物出现，它需要通过跳跃来进行躲避，就是要做 action（如向前走和跳起的动作）；无人驾驶的 action 就是车左转、右转或刹车等等，它无时无刻都在与环境产生交互，action 会反馈给环境，进而改变环境，如果自动驾驶的车行驶目标是 100 米，它向前开了 10 米，那环境就发生了变化，所以每次产生 action 都会导致环境改变，环境的改变会反馈给自身（agent），就是这样的一个循环；反馈又两种方式：</p>
+<ol>
+<li>做的好（reward）即正反馈，</li>
+<li>做得不好（punishment 惩罚）即负反馈。</li>
+</ol>
+<p><strong>Agent 可能做得好，也可能做的不好，环境始终都会给它反馈，agent 会尽量去做对自身有利的决策，通过反反复复这样的一个循环，agent 会越来越做的好，就像孩子在成长过程中会逐渐明辨是非，这就是强化学习。</strong></p>
+<ol>
+<li>强化学习模型</li>
+</ol>
+<hr>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a58edcee?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>如上图左边所示，一个 agent(例如：玩家 / 智能体等) 做出了一个 action，对 environment 造成了影响，也就是改变了 state，而 environment 为了反馈给 agent，agent 就得到了一个奖励 (例如：积分 / 分数)，不断的进行这样的循环，直到结束为止。</p>
+<p>上述过程就相当于一个<strong>马尔可夫决策过程</strong>，为什么这样叫呢？因为符合<strong>马儿可夫假设</strong>：</p>
+<ul>
+<li>当前状态 St 只由上一个状态 St-1 和行为所决定，而和前序的更多的状态是没有关系的。</li>
+</ul>
+<p>上图右边所示，S0 状态经过了 a0 的行为后，获得了奖励 r1 ，变成了状态 S1，后又经过了 a0 行为得到奖励 r2，变成了状态 S2 ，如此往复循环，直到结束为止。</p>
+<h3 id="2-1-打折的未来奖励"><a href="#2-1-打折的未来奖励" class="headerlink" title="2.1 打折的未来奖励"></a>2.1 打折的未来奖励</h3><p>通过以上的描述，大家都已经确定了一个概念，也就是 agent(智能体) 在当下做出的决定肯定使得未来收益最大化，那么，一个马儿可夫决策过程对应的奖励总和为：</p>
+<p><img src="https://juejin.im/equation?tex=R%3Dr_1%2Br_2%2Br_3%2B...%2Br_n" alt></p>
+<p>t 时刻 (当下) 的未来奖励，只考虑后面的奖励，前面的改变不了：</p>
+<p><img src="https://juejin.im/equation?tex=R_t%3Dr_t%2Br_%7Bt%2B1%7D%2Br_%7Bt%2B2%7D%2B...%2Br_n" alt></p>
+<p>接下来，<strong> 当前的情况下做出的动作是能够得到结果的，但对于未来的影响是一个不确定的，</strong> 这也符合我们的真实世界，比如谁都不知道一只蝴蝶只是煽动了一次翅膀会造成飓风式的影响 (蝴蝶效应)。所以，当前的行为对于未来是不确定性的，要打一个折扣，也就是加入一个系数 gamma，是一个 0 到 1 的值：</p>
+<p><img src="https://juejin.im/equation?tex=R_t%3Dr_1%2B%5Cgamma_%7B%7Dr_%7Bt%2B1%7D%2B%5Cgamma%5E2r_%7Bt%2B2%7D%2B...%2B%5Cgamma%5E%7Bn-1%7Dr_n" alt></p>
+<p>离当前越远的时间，gamma 的惩罚系数就会越大，也就是越不确定。为的就是在当前和未来的决策中取得一个平衡。gamma 取 0 ，相当于不考虑未来，只考虑当下，是一种很短视的做法；而 gamma 取 1 ，则完全考虑了未来，又有点过虑了。所以一般 gamma 会取 0 到 1 之间的一个值。</p>
+<p>Rt 可以用 Rt+1 来表示，写成递推式：</p>
+<p><img src="https://juejin.im/equation?tex=R_t%3Dr_t%2B%5Cgamma(r_%7Bt%2B1%7D%2B%5Cgamma(r_%7Bt%2B2%7D%2B..." alt>)%3Dr<em>t%2B%5Cgamma</em>%7B%7DR_%7Bt%2B1%7D&gt;)</p>
+<h3 id="2-2-Q-Learning-算法"><a href="#2-2-Q-Learning-算法" class="headerlink" title="2.2 Q-Learning 算法"></a>2.2 Q-Learning 算法</h3><p><strong>Q(s, a) 函数 (Quality)，</strong>质量函数用来表示智能体在 s 状态下采用 a 动作并在<strong>之后采取最优动作条件下</strong>的打折的未来奖励 (先不管未来的动作如何选择)：</p>
+<p><img src="https://juejin.im/equation?tex=Q(s_t%2Ca_t" alt>%3DmaxR_%7Bt%2B1%7D&gt;)</p>
+<p>假设有了这个 Q 函数，那么我们就能够求得在当前 t 时刻当中，做出各个决策的最大收益值，通过对比这些收益值，就能够<strong>得到 t 时刻某个决策是这些决策当中收益最高。</strong></p>
+<p><img src="https://juejin.im/equation?tex=%5Cpi(s" alt>%3Dargmax_aQ(s%2Ca)&gt;)</p>
+<p>于是乎，根据 Q 函数的递推公式可以得到：</p>
+<p><img src="https://juejin.im/equation?tex=Q(s_t%2Ca_t" alt>%3Dr%2B%5Cgamma<em>%7B%7Dmax_aQ(s</em>%7Bt%2B1%7D%2Ca_%7Bt%2B1%7D)&gt;)</p>
+<p><strong> 这就是注明的贝尔曼公式。</strong> 贝尔曼公式实际非常合理。对于某个状态来讲，最大化未来奖励相当于 最大化即刻奖励与下一状态最大未来奖励之和。</p>
+<p><strong>Q-learning 的核心思想是：</strong> 我们能够通过贝尔曼公式迭代地近似 Q - 函数。</p>
+<h3 id="2-3-Deep-Q-Learning-DQN"><a href="#2-3-Deep-Q-Learning-DQN" class="headerlink" title="2.3 Deep Q Learning(DQN)"></a>2.3 Deep Q Learning(DQN)</h3><p>Deep Q Learning(DQN) 是一种融合了神经网络和的 Q-Learning 方法。</p>
+<h4 id="2-3-1-神经网络的作用"><a href="#2-3-1-神经网络的作用" class="headerlink" title="2.3.1 神经网络的作用"></a>2.3.1 神经网络的作用</h4><p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0dc74ff8e?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>使用表格来存储每一个状态 state, 和在这个 state 每个行为 action 所拥有的 Q 值. 而当今问题是在太复杂, 状态可以多到比天上的星星还多 (比如下围棋). 如果全用表格来存储它们, 恐怕我们的计算机有再大的内存都不够, 而且每次在这么大的表格中搜索对应的状态也是一件很耗时的事. 不过, 在机器学习中, 有一种方法对这种事情很在行, 那就是神经网络.</p>
+<p>我们可以将状态和动作当成神经网络的输入, 然后经过神经网络分析后得到动作的 Q 值, 这样我们就没必要在表格中记录 Q 值, 而是直接使用神经网络生成 Q 值.</p>
+<p>还有一种形式的是这样, 我们也能只输入状态值, 输出所有的动作值, 然后按照 Q learning 的原则, 直接选择拥有最大值的动作当做下一步要做的动作.</p>
+<p>我们可以想象, 神经网络接受外部的信息, 相当于眼睛鼻子耳朵收集信息, 然后通过大脑加工输出每种动作的值, 最后通过强化学习的方式选择动作.</p>
+<h4 id="2-3-2-神经网络计算-Q-值"><a href="#2-3-2-神经网络计算-Q-值" class="headerlink" title="2.3.2 神经网络计算 Q 值"></a>2.3.2 神经网络计算 Q 值</h4><p>这一部分就跟监督学习的神经网络一样了我，输入状态值，输出为 Q 值，根据大量的数据去训练神经网络的参数，最终得到 Q-Learning 的计算模型，这时候我们就可以利用这个模型来进行强化学习了。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b1338135c6?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>强化学习和监督学习、无监督学习的区别</li>
+</ol>
+<hr>
+<ol>
+<li><p>监督式学习就好比你在学习的时候，有一个导师在旁边指点，他知道怎么是对的怎么是错的。</p>
+<p>强化学习会在没有任何标签的情况下，通过先尝试做出一些行为得到一个结果，通过这个结果是对还是错的反馈，调整之前的行为，就这样不断的调整，算法能够学习到在什么样的情况下选择什么样的行为可以得到最好的结果。</p>
+</li>
+<li><p>监督式学习出的是之间的关系，可以告诉算法什么样的输入对应着什么样的输出。监督学习做了比较坏的选择会立刻反馈给算法。</p>
+<p>强化学习出的是给机器的反馈 reward function，即用来判断这个行为是好是坏。 另外强化学习的结果反馈有延时，有时候可能需要走了很多步以后才知道以前的某一步的选择是好还是坏。</p>
+</li>
+<li><p>监督学习的输入是独立同分布的。</p>
+<p>强化学习面对的输入总是在变化，每当算法做出一个行为，它影响下一次决策的输入。</p>
+</li>
+<li><p>监督学习算法不考虑这种平衡，就只是 exploitative。</p>
+<p>强化学习，一个 agent 可以在探索和开发（exploration and exploitation）之间做权衡，并且选择一个最大的回报。</p>
+</li>
+<li><p>非监督式不是学习输入到输出的映射，而是模式 (自动映射)。</p>
+<p>对强化学习来说，它通过对没有概念标记、但与一个延迟奖赏或效用（可视为延迟的概念标记）相关联的训练例进行学习，以获得某种从状态到行动的映射。</p>
+</li>
+</ol>
+<p><strong>强化学习和前二者的本质区别</strong>: 没有前两者具有的明确数据概念，它不知道结果，只有目标。数据概念就是大量的数据，有监督学习、无监督学习需要大量数据去训练优化你建立的模型。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>监督学习</th>
+<th>非监督学习</th>
+<th>强化学习</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标签</td>
+<td>正确且严格的标签</td>
+<td>没有标签</td>
+<td>没有标签，通过结果反馈调整</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>独立同分布</td>
+<td>独立同分布</td>
+<td>输入总是在变化，每当算法做出一个行为，它影响下一次决策的输入。</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>输入对应输出</td>
+<td>自学习映射关系</td>
+<td>reward function，即结果用来判断这个行为是好是坏</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ol>
+<li>什么是多任务学习</li>
+</ol>
+<hr>
+<p>在机器学习中，我们通常关心优化某一特定指标，不管这个指标是一个标准值，还是企业 KPI。为了达到这个目标，我们训练单一模型或多个模型集合来完成指定得任务。然后，我们通过精细调参，来改进模型直至性能不再提升。尽管这样做可以针对一个任务得到一个可接受得性能，但是我们可能忽略了一些信息，这些信息有助于在我们关心的指标上做得更好。具体来说，这些信息就是相关任务的监督数据。<strong>通过在相关任务间共享表示信息，我们的模型在原始任务上泛化性能更好。这种方法称为多任务学习（Multi-Task Learning）</strong></p>
+<p>在不同的任务中都会有一些共性，而这些共性就构成了多任务学习的一个连接点，也就是任务都需要通过这个共性能得出结果来的。比如电商场景中的点击率和转化率，都要依赖于同一份数据的输入和神经网络层次。多语种语音识别等。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0a68a3347?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<ul>
+<li><a href="%5Bhttps://github.com/scutan90/DeepLearning-500-questions/blob/master/ch10_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E7%AC%AC%E5%8D%81%E7%AB%A0_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0.md%5D(https://github.com/scutan90/DeepLearning-500-questions/blob/master/ch10_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/%E7%AC%AC%E5%8D%81%E7%AB%A0_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0.md">GitHub</a>&gt;)</li>
+<li><a href="https://morvanzhou.github.io/tutorials/machine-learning/reinforcement-learning/" target="_blank" rel="noopener">强化学习</a></li>
+</ul>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/" title="强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！">https://ailab-aida.github.io/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/迁移学习 (Transfer)，面试看这些就够了！(附代码)/" rel="next" title="迁移学习 (Transfer)，面试看这些就够了！(附代码)">
+                  <i class="fa fa-chevron-left"></i> 迁移学习 (Transfer)，面试看这些就够了！(附代码)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/" rel="prev" title="神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！">
+                  神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-打折的未来奖励"><span class="nav-number">1.</span> <span class="nav-text">2.1 打折的未来奖励</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Q-Learning-算法"><span class="nav-number">2.</span> <span class="nav-text">2.2 Q-Learning 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Deep-Q-Learning-DQN"><span class="nav-number">3.</span> <span class="nav-text">2.3 Deep Q Learning(DQN)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-1-神经网络的作用"><span class="nav-number">3.1.</span> <span class="nav-text">2.3.1 神经网络的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-2-神经网络计算-Q-值"><span class="nav-number">3.2.</span> <span class="nav-text">2.3.2 神经网络计算 Q 值</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'a6ea045e6695017431afb3edd7cee9c0',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

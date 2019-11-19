@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是 seq2seq 在⾃然语⾔处理的很多应⽤中，输⼊和输出都可以是不定⻓序列。以机器翻译为例，输⼊可以是⼀段不定⻓的英语⽂本序列，输出可以是⼀段不定⻓的法语⽂本序列，例如：英语输⼊：“They”、“are”、“watching”、“.”法语输出：“Ils”、“regardent”、“.”当输⼊和输出都是不定⻓序列时，我们可以使⽤编码器—解码器（encoder-decoder）或者 seq2s">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是 seq2seq 在⾃然语⾔处理的很多应⽤中，输⼊和输出都可以是不定⻓序列。以机器翻译为例，输⼊可以是⼀段不定⻓的英语⽂本序列，输出可以是⼀段不定⻓的法语⽂本序列，例如：英语输⼊：“They”、“are”、“watching”、“.”法语输出：“Ils”、“regardent”、“.”当输⼊和输出都是不定⻓序列时，我们可以使⽤编码器—解码器（encoder-decoder）或者 seq2s">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7bf121d9?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=h_%7Bt-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=h_t%3Df(x_t%2Ch_%7Bt-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=c%3Dq(h_1%2C...%2Ch_T">
+<meta property="og:image" content="https://juejin.im/equation?tex=y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc">
+<meta property="og:image" content="https://juejin.im/equation?tex=y_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D%7D%3Dg(y_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc%2Cs_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=P(y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%7Cx_1%2C...%2Cx_T">
+<meta property="og:image" content="https://juejin.im/equation?tex=-logP(y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%7Cx_1%2C...%2Cx_T">
+<meta property="og:image" content="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=y_%7Bt%5E%7B%E2%80%B2%7D%7D%3Dargmax_%7By%5Cin_%7B%7DY%7DP(y%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cprod_%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DP(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7dcdfe19?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7e87a55b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=10000%5E%7B10%7D%3D10%5E%7B40%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=10000*10%3D10%5E5">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7ed0c782?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Cfrac%7B1%7D%7BL%5E%7B%5Calpha%7D%7DlogP(y_1%2C...%2Cy_L">
+<meta property="og:image" content="https://juejin.im/equation?tex=O(k%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=P1%3D%20%5Cfrac%7B%E9%A2%84%E6%B5%8B%E5%BA%8F%E5%88%97%E4%B8%AD%E7%9A%84%201%20%E5%85%83%E8%AF%8D%E7%BB%84%E5%9C%A8%E6%A0%87%E7%AD%BE%E5%BA%8F%E5%88%97%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E7%9A%84%E4%B8%AA%E6%95%B0%7D%7B%E9%A2%84%E6%B5%8B%E5%BA%8F%E5%88%97%201%20%E5%85%83%E8%AF%8D%E7%BB%84%E7%9A%84%E4%B8%AA%E6%95%B0%E4%B9%8B%E5%92%8C%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=len_%7Blabel%7D%E5%92%8Clen_%7Bpred%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=exp(min(0%2C1-%5Cfrac%7Blen_%7Blabel%7D%7D%7Blen_%7Bpred%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=0.5%5E%7B%5Cfrac%7B1%7D%7B2%7D%7D%5Capprox0.7%2C0.5%5E%7B%5Cfrac%7B1%7D%7B4%7D%7D%5Capprox0.84%2C0.5%5E%7B%5Cfrac%7B1%7D%7B8%7D%7D%5Capprox0.92%2C0.5%5E%7B%5Cfrac%7B1%7D%7B16%7D%7D%5Capprox0.96">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd086548ed43fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/27/16cd08655eff91ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:30:08.738Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)">
+<meta name="twitter:description" content="什么是 seq2seq 在⾃然语⾔处理的很多应⽤中，输⼊和输出都可以是不定⻓序列。以机器翻译为例，输⼊可以是⼀段不定⻓的英语⽂本序列，输出可以是⼀段不定⻓的法语⽂本序列，例如：英语输⼊：“They”、“are”、“watching”、“.”法语输出：“Ils”、“regardent”、“.”当输⼊和输出都是不定⻓序列时，我们可以使⽤编码器—解码器（encoder-decoder）或者 seq2s">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7bf121d9?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:50:36" itemprop="dateCreated datePublished" datetime="2019-11-08T11:50:36+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:30:08" itemprop="dateModified" datetime="2019-11-19T11:30:08+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是 seq2seq</li>
+</ol><hr><p>在⾃然语⾔处理的很多应⽤中，输⼊和输出都可以是不定⻓序列。以机器翻译为例，输⼊可以是⼀段不定⻓的英语⽂本序列，输出可以是⼀段不定⻓的法语⽂本序列，例如：</p><p>英语输⼊：“They”、“are”、“watching”、“.”</p><p>法语输出：“Ils”、“regardent”、“.”</p><p>当输⼊和输出都是不定⻓序列时，我们可以使⽤编码器—解码器（encoder-decoder）或者 seq2seq 模型。<strong>序列到序列模型，简称 seq2seq 模型。这两个模型本质上都⽤到了两个循环神经⽹络，分别叫做编码器和解码器。编码器⽤来分析输⼊序列，解码器⽤来⽣成输出序列。两 个循环神经网络是共同训练的。</strong></p><a id="more"></a>
+
+
+
+
+
+<p>下图描述了使⽤编码器—解码器将上述英语句⼦翻译成法语句⼦的⼀种⽅法。在训练数据集中，我们可以在每个句⼦后附上特殊符号 “<eos>”（end of sequence）以表⽰序列的终⽌。编码器每个时间步的输⼊依次为英语句⼦中的单词、标点和特殊符号 “<eos>”。下图中使⽤了编码器在 最终时间步的隐藏状态作为输⼊句⼦的表征或编码信息。解码器在各个时间步中使⽤输⼊句⼦的 编码信息和上个时间步的输出以及隐藏状态作为输⼊。我们希望解码器在各个时间步能正确依次 输出翻译后的法语单词、标点和特殊符号 “<eos>”。需要注意的是，解码器在最初时间步的输⼊ ⽤到了⼀个表⽰序列开始的特殊符号 “”（beginning of sequence）。</eos></eos></eos></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7bf121d9?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>编码器</li>
+</ol>
+<hr>
+<p>编码器的作⽤是把⼀个不定⻓的输⼊序列变换成⼀个定⻓的背景变量 c，并在该背景变量中编码输⼊序列信息。常⽤的编码器是循环神经⽹络。</p>
+<p>让我们考虑批量⼤小为 1 的时序数据样本。假设输⼊序列是 x1, . . . , xT，例如 xi 是输⼊句⼦中的第 i 个词。在时间步 t，循环神经⽹络将输⼊ xt 的特征向量 xt 和上个时间步的隐藏状态<img src="https://juejin.im/equation?tex=h_%7Bt-1%7D" alt>变换为当前时间步的隐藏状态 ht。我们可以⽤函数 f 表达循环神经⽹络隐藏层的变换：</p>
+<p><img src="https://juejin.im/equation?tex=h_t%3Df(x_t%2Ch_%7Bt-1%7D" alt>&gt;)</p>
+<p>接下来，编码器通过⾃定义函数 q 将各个时间步的隐藏状态变换为背景变量：</p>
+<p><img src="https://juejin.im/equation?tex=c%3Dq(h_1%2C...%2Ch_T" alt>&gt;)</p>
+<p>例如，当选择 <em>q</em>(<strong><em>h</em></strong>1<em>, . . . ,</em> <em><strong>h</strong>\</em>_T<em> ) = </em><strong>h</strong>__T<em> 时，背景变量是输⼊序列最终时间步的隐藏状态 </em><strong>h</strong>__T_。</p>
+<p>以上描述的编码器是⼀个单向的循环神经⽹络，每个时间步的隐藏状态只取决于该时间步及之前的输⼊⼦序列。我们也可以使⽤双向循环神经⽹络构造编码器。在这种情况下，编码器每个时间步的隐藏状态同时取决于该时间步之前和之后的⼦序列（包括当前时间步的输⼊），并编码了整个序列的信息。</p>
+<ol>
+<li>解码器</li>
+</ol>
+<hr>
+<p>刚刚已经介绍，编码器输出的背景变量 c 编码了整个输⼊序列 x1, . . . , xT 的信息。给定训练样本中的输出序列 y1, y2, . . . , yT′ ，对每个时间步 t′（符号与输⼊序列或编码器的时间步 t 有区别），解码器输出 yt′ 的条件概率将基于之前的输出序列 <img src="https://juejin.im/equation?tex=y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt> 和背景变量 c，即：</p>
+<p><img src="https://juejin.im/equation?tex=P(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc" alt>&gt;)</p>
+<p>为此，我们可以使⽤另⼀个循环神经⽹络作为解码器。在输出序列的时间步 t′，解码器将上⼀时间步的输出 <img src="https://juejin.im/equation?tex=y_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt> 以及背景变量 c 作为输⼊，并将它们与上⼀时间步的隐藏状态 <img src="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt> 变换为当前时间步的隐藏状态 st′。因此，我们可以⽤函数 g 表达解码器隐藏层的变换：</p>
+<p><img src="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D%7D%3Dg(y_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc%2Cs_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt>&gt;)</p>
+<p>有了解码器的隐藏状态后，我们可以使⽤⾃定义的输出层和 softmax 运算来计算<img src="https://juejin.im/equation?tex=P(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc" alt>&gt;)，例如，基于当前时间步的解码器隐藏状态 st′、上⼀时间步的输出<img src="https://juejin.im/equation?tex=s_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt>以及背景变量 c 来计算当前时间步输出 yt′ 的概率分布。</p>
+<ol>
+<li>训练模型</li>
+</ol>
+<hr>
+<p>根据最⼤似然估计，我们可以最⼤化输出序列基于输⼊序列的条件概率：</p>
+<p><img src="https://juejin.im/equation?tex=P(y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%7Cx_1%2C...%2Cx_T" alt>%3D%5Cprod<em>%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DP(y</em>%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy<em>1%2C…%2Cy</em>%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cx<em>1%2C…%2Cx_T)&gt;)![](&lt;<a href="https://juejin.im/equation?tex=%3D%5Cprod" target="_blank" rel="noopener">https://juejin.im/equation?tex=%3D%5Cprod</a></em>%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DP(y<em>%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C…%2Cy</em>%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc)&gt;)</p>
+<p>并得到该输出序列的损失：</p>
+<p><img src="https://juejin.im/equation?tex=-logP(y_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%7Cx_1%2C...%2Cx_T" alt>%3D-%5Csum<em>%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DlogP(y</em>%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy<em>1%2C…%2Cy</em>%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc)&gt;)</p>
+<p>在模型训练中，所有输出序列损失的均值通常作为需要最小化的损失函数。在上图所描述的模型预测中，我们需要将解码器在上⼀个时间步的输出作为当前时间步的输⼊。与此不同，在训练中我们也可以将标签序列（训练集的真实输出序列）在上⼀个时间步的标签作为解码器在当前时间步的输⼊。这叫作强制教学（teacher forcing）。</p>
+<ol>
+<li>seq2seq 模型预测</li>
+</ol>
+<hr>
+<p>以上介绍了如何训练输⼊和输出均为不定⻓序列的编码器—解码器。本节我们介绍如何使⽤编码器—解码器来预测不定⻓的序列。</p>
+<p>在准备训练数据集时，我们通常会在样本的输⼊序列和输出序列后面分别附上⼀个特殊符号 “<eos>” 表⽰序列的终⽌。我们在接下来的讨论中也将沿⽤上⼀节的全部数学符号。为了便于讨论，假设解码器的输出是⼀段⽂本序列。设输出⽂本词典 Y（包含特殊符号“<eos>”）的⼤小为 | Y|，输出序列的最⼤⻓度为 T′。所有可能的输出序列⼀共有 <img src="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D" alt>&gt;) 种。这些输出序列中所有特殊符号 “<eos>” 后⾯的⼦序列将被舍弃。</eos></eos></eos></p>
+<h3 id="5-1-贪婪搜索"><a href="#5-1-贪婪搜索" class="headerlink" title="5.1 贪婪搜索"></a>5.1 贪婪搜索</h3><p>贪婪搜索（greedy search）。对于输出序列任⼀时间步 t′，我们从 | Y | 个词中搜索出条件概率最⼤的词：</p>
+<p><img src="https://juejin.im/equation?tex=y_%7Bt%5E%7B%E2%80%B2%7D%7D%3Dargmax_%7By%5Cin_%7B%7DY%7DP(y%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc" alt>&gt;)</p>
+<p>作为输出。⼀旦搜索出 “<eos>” 符号，或者输出序列⻓度已经达到了最⼤⻓度 T′，便完成输出。我们在描述解码器时提到，基于输⼊序列⽣成输出序列的条件概率是<img src="https://juejin.im/equation?tex=%5Cprod_%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DP(y_%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy_1%2C...%2Cy_%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc" alt>&gt;)。我们将该条件概率最⼤的输出序列称为最优输出序列。而贪婪搜索的主要问题是不能保证得到最优输出序列。</eos></p>
+<p>下⾯来看⼀个例⼦。假设输出词典⾥⾯有 “A”“B”“C” 和“<eos>”这 4 个词。下图中每个时间步 下的 4 个数字分别代表了该时间步⽣成 “A”“B”“C” 和“<eos>”这 4 个词的条件概率。在每个时间步，贪婪搜索选取条件概率最⼤的词。因此，图 10.9 中将⽣成输出序列“A”“B”“C”“<eos>”。该输出序列的条件概率是 0.5 × 0.4 × 0.4 × 0.6 = 0.048。</eos></eos></eos></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7dcdfe19?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>接下来，观察下面演⽰的例⼦。与上图中不同，在时间步 2 中选取了条件概率第⼆⼤的词“C” 。由于时间步 3 所基于的时间步 1 和 2 的输出⼦序列由上图中的 “A”“B” 变为了下图中的 “A”“C”，下图中时间步 3 ⽣成各个词的条件概率发⽣了变化。我们选取条件概率最⼤的词“B”。此时时间步 4 所基于的前 3 个时间步的输出⼦序列为“A”“C”“B”，与上图中的“A”“B”“C” 不同。因此，下图中时间步 4 ⽣成各个词的条件概率也与上图中的不同。我们发现，此时的输出序列 “A”“C”“B”“<eos>” 的条件概率是 0.5 × 0.3 × 0.6 × 0.6 = 0.054，⼤于贪婪搜索得到的输出序列的条件概率。因此，贪婪搜索得到的输出序列 “A”“B”“C”“<eos>” 并⾮最优输出序列。</eos></eos></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7e87a55b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="5-2-穷举搜索"><a href="#5-2-穷举搜索" class="headerlink" title="5.2 穷举搜索"></a>5.2 穷举搜索</h3><p>如果⽬标是得到最优输出序列，我们可以考虑穷举搜索（exhaustive search）：穷举所有可能的输出序列，输出条件概率最⼤的序列。</p>
+<p>虽然穷举搜索可以得到最优输出序列，但它的计算开销 <img src="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D" alt>&gt;) 很容易过⼤。例如，当 | Y| = 10000 且 T′ = 10 时，我们将评估 <img src="https://juejin.im/equation?tex=10000%5E%7B10%7D%3D10%5E%7B40%7D" alt> 个序列：这⼏乎不可能完成。而贪婪搜索的计 算开销是 <img src="https://juejin.im/equation?tex=O(%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D" alt>&gt;)，通常显著小于穷举搜索的计算开销。例如，当 | Y| = 10000 且 T′ = 10 时，我 们只需评估 <img src="https://juejin.im/equation?tex=10000*10%3D10%5E5" alt> 个序列。</p>
+<h3 id="5-3-束搜索"><a href="#5-3-束搜索" class="headerlink" title="5.3 束搜索"></a>5.3 束搜索</h3><p>束搜索（beam search）是对贪婪搜索的⼀个改进算法。它有⼀个束宽（beam size）超参数。我们将它设为 k。在时间步 1 时，选取当前时间步条件概率最⼤的 k 个词，分别组成 k 个候选输出序列的⾸词。在之后的每个时间步，基于上个时间步的 k 个候选输出序列，从 k |Y| 个可能的输出序列中选取条件概率最⼤的 k 个，作为该时间步的候选输出序列。最终，我们从各个时间步的候选输出序列中筛选出包含特殊符号 “<eos>” 的序列，并将它们中所有特殊符号 “<eos>” 后⾯的⼦序列舍弃，得到最终候选输出序列的集合。</eos></eos></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/30/16ce076d7ed0c782?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>束宽为 2，输出序列最⼤⻓度为 3。候选输出序列有 A、C、AB、CE、ABD 和 CED。我们将根据这 6 个序列得出最终候选输出序列的集合。在最终候选输出序列的集合中，我们取以下分数最⾼的序列作为输出序列：</p>
+<p><img src="https://juejin.im/equation?tex=%5Cfrac%7B1%7D%7BL%5E%7B%5Calpha%7D%7DlogP(y_1%2C...%2Cy_L" alt>%3D%5Cfrac%7B1%7D%7BL%5E%7B%5Calpha%7D%7D%5Csum<em>%7Bt%5E%7B%E2%80%B2%7D%3D1%7D%5E%7BT%5E%7B%E2%80%B2%7D%7DlogP(y</em>%7Bt%5E%7B%E2%80%B2%7D%7D%7Cy<em>1%2C…%2Cy</em>%7Bt%5E%7B%E2%80%B2%7D-1%7D%2Cc)&gt;)</p>
+<p>其中 L 为最终候选序列⻓度，α ⼀般可选为 0.75。分⺟上的 Lα 是为了惩罚较⻓序列在以上分数中较多的对数相加项。分析可知，束搜索的计算开销为 <img src="https://juejin.im/equation?tex=O(k%7Cy%7C%5E%7BT%5E%7B%E2%80%B2%7D%7D" alt>&gt;)。这介于贪婪搜索和穷举搜索的计算开销之间。此外，贪婪搜索可看作是束宽为 1 的束搜索。束搜索通过灵活的束宽 k 来权衡计算开销和搜索质量。</p>
+<ol>
+<li>Bleu 得分</li>
+</ol>
+<hr>
+<p>评价机器翻译结果通常使⽤ BLEU（Bilingual Evaluation Understudy）(双语评估替补)。对于模型预测序列中任意的⼦序列，BLEU 考察这个⼦序列是否出现在标签序列中。</p>
+<p>具体来说，设词数为 n 的⼦序列的精度为 pn。它是预测序列与标签序列匹配词数为 n 的⼦序列的数量与预测序列中词数为 n 的⼦序列的数量之⽐。举个例⼦，假设标签序列为 A、B、C、D、E、F，预测序列为 A、B、B、C、D，那么：</p>
+<p><img src="https://juejin.im/equation?tex=P1%3D%20%5Cfrac%7B%E9%A2%84%E6%B5%8B%E5%BA%8F%E5%88%97%E4%B8%AD%E7%9A%84%201%20%E5%85%83%E8%AF%8D%E7%BB%84%E5%9C%A8%E6%A0%87%E7%AD%BE%E5%BA%8F%E5%88%97%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E7%9A%84%E4%B8%AA%E6%95%B0%7D%7B%E9%A2%84%E6%B5%8B%E5%BA%8F%E5%88%97%201%20%E5%85%83%E8%AF%8D%E7%BB%84%E7%9A%84%E4%B8%AA%E6%95%B0%E4%B9%8B%E5%92%8C%7D" alt></p>
+<p>预测序列一元词组：A/B/C/D，都在标签序列里存在，所以 P1=4/5，以此类推，p2 = 3/4, p3 = 1/3, p4 = 0。设 <img src="https://juejin.im/equation?tex=len_%7Blabel%7D%E5%92%8Clen_%7Bpred%7D" alt> 分别为标签序列和预测序列的词数，那么，BLEU 的定义为：</p>
+<p><img src="https://juejin.im/equation?tex=exp(min(0%2C1-%5Cfrac%7Blen_%7Blabel%7D%7D%7Blen_%7Bpred%7D%7D" alt>)%5Cprod_%7Bn%3D1%7D%5E%7Bk%7Dp_n%5E%7B%5Cfrac%7B1%7D%7B2%5En%7D%7D&gt;)</p>
+<p>其中 k 是我们希望匹配的⼦序列的最⼤词数。可以看到当预测序列和标签序列完全⼀致时， BLEU 为 1。</p>
+<p>因为匹配较⻓⼦序列⽐匹配较短⼦序列更难，BLEU 对匹配较⻓⼦序列的精度赋予了更⼤权重。例如，当 pn 固定在 0.5 时，随着 n 的增⼤，<img src="https://juejin.im/equation?tex=0.5%5E%7B%5Cfrac%7B1%7D%7B2%7D%7D%5Capprox0.7%2C0.5%5E%7B%5Cfrac%7B1%7D%7B4%7D%7D%5Capprox0.84%2C0.5%5E%7B%5Cfrac%7B1%7D%7B8%7D%7D%5Capprox0.92%2C0.5%5E%7B%5Cfrac%7B1%7D%7B16%7D%7D%5Capprox0.96" alt>。另外，模型预测较短序列往往会得到较⾼ pn 值。因此，上式中连乘项前⾯的系数是为了惩罚较短的输出而设的。举个例⼦，当 k = 2 时，假设标签序列为 A、B、C、D、E、F，而预测序列为 A、 B。虽然 p1 = p2 = 1，但惩罚系数 exp(1-6/2) ≈ 0.14，因此 BLEU 也接近 0.14。</p>
+<ol>
+<li>代码实现</li>
+</ol>
+<hr>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/NLP/16.5%20seq2seq/seq2seq.ipynb" target="_blank" rel="noopener">TensorFlow seq2seq 的基本实现</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd086548ed43fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<p><a href="https://www.lanzous.com/i5lqo4f" target="_blank" rel="noopener">动手学深度学习</a></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/27/16cd08655eff91ff?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/" title="seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)">https://ailab-aida.github.io/2019/11/08/seq2seq 通俗理解 ---- 编码器和解码器 (TensorFlow 实现)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/textRNN & textCNN 的网络结构与代码实现！/" rel="next" title="textRNN & textCNN 的网络结构与代码实现！">
+                  <i class="fa fa-chevron-left"></i> textRNN & textCNN 的网络结构与代码实现！
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/Attention 机制的精要总结，附：中英文机器翻译的实现！/" rel="prev" title="Attention 机制的精要总结，附：中英文机器翻译的实现！">
+                  Attention 机制的精要总结，附：中英文机器翻译的实现！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-贪婪搜索"><span class="nav-number">1.</span> <span class="nav-text">5.1 贪婪搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-穷举搜索"><span class="nav-number">2.</span> <span class="nav-text">5.2 穷举搜索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-束搜索"><span class="nav-number">3.</span> <span class="nav-text">5.3 束搜索</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '2af9eabbe90e4bce5bfd34a45c41370f',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

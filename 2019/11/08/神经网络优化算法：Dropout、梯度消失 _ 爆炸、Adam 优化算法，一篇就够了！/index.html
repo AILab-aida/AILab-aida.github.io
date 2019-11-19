@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="训练误差和泛化误差 机器学习模型在训练数据集和测试数据集上的表现。如果你改变过实验中的模型结构或者超参数，你也许发现了：当模型在训练数据集上更准确时，它在测试数据集上却不⼀定更准确。这是为什么呢？因为存在着训练误差和泛化误差：  训练误差： 模型在训练数据集上表现出的误差。  泛化误差： 模型在任意⼀个测试数据样本上表现出的误差的期望，并常常通过测试数据集上的误差来近似。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="训练误差和泛化误差 机器学习模型在训练数据集和测试数据集上的表现。如果你改变过实验中的模型结构或者超参数，你也许发现了：当模型在训练数据集上更准确时，它在测试数据集上却不⼀定更准确。这是为什么呢？因为存在着训练误差和泛化误差：  训练误差： 模型在训练数据集上表现出的误差。  泛化误差： 模型在任意⼀个测试数据样本上表现出的误差的期望，并常常通过测试数据集上的误差来近似。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c1e704fe?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=h_i%3D%5Cphi(x_1w_%7B1i%7D%2Bx_2w_%7B2i%7D%2Bx_3w_%7B3i%7D%2Bx_4w_%7B4i%7D%2Bb_i">
+<meta property="og:image" content="https://juejin.im/equation?tex=h_i%5E%7B%E2%80%B2%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=h_i%5E%7B%E2%80%B2%7D%3D%5Cfrac%7B%5Cxi_i%7D%7B1-p%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=E(h_i%5E%7B%E2%80%B2%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4a75b4b22?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=f(x">
+<meta property="og:image" content="https://juejin.im/equation?tex=x_1%5E2">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c075ed84?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=v_t%5Cleftarrow%5Cgamma_%7B%7Dv_%7Bt-1%7D%2B%5Ceta_tg_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=x_t%5Cleftarrow_%7B%7Dx_%7Bt-1%7D-v_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4a9cb26c1?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_t%3Ds_%7Bt-1%7D%2Bg_t%E2%8A%99g_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4b0217271?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_t%3D%5Cgamma_%7B%7Ds_%7Bt-1%7D%2B(1-%5Cgamma">
+<meta property="og:image" content="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c22d6e85?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_t%3Dps_%7Bt-1%7D%2B(1-p">
+<meta property="og:image" content="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D%3D%5Csqrt%7B%5Cfrac%7B%5CDelta%7B%7Dx_%7Bt-1%7D%2B%5Cvarepsilon%7D%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5CDelta%7B%7Dx_t%3Dp%5CDelta%7B%7Dx_%7Bt-1%7D%2B(1-p">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Csqrt%7B%5CDelta%7B%7Dx_%7Bt-1%7D%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=v_t%3D%5Cbeta_1v_%7Bt-1%7D%2B(1-%5Cbeta_1">
+<meta property="og:image" content="https://juejin.im/equation?tex=s_t%3D%5Cbeta_%7B2%7Ds_%7Bt-1%7D%2B(1-%5Cbeta_2">
+<meta property="og:image" content="https://juejin.im/equation?tex=v_t%3D(1-%5Cbeta_1">
+<meta property="og:image" content="https://juejin.im/equation?tex=(1-%5Cbeta_1">
+<meta property="og:image" content="https://juejin.im/equation?tex=1-%5Cbeta_1%5Et">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ccheck%7Bv%7D_t%3D%5Cfrac%7Bv_t%7D%7B1-%5Cbeta_1%5Et%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ccheck%7Bs%7D_t%3D%5Cfrac%7Bs_t%7D%7B1-%5Cbeta_2%5Et%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D%3D%5Cfrac%7B%5Ceta%7B%7D%5Ccheck%7Bv%7D_t%7D%7B%5Csqrt%7B%5Ccheck%7Bs%7D_t%7D%2B%5Cvarepsilon%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-g_t%5E%7B%E2%80%B2%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4d8a7c641?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:41:22.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！">
+<meta name="twitter:description" content="训练误差和泛化误差 机器学习模型在训练数据集和测试数据集上的表现。如果你改变过实验中的模型结构或者超参数，你也许发现了：当模型在训练数据集上更准确时，它在测试数据集上却不⼀定更准确。这是为什么呢？因为存在着训练误差和泛化误差：  训练误差： 模型在训练数据集上表现出的误差。  泛化误差： 模型在任意⼀个测试数据样本上表现出的误差的期望，并常常通过测试数据集上的误差来近似。">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c1e704fe?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！ | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:37:02" itemprop="dateCreated datePublished" datetime="2019-11-08T11:37:02+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:41:22" itemprop="dateModified" datetime="2019-11-19T11:41:22+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>训练误差和泛化误差</li>
+</ol><hr><p>机器学习模型在训练数据集和测试数据集上的表现。如果你改变过实验中的模型结构或者超参数，你也许发现了：当模型在训练数据集上更准确时，它在测试数据集上却不⼀定更准确。这是为什么呢？</p><p>因为存在着训练误差和泛化误差：</p><ul>
+<li><strong> 训练误差：</strong> 模型在训练数据集上表现出的误差。</li>
+<li><strong> 泛化误差：</strong> 模型在任意⼀个测试数据样本上表现出的误差的期望，并常常通过测试数据集上的误差来近似。</li>
+</ul><a id="more"></a>
+
+
+
+
+<p>训练误差的期望小于或等于泛化误差。也就是说，⼀般情况下，由训练数据集学到的模型参数会使模型在训练数据集上的表现优于或等于在测试数据集上的表现。<strong>由于⽆法从训练误差估计泛化误差，⼀味地降低训练误差并不意味着泛化误差⼀定会降低。</strong></p>
+<p><strong>机器学习模型应关注降低泛化误差。</strong></p>
+<ol>
+<li>该如何选择模型</li>
+</ol>
+<hr>
+<p>在机器学习中，通常需要评估若⼲候选模型的表现并从中选择模型。这⼀过程称为模型选择（model selection）。可供选择的候选模型可以是有着不同超参数的同类模型。以多层感知机为例，我们可以选择隐藏层的个数，以及每个隐藏层中隐藏单元个数和激活函数。为了得到有效的模型，我们通常要在模型选择上下⼀番功夫。</p>
+<h3 id="2-1-验证数据集"><a href="#2-1-验证数据集" class="headerlink" title="2.1 验证数据集"></a>2.1 验证数据集</h3><p>从严格意义上讲，测试集只能在所有超参数和模型参数选定后使⽤⼀次。不可以使⽤测试数据选择模型，如调参。由于⽆法从训练误差估计泛化误差，因此也不应只依赖训练数据选择模型。鉴于此，我们可以预留⼀部分在训练数据集和测试数据集以外的数据来进⾏模型选择。这部分数据被称为验证数据集，简称验证集（validation set）。例如，我们可以从给定的训练集中随机选取⼀小部分作为验证集，而将剩余部分作为真正的训练集。</p>
+<p>可以通过预留这样的验证集来进行模型选择，判断验证集在模型中的表现能力。</p>
+<h3 id="2-2-K-折交叉验证"><a href="#2-2-K-折交叉验证" class="headerlink" title="2.2 K 折交叉验证"></a>2.2 K 折交叉验证</h3><p>由于验证数据集不参与模型训练，当训练数据不够⽤时，预留⼤量的验证数据显得太奢侈。⼀种改善的⽅法是 K 折交叉验证（K-fold cross-validation）。在 K 折交叉验证中，我们把原始训练数据集分割成 K 个不重合的⼦数据集，然后我们做 K 次模型训练和验证。每⼀次，我们使⽤⼀个⼦数据集验证模型，并使⽤其他 K − 1 个⼦数据集来训练模型。在这 K 次训练和验证中，每次⽤来验证模型的⼦数据集都不同。最后，我们对这 K 次训练误差和验证误差分别求平均。</p>
+<ol>
+<li>⽋拟合和过拟合</li>
+</ol>
+<hr>
+<ul>
+<li><strong> 欠拟合：</strong> 模型⽆法得到较低的训练误差。</li>
+<li><strong> 过拟合：</strong> 是模型的训练误差远小于它在测试数据集上的误差。</li>
+</ul>
+<p>给定训练数据集，</p>
+<ul>
+<li>如果模型的复杂度过低，很容易出现⽋拟合；</li>
+<li>如果模型复杂度过⾼，很容易出现过拟合。</li>
+</ul>
+<p>应对⽋拟合和过拟合的⼀个办法是针对数据集选择合适复杂度的模型。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c1e704fe?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong>训练数据集⼤⼩</strong></p>
+<p>影响⽋拟合和过拟合的另⼀个重要因素是训练数据集的⼤小。⼀般来说，如果训练数据集中样本数过少，特别是⽐模型参数数量（按元素计）更少时，过拟合更容易发⽣。此外，泛化误差不会随训练数据集⾥样本数量增加而增⼤。因此，在计算资源允许的范围之内，我们通常希望训练数据集⼤⼀些，特别是在模型复杂度较⾼时，例如层数较多的深度学习模型。</p>
+<p><strong>正则化</strong></p>
+<p>应对过拟合问题的常⽤⽅法：权重衰减（weight decay），权重衰减等价于 L2 范数正则化（regularization）。正则化通过为模型损失函数添加惩罚项使学出的模型参数值较小，是应对过拟合的常⽤⼿段。</p>
+<ol>
+<li>丢弃法 (Dropout)</li>
+</ol>
+<hr>
+<p>除了上面提到的权重衰减以外，深度学习模型常常使⽤丢弃法（dropout）来应对过拟合问题。丢弃法有⼀些不同的变体。本节中提到的丢弃法特指倒置丢弃法（inverted dropout）。</p>
+<p>回忆⼀下，“多层感知机” 描述了⼀个单隐藏层的多层感知机。其中输⼊个数为 4，隐藏单元个数为 5，且隐藏单元 hi（i = 1, . . . , 5）的计算表达式为：</p>
+<p><img src="https://juejin.im/equation?tex=h_i%3D%5Cphi(x_1w_%7B1i%7D%2Bx_2w_%7B2i%7D%2Bx_3w_%7B3i%7D%2Bx_4w_%7B4i%7D%2Bb_i" alt>&gt;)</p>
+<p>这⾥ ϕ 是激活函数，x1, . . . , x4 是输⼊，隐藏单元 i 的权重参数为 w1i, . . . , w4i，偏差参数为 bi。当对该隐藏层使⽤丢弃法时，该层的隐藏单元将有⼀定概率被丢弃掉。设丢弃概率为 p，那么有 p 的概率 hi 会被清零，有 1 − p 的概率 hi 会除以 1 − p 做拉伸。丢弃概率是丢弃法的超参数。具体来说，设随机变量 ξi 为 0 和 1 的概率分别为 p 和 1 − p。使⽤丢弃法时我们计算新的隐藏单元 <img src="https://juejin.im/equation?tex=h_i%5E%7B%E2%80%B2%7D" alt>。</p>
+<p><img src="https://juejin.im/equation?tex=h_i%5E%7B%E2%80%B2%7D%3D%5Cfrac%7B%5Cxi_i%7D%7B1-p%7D" alt></p>
+<p>由于 E(ξi) = 1 − p，因此：</p>
+<p><img src="https://juejin.im/equation?tex=E(h_i%5E%7B%E2%80%B2%7D" alt>%3D%5Cfrac%7BE(%5Cxi_i)%7D%7B1-p%7Dh_i%3Dh_i&gt;)</p>
+<p><strong> 即丢弃法不改变其输⼊的期望值。</strong> 让我们对隐藏层使⽤丢弃法，⼀种可能的结果如下图所⽰，其中 h2 和 h5 被清零。这时输出值的计算不再依赖 h2 和 h5，在反向传播时，与这两个隐藏单元相关的权重的梯度均为 0。由于在训练中隐藏层神经元的丢弃是随机的，即 h1, . . . , h5 都有可能被清零，输出层的计算⽆法过度依赖 h1, . . . , h5 中的任⼀个，从而在训练模型时起到正则化的作⽤，并可以⽤来应对过拟合。在测试模型时，我们为了拿到更加确定性的结果，⼀般不使⽤丢弃法。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4a75b4b22?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>梯度消失 / 梯度爆炸（Vanishing / Exploding gradients）</li>
+</ol>
+<hr>
+<p>训练神经网络，尤其是深度神经所面临的一个问题就是梯度消失或梯度爆炸，也就是你训练神经网络的时候，导数或坡度有时会变得非常大，或者非常小，甚至于以指数方式变小，这加大了训练的难度。</p>
+<p>本质上，梯度消失和爆炸是一种情况。在深层网络中，由于网络过深，如果初始得到的梯度过小，或者传播途中在某一层上过小，则在之后的层上得到的梯度会越来越小，即产生了梯度消失。梯度爆炸也是同样的。一般地，不合理的初始化以及激活函数，如 sigmoid 等，都会导致梯度过大或者过小，从而引起消失 / 爆炸。</p>
+<p><strong>解决方案</strong></p>
+<ol>
+<li><p><strong>预训练加微调</strong></p>
+<p>其基本思想是每次训练一层隐节点，训练时将上一层隐节点的输出作为输入，而本层隐节点的输出作为下一层隐节点的输入，此过程就是逐层 “预训练”（pre-training）；在预训练完成后，再对整个网络进行 “微调”（fine-tunning）。</p>
+<p>此方法有一定的好处，但是目前应用的不是很多了。</p>
+</li>
+<li><p><strong>梯度剪切、正则</strong></p>
+<p>梯度剪切这个方案主要是针对梯度爆炸提出的，其思想是设置一个梯度剪切阈值，然后更新梯度的时候，如果梯度超过这个阈值，那么就将其强制限制在这个范围之内。这可以防止梯度爆炸。</p>
+<p>另外一种解决梯度爆炸的手段是采用权重正则化（weithts regularization）比较常见的是 L1 和 L2 正则。</p>
+</li>
+<li><p><strong>ReLu、leakReLu 等激活函数</strong></p>
+<p>ReLu：其函数的导数在正数部分是恒等于 1，这样在深层网络中，在激活函数部分就不存在导致梯度过大或者过小的问题，缓解了梯度消失或者爆炸。同时也方便计算。当然，其也存在存在一些缺点，例如过滤到了负数部分，导致部分信息的丢失，输出的数据分布不在以 0 为中心，改变了数据分布。</p>
+<p>leakrelu：就是为了解决 relu 的 0 区间带来的影响，其数学表达为：leakrelu=max(k*x,0) 其中 k 是 leak 系数，一般选择 0.01 或者 0.02，或者通过学习而来。</p>
+</li>
+<li><p><strong>Batch Normalization</strong></p>
+<p>Batch Normalization 是深度学习发展以来提出的最重要的成果之一了，目前已经被广泛的应用到了各大网络中，具有加速网络收敛速度，提升训练稳定性的效果，Batch Normalization 本质上是解决反向传播过程中的梯度问题。Batch Normalization，简称 BN，即批规范化，通过规范化操作将输出信号 x 规范化到均值为 0，方差为 1 保证网络的稳定性。</p>
+<ul>
+<li>有一些从 0 到 1 而不是从 1 到 1000 的特征值，通过归一化所有的输入特征值 𝑥，以获得类似范围的值，可以加速学习。所以 Batch 归一化起的作用的原因，直观的一点就是，它在做类似的工作，但不仅仅对于这里的输入值，还有隐藏单元的值。</li>
+<li>它可以使权重比你的网络更滞后或更深层，比如，第 10 层的权重更能经受得住变化。</li>
+</ul>
+</li>
+<li><p><strong>残差结构</strong></p>
+<p>残差的方式，能使得深层的网络梯度通过跳级连接路径直接返回到浅层部分，使得网络无论多深都能将梯度进行有效的回传。</p>
+</li>
+<li><p><strong>LSTM</strong></p>
+<p>LSTM 全称是长短期记忆网络（long-short term memory networks），是不那么容易发生梯度消失的，主要原因在于 LSTM 内部复杂的 “门”(gates)。在计算时，将过程中的梯度进行了抵消。</p>
+</li>
+</ol>
+<p>6) 随机梯度下降法 (SGD)</p>
+<hr>
+<h3 id="6-1-mini-batch-梯度下降"><a href="#6-1-mini-batch-梯度下降" class="headerlink" title="6.1 mini-batch 梯度下降"></a>6.1 mini-batch 梯度下降</h3><p>你可以把训练集分割为小一点的子集训练，这些子集被取名为 <strong>mini-batch</strong>，假设每一个子集中只有 1000 个样本，那么把其中的 𝑥 (1) 到 𝑥 (1000) 取出来，将其称为第一个子训练集，也叫做 <strong>mini-batch</strong>，然后你再取出接下来的 1000 个样本，从 𝑥 (1001) 到 𝑥 (2000)，然后再取 1000 个样本，以此类推。</p>
+<p>在训练集上运行 <strong>mini-batch</strong> 梯度下降法，你运行 for t=1……5000，因为我们有 5000 个各有 1000 个样本的组，在 <strong>for</strong> 循环里你要做得基本就是对 𝑋 {𝑡} 和 𝑌 {𝑡} 执行一步梯度下降法。</p>
+<ul>
+<li>batch_size=1，就是 SGD。</li>
+<li>batch_size=n，就是 mini-batch</li>
+<li>batch_size=m，就是 batch</li>
+</ul>
+<p>其中 1&lt;n&lt;m，m 表示整个训练集大小。</p>
+<p><strong>优缺点：</strong></p>
+<ul>
+<li>batch：相对噪声低些，幅度也大一些，你可以继续找最小值。</li>
+<li>SGD：大部分时候你向着全局最小值靠近，有时候你会远离最小值，因为那个样本恰好给你指的方向不对，因此随机梯度下降法是有很多噪声的，平均来看，它最终会靠近最小值，不过有时候也会方向错误，因为随机梯度下降法永远不会收敛，而是会一直在最小值附近波动。一次性只处理了一个训练样本，这样效率过于低下。</li>
+<li>mini-batch：实践中最好选择不大不小的 <strong>mini-batch</strong>，得到了大量向量化，效率高，收敛快。</li>
+</ul>
+<p>首先，如果训练集较小，直接使用 <strong>batch</strong> 梯度下降法，这里的少是说小于 2000 个样本。一般的 <strong>mini-batch</strong> 大小为 64 到 512，考虑到电脑内存设置和使用的方式，如果 <strong>mini-batch</strong> 大小是 2 的 𝑛 次方，代码会运行地快一些。</p>
+<h3 id="6-2-调节-Batch-Size-对训练效果影响到底如何？"><a href="#6-2-调节-Batch-Size-对训练效果影响到底如何？" class="headerlink" title="6.2 调节 Batch_Size 对训练效果影响到底如何？"></a>6.2 调节 Batch_Size 对训练效果影响到底如何？</h3><ol>
+<li>Batch_Size 太小，模型表现效果极其糟糕 (error 飙升)。</li>
+<li>随着 Batch_Size 增大，处理相同数据量的速度越快。</li>
+<li>随着 Batch_Size 增大，达到相同精度所需要的 epoch 数量越来越多。</li>
+<li>由于上述两种因素的矛盾， Batch_Size 增大到某个时候，达到时间上的最优。</li>
+<li><p>由于最终收敛精度会陷入不同的局部极值，因此 Batch_Size 增大到某些时候，达到最终收敛精度上的最优。</p>
+</li>
+<li><p>优化算法</p>
+</li>
+</ol>
+<hr>
+<h3 id="7-1-动量法"><a href="#7-1-动量法" class="headerlink" title="7.1 动量法"></a>7.1 动量法</h3><p>在每次迭代中，梯度下降根据⾃变量当前位置，沿着当前位置的梯度更新⾃变量。然而，如果⾃变量的 迭代⽅向仅仅取决于⾃变量当前位置，这可能会带来⼀些问题。</p>
+<p>让我们考虑⼀个输⼊和输出分别为⼆维向量 x = [x1, x2]⊤ 和标量的⽬标函数 <img src="https://juejin.im/equation?tex=f(x" alt>%3D0.1x_1%5E2%2B2x_2%5E2&gt;)。，这⾥将<img src="https://juejin.im/equation?tex=x_1%5E2" alt>系数从 1 减小到了 0.1。下⾯实现基于这个⽬标函数的梯度下降，并演⽰使⽤学习率为 0.4 时⾃变量的迭代轨迹。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c075ed84?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>可以看到，同⼀位置上，⽬标函数在竖直⽅向（x2 轴⽅向）⽐在⽔平⽅向（x1 轴⽅向）的斜率的绝对值更⼤。<strong> 因此，给定学习率，梯度下降迭代⾃变量时会使⾃变量在竖直⽅向⽐在⽔平⽅向移动幅度更⼤。</strong> 那么，我们需要⼀个较小的学习率从而避免⾃变量在竖直⽅向上越过⽬标函数最优解。然而，这会造成⾃变量在⽔平⽅向上朝最优解移动变慢。</p>
+<p><strong> 动量法的提出是为了解决梯度下降的上述问题。</strong> 由于小批量随机梯度下降⽐梯度下降更为⼴义，本章后续讨论将沿⽤ “小批量随机梯度下降” ⼀节中时间步 t 的小批量随机梯度 gt 的定义。设时间步 t 的⾃变量为 xt，学习率为 ηt。在时间步 0，动量法创建速度变量 v0，并将其元素初始化成 0。在时间步 t &gt; 0，动量法对每次迭代的步骤做如下修改：</p>
+<p><img src="https://juejin.im/equation?tex=v_t%5Cleftarrow%5Cgamma_%7B%7Dv_%7Bt-1%7D%2B%5Ceta_tg_t" alt><img src="https://juejin.im/equation?tex=x_t%5Cleftarrow_%7B%7Dx_%7Bt-1%7D-v_t" alt></p>
+<p>其中，动量超参数 γ 满⾜ 0 ≤ γ &lt; 1。当 γ = 0 时，动量法等价于小批量随机梯度下降。在梯度下降时候使用动量法后的迭代轨迹：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4a9cb26c1?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>可以看到使⽤较小的学习率 η = 0.4 和动量超参数 γ = 0.5 时，动量法在竖直⽅向上的移动更加平滑，且在⽔平⽅向上更快逼近最优解。</p>
+<p>所以，在动量法中，⾃变量在各个⽅向上的移动幅度不仅取决当前梯度，还取决于过去的各个梯度在各个⽅向上是否⼀致。在本节之前⽰例的优化问题中，所有梯度在⽔平⽅向上为正（向右），而在竖直⽅向上时正（向上）时负（向下）。这样，我们就可以使⽤较⼤的学习率，从而使⾃变量向最优解更快移动。</p>
+<h3 id="7-2-AdaGrad-算法"><a href="#7-2-AdaGrad-算法" class="headerlink" title="7.2 AdaGrad 算法"></a>7.2 AdaGrad 算法</h3><p>优化算法中，⽬标函数⾃变量的每⼀个元素在相同时间步都使⽤同⼀个学习率来⾃我迭代。在 “动量法” ⾥我们看到当 x1 和 x2 的梯度值有较⼤差别时，需要选择⾜够小的学习率使得⾃变量在梯度值较⼤的维度上不发散。但这样会导致⾃变量在梯度值较小的维度上迭代过慢。动量法依赖指数加权移动平均使得⾃变量的更新⽅向更加⼀致，从而降低发散的可能。<strong>本节我们介绍 AdaGrad 算法，它根据⾃变量在每个维度的梯度值的⼤小来调整各个维度上的学习率，从而避免统⼀的学习率难以适应所有维度的问题。</strong></p>
+<p>AdaGrad 算法会使⽤⼀个小批量随机梯度 gt 按元素平⽅的累加变量 st。在时间步 0，AdaGrad 将 s0 中每个元素初始化为 0。在时间步 t，⾸先将小批量随机梯度 gt 按元素平⽅后累加到变量 st：</p>
+<p><img src="https://juejin.im/equation?tex=s_t%3Ds_%7Bt-1%7D%2Bg_t%E2%8A%99g_t" alt></p>
+<p>其中 ⊙ 是按元素相乘。接着，我们将⽬标函数⾃变量中每个元素的学习率通过按元素运算重新调整⼀下：</p>
+<p><img src="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t" alt></p>
+<p>其中 η 是学习率，ϵ 是为了维持数值稳定性而添加的常数，如 10 的 - 6 次方。这⾥开⽅、除法和乘法的运算都是按元素运算的。这些按元素运算使得⽬标函数⾃变量中每个元素都分别拥有⾃⼰的学习率。</p>
+<p>需要强调的是，小批量随机梯度按元素平⽅的累加变量 st 出现在学习率的分⺟项中。因此，</p>
+<ul>
+<li>如果⽬标函数有关⾃变量中某个元素的偏导数⼀直都较⼤，那么该元素的学习率将下降较快；</li>
+<li>反之，如果⽬标函数有关⾃变量中某个元素的偏导数⼀直都较小，那么该元素的学习率将下降较慢。</li>
+</ul>
+<p>然而，由于 st ⼀直在累加按元素平⽅的梯度，⾃变量中每个元素的学习率在迭代过程中⼀直在降低（或不变）。<strong>所以，当学习率在迭代早期降得较快且当前解依然不佳时，AdaGrad 算法在迭代后期由于学习率过小，可能较难找到⼀个有⽤的解。</strong></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4b0217271?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="7-3-RMSProp-算法"><a href="#7-3-RMSProp-算法" class="headerlink" title="7.3 RMSProp 算法"></a>7.3 RMSProp 算法</h3><p>当学习率在迭代早期降得较快且当前解依然不佳时，AdaGrad 算法在迭代后期由于学习率过小，可能较难找到⼀个有⽤的解。为了解决这⼀问题，RMSProp 算法对 AdaGrad 算法做了⼀点小小的修改。</p>
+<p>不同于 AdaGrad 算法⾥状态变量 st 是截⾄时间步 t 所有小批量随机梯度 gt 按元素平⽅和，RMSProp 算法将这些梯度按元素平⽅做指数加权移动平均。具体来说，给定超参数 0 ≤ γ <1，rmsprop 算法在时间步 t> 0 计算：</1，rmsprop></p>
+<p><img src="https://juejin.im/equation?tex=s_t%3D%5Cgamma_%7B%7Ds_%7Bt-1%7D%2B(1-%5Cgamma" alt>g_t%E2%8A%99g_t&gt;)</p>
+<p>和 AdaGrad 算法⼀样，RMSProp 算法将⽬标函数⾃变量中每个元素的学习率通过按元素运算重新调整，然后更新⾃变量：</p>
+<p><img src="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-%5Cfrac%7B%5Ceta%7D%7B%5Csqrt%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t" alt></p>
+<p>其中 η 是学习率，ϵ 是为了维持数值稳定性而添加的常数，如 10 的 - 6 次方。因为 RMSProp 算法的状态变量 st 是对平⽅项 gt ⊙ gt 的指数加权移动平均，<strong>所以可以看作是最近 1/(1 − γ) 个时间步的小批量随机梯度平⽅项的加权平均。如此⼀来，⾃变量每个元素的学习率在迭代过程中就不再⼀直降低（或不变）。</strong></p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4c22d6e85?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<h3 id="7-4-AdaDelta-算法"><a href="#7-4-AdaDelta-算法" class="headerlink" title="7.4 AdaDelta 算法"></a>7.4 AdaDelta 算法</h3><p>除了 RMSProp 算法以外，另⼀个常⽤优化算法 AdaDelta 算法也针对 AdaGrad 算法在迭代后期可能较难找到有⽤解的问题做了改进。有意思的是，AdaDelta 算法没有学习率这⼀超参数。</p>
+<p>AdaDelta 算法也像 RMSProp 算法⼀样，使⽤了小批量随机梯度 gt 按元素平⽅的指数加权移动平均变量 st。在时间步 0，它的所有元素被初始化为 0。给定超参数 0 ≤ ρ <1（对应 rmsprop 算法中的 γ），在时间步 t> 0，同 RMSProp 算法⼀样计算：</1（对应></p>
+<p><img src="https://juejin.im/equation?tex=s_t%3Dps_%7Bt-1%7D%2B(1-p" alt>g_t%E2%8A%99g_t&gt;)</p>
+<p>与 RMSProp 算法不同的是，AdaDelta 算法还维护⼀个额外的状态变量 ∆xt，其元素同样在时间步 0 时被初始化为 0。我们使⽤ ∆xt−1 来计算⾃变量的变化量：</p>
+<p><img src="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D%3D%5Csqrt%7B%5Cfrac%7B%5CDelta%7B%7Dx_%7Bt-1%7D%2B%5Cvarepsilon%7D%7Bs_t%2B%5Cvarepsilon%7D%7D%E2%8A%99g_t" alt></p>
+<p>最后，我们使⽤ ∆xt 来记录⾃变量变化量 <img src="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D" alt> 按元素平⽅的指数加权移动平均：</p>
+<p><img src="https://juejin.im/equation?tex=%5CDelta%7B%7Dx_t%3Dp%5CDelta%7B%7Dx_%7Bt-1%7D%2B(1-p" alt>g_t%5E%7B%E2%80%B2%7D%E2%8A%99g_t%5E%7B%E2%80%B2%7D&gt;)</p>
+<p>可以看到，如不考虑 ϵ 的影响，AdaDelta 算法与 RMSProp 算法的不同之处在于使⽤ <img src="https://juejin.im/equation?tex=%5Csqrt%7B%5CDelta%7B%7Dx_%7Bt-1%7D%7D" alt> 来替代超参数 η。</p>
+<h3 id="7-5-Adam-算法"><a href="#7-5-Adam-算法" class="headerlink" title="7.5 Adam 算法"></a>7.5 Adam 算法</h3><p>Adam 算法在 RMSProp 算法基础上对小批量随机梯度也做了指数加权移动平均。</p>
+<p>Adam 算法使⽤了动量变量 vt 和 RMSProp 算法中小批量随机梯度按元素平⽅的指数加权移动平均变量 st，并在时间步 0 将它们中每个元素初始化为 0。给定超参数 0 ≤ β1 &lt; 1（算法作者建议设为 0.9），时间步 t 的动量变量 vt 即小批量随机梯度 gt 的指数加权移动平均：</p>
+<p><img src="https://juejin.im/equation?tex=v_t%3D%5Cbeta_1v_%7Bt-1%7D%2B(1-%5Cbeta_1" alt>g_t&gt;)</p>
+<p>和 RMSProp 算法中⼀样，给定超参数 0 ≤ β2 &lt; 1（算法作者建议设为 0.999），将小批量随机梯度按元素平⽅后的项 gt ⊙ gt 做指数加权移动平均得到 st：</p>
+<p><img src="https://juejin.im/equation?tex=s_t%3D%5Cbeta_%7B2%7Ds_%7Bt-1%7D%2B(1-%5Cbeta_2" alt>g_t%E2%8A%99g_t&gt;)</p>
+<p>由于我们将 v0 和 s0 中的元素都初始化为 0，在时间步 t 我们得到 <img src="https://juejin.im/equation?tex=v_t%3D(1-%5Cbeta_1" alt>%5Csum<em>%7Bi%3D1%7D%5Et%5Cbeta_1%5E%7Bt-i%7Dg_i&gt;)。将过去各时间步小批量随机梯度的权值相加，得到 <img src="https://juejin.im/equation?tex=(1-%5Cbeta_1" alt>%5Csum</em>%7Bi%3D1%7D%5Et%5Cbeta_1%5E%7Bt-i%7D%3D1-%5Cbeta_1%5Et&gt;)。需要注意的是，当 t 较小时，过去各时间步小批量随机梯度权值之和会较小。例如，当 β1 = 0.9 时，v1 = 0.1g1。为了消除这样的影响，对于任意时间步 t，我们可以将 vt 再除以 <img src="https://juejin.im/equation?tex=1-%5Cbeta_1%5Et" alt>，从而使过去各时间步小批量随机梯度权值之和为 1。这也叫作偏差修正。在 Adam 算法中，我们对变量 vt 和 st 均作偏差修正：</p>
+<p><img src="https://juejin.im/equation?tex=%5Ccheck%7Bv%7D_t%3D%5Cfrac%7Bv_t%7D%7B1-%5Cbeta_1%5Et%7D" alt><img src="https://juejin.im/equation?tex=%5Ccheck%7Bs%7D_t%3D%5Cfrac%7Bs_t%7D%7B1-%5Cbeta_2%5Et%7D" alt></p>
+<p>接下来，Adam 算法使⽤以上偏差修正后的变量 <strong><em>v</em>_<em>ˆ_t</em> 和 *</strong>s*_<em>ˆ_t</em>，将模型参数中每个元素的学习率通过按元素运算重新调整：</p>
+<p><img src="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D%3D%5Cfrac%7B%5Ceta%7B%7D%5Ccheck%7Bv%7D_t%7D%7B%5Csqrt%7B%5Ccheck%7Bs%7D_t%7D%2B%5Cvarepsilon%7D" alt></p>
+<p>其中<em>η</em>是学习率，<em>ϵ</em>是为了维持数值稳定性而添加的常数，如 10 的 - 8 次方。和 AdaGrad 算法、RMSProp 算法以及 AdaDelta 算法⼀样，⽬标函数⾃变量中每个元素都分别拥有⾃⼰的学习率。最后，使⽤ <img src="https://juejin.im/equation?tex=g_t%5E%7B%E2%80%B2%7D" alt> 迭代⾃变量：</p>
+<p><img src="https://juejin.im/equation?tex=x_t%3Dx_%7Bt-1%7D-g_t%5E%7B%E2%80%B2%7D" alt></p>
+<h3 id="7-6-局部最优-—-鞍点问题"><a href="#7-6-局部最优-—-鞍点问题" class="headerlink" title="7.6 局部最优 — 鞍点问题"></a>7.6 局部最优 — 鞍点问题</h3><p>一个具有高维度空间的函数，如果梯度为 0，那么在每个方向，它可能是凸函数，也可能是凹函数。如果你在 2 万维空间中，那么想要得到局部最优，所有的 2 万个方向都需要是这样，但发生的机率也许很小，也许是 2 的 - 20000 次方，你更有可能遇到有些方向的曲线会这样向上弯曲，另一些方向曲线向下弯，而不是所有的都向上弯曲，因此在高维度空间，你更可能碰到鞍点。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/19/16ca9be4d8a7c641?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>而不会碰到局部最优。<strong> 至于为什么会把一个曲面叫做鞍点，</strong> 你想象一下，就像是放在马背上的马鞍一样，如果这是马，这是马的头，这就是马的眼睛，画得不好请多包涵，然后你就是骑马的人，要坐在马鞍上，因此这里的这个点，导数为 0 的点，这个点叫做鞍点。我想那确实是你坐在马鞍上的那个点，而这里导数为 0。</p>
+<p>鞍点中的平稳段是一个问题，这样使得学习十分缓慢，<strong> 这也是像 Momentum 或是 RMSprop，Adam 这样的算法，能够加速学习算法的地方。</strong> 在这些情况下，更成熟的优化算法，如 Adam 算法，能够加快速度，让你尽早往下走出平稳段。</p>
+<ol>
+<li>如何解决训练样本少的问题</li>
+</ol>
+<hr>
+<ol>
+<li><strong> 利用预训练模型进行迁移微调（fine-tuning），</strong> 预训练模型通常在特征上拥有很好的语义表达。此时，只需将模型在小数据集上进行微调就能取得不错的效果。CV 有 ImageNet，NLP 有 BERT 等。</li>
+<li><strong> 数据集进行下采样操作，</strong> 使得符合数据同分布。</li>
+<li><p>数据集增强、正则或者半监督学习等方式来解决小样本数据集的训练问题。</p>
+</li>
+<li><p>如何提升模型的稳定性？</p>
+</li>
+</ol>
+<hr>
+<ol>
+<li>正则化（L2, L1, dropout）：模型方差大，很可能来自于过拟合。正则化能有效的降低模型的复杂度，增加对更多分布的适应性。</li>
+<li>前停止训练：提前停止是指模型在验证集上取得不错的性能时停止训练。这种方式本质和正则化是一个道理，能减少方差的同时增加的偏差。目的为了平衡训练集和未知数据之间在模型的表现差异。</li>
+<li>扩充训练集：正则化通过控制模型复杂度，来增加更多样本的适应性。</li>
+<li><p>特征选择：过高的特征维度会使模型过拟合，减少特征维度和正则一样可能会处理好方差问题，但是同时会增大偏差。</p>
+</li>
+<li><p>有哪些改善模型的思路</p>
+</li>
+</ol>
+<hr>
+<ol>
+<li><p><strong> 数据角度 </strong></p>
+<p>增强数据集。无论是有监督还是无监督学习，数据永远是最重要的驱动力。更多的类型数据对良好的模型能带来更好的稳定性和对未知数据的可预见性。对模型来说，“看到过的总比没看到的更具有判别的信心”。</p>
+</li>
+<li><p><strong>模型角度</strong></p>
+<p>模型的容限能力决定着模型可优化的空间。在数据量充足的前提下，对同类型的模型，增大模型规模来提升容限无疑是最直接和有效的手段。</p>
+</li>
+<li><p><strong>调参优化角度</strong></p>
+<p>如果你知道模型的性能为什么不再提高了，那已经向提升性能跨出了一大步。 超参数调整本身是一个比较大的问题。一般可以包含模型初始化的配置，优化算法的选取、学习率的策略以及如何配置正则和损失函数等等。</p>
+</li>
+<li><p><strong>训练角度</strong></p>
+<p>在越大规模的数据集或者模型上，诚然一个好的优化算法总能加速收敛。但你在未探索到模型的上限之前，永远不知道训练多久算训练完成。所以在改善模型上充分训练永远是最必要的过程。充分训练的含义不仅仅只是增大训练轮数。有效的学习率衰减和正则同样是充分训练中非常必要的手段。</p>
+</li>
+</ol>
+<p>11) 如何提高深度学习系统的性能</p>
+<hr>
+<ol>
+<li>提高模型的结构。</li>
+<li>改进模型的初始化方式，保证早期梯度具有某些有益的性质，或者具备大量的稀疏性，或者利用线性代数原理的优势。</li>
+<li><p>择更强大的学习算法。</p>
+</li>
+<li><p>参考文献</p>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="http://zh.gluon.ai/" target="_blank" rel="noopener">动手学 — 深度学习</a></li>
+<li><a href="https://github.com/fengdu78/deeplearning_ai_books" target="_blank" rel="noopener">吴恩达 — 深度学习笔记</a></li>
+<li><a href="https://github.com/scutan90/DeepLearning-500-questions" target="_blank" rel="noopener">GitHub</a></li>
+<li><a href="https://www.lanzous.com/i56i24f" target="_blank" rel="noopener">百面机器学习</a></li>
+</ul>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/" title="神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！">https://ailab-aida.github.io/2019/11/08/神经网络优化算法：Dropout、梯度消失 _ 爆炸、Adam 优化算法，一篇就够了！/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！/" rel="next" title="强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！">
+                  <i class="fa fa-chevron-left"></i> 强化学习 (Reinforcement Learning) 中的 Q-Learning、DQN，面试看这篇就够了！
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/自然语言处理 (NLP) 的一般处理流程！/" rel="prev" title="自然语言处理 (NLP) 的一般处理流程！">
+                  自然语言处理 (NLP) 的一般处理流程！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-验证数据集"><span class="nav-number">1.</span> <span class="nav-text">2.1 验证数据集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-K-折交叉验证"><span class="nav-number">2.</span> <span class="nav-text">2.2 K 折交叉验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-mini-batch-梯度下降"><span class="nav-number">3.</span> <span class="nav-text">6.1 mini-batch 梯度下降</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-调节-Batch-Size-对训练效果影响到底如何？"><span class="nav-number">4.</span> <span class="nav-text">6.2 调节 Batch_Size 对训练效果影响到底如何？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-动量法"><span class="nav-number">5.</span> <span class="nav-text">7.1 动量法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-AdaGrad-算法"><span class="nav-number">6.</span> <span class="nav-text">7.2 AdaGrad 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-RMSProp-算法"><span class="nav-number">7.</span> <span class="nav-text">7.3 RMSProp 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-AdaDelta-算法"><span class="nav-number">8.</span> <span class="nav-text">7.4 AdaDelta 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-Adam-算法"><span class="nav-number">9.</span> <span class="nav-text">7.5 Adam 算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-6-局部最优-—-鞍点问题"><span class="nav-number">10.</span> <span class="nav-text">7.6 局部最优 — 鞍点问题</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '43c8a29ab2d586d4da79c543d9c0c120',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

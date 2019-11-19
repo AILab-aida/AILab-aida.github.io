@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="本篇讲解一些特征工程部分的特征选择 (feature_selection), 主要包括以下几方面： 特征选择是什么 为什么要做特征选择 特征选择的基本原则 特征选择的方法及实现 特征选择是什么特征选择也称特征子集选择，是从现有的 m 个特征中选出对机器学习有用的 n 个特征 (n&amp;lt;=m)，以此降低特征维度减少计算量，同时也使模型效果达到最优。">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习中的特征选择">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/19/机器学习中的特征选择/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="本篇讲解一些特征工程部分的特征选择 (feature_selection), 主要包括以下几方面： 特征选择是什么 为什么要做特征选择 特征选择的基本原则 特征选择的方法及实现 特征选择是什么特征选择也称特征子集选择，是从现有的 m 个特征中选出对机器学习有用的 n 个特征 (n&amp;lt;=m)，以此降低特征维度减少计算量，同时也使模型效果达到最优。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-19T02:26:11.727Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="机器学习中的特征选择">
+<meta name="twitter:description" content="本篇讲解一些特征工程部分的特征选择 (feature_selection), 主要包括以下几方面： 特征选择是什么 为什么要做特征选择 特征选择的基本原则 特征选择的方法及实现 特征选择是什么特征选择也称特征子集选择，是从现有的 m 个特征中选出对机器学习有用的 n 个特征 (n&amp;lt;=m)，以此降低特征维度减少计算量，同时也使模型效果达到最优。">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/19/机器学习中的特征选择/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>机器学习中的特征选择 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/19/机器学习中的特征选择/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">机器学习中的特征选择
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-19 10:23:44 / 修改时间：10:26:11" itemprop="dateCreated datePublished" datetime="2019-11-19T10:23:44+08:00">2019-11-19</time>
+            </span>
+          
+            
+
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本篇讲解一些特征工程部分的<strong>特征选择 (feature_selection)</strong>, 主要包括以下几方面：</p><ul>
+<li>特征选择是什么</li>
+<li>为什么要做特征选择</li>
+<li>特征选择的基本原则</li>
+<li>特征选择的方法及实现</li>
+</ul><h2 id="特征选择是什么"><a href="#特征选择是什么" class="headerlink" title="特征选择是什么"></a><strong>特征选择是什么</strong></h2><p>特征选择也称特征子集选择，是从现有的 m 个特征中选出对机器学习有用的 n 个特征 (n&lt;=m)，以此降低特征维度减少计算量，同时也使模型效果达到最优。</p><a id="more"></a>
+
+
+<h2 id="为什么要做特征选择"><a href="#为什么要做特征选择" class="headerlink" title="为什么要做特征选择"></a><strong>为什么要做特征选择</strong></h2><p>在实际业务中，用于模型中的特征维度往往很高，几万维，有的一些 CTR 预估中维度高达上亿维，维度过高会增大模型计算复杂度，但是在这么多维数据中，并不是每个特征对模型的预测都是有效果的，所以需要利用一些方法去除一些不必要特征，从而降低模型的计算复杂度。</p>
+<h2 id="特征选择的基本原则"><a href="#特征选择的基本原则" class="headerlink" title="特征选择的基本原则"></a><strong>特征选择的基本原则</strong></h2><p>我们在进行特征选择时，主要遵循如下两个原则：</p>
+<ul>
+<li>波动性</li>
+<li>相关性</li>
+</ul>
+<p>波动性是指该特征取值发生变化的情况，用方差来衡量，如果方差很小，说明该特征的取值很稳定，可以近似理解成该特征的每个值都接近，这样的特征对模型是没有任何效果，是不具备区分度的，比如年龄这个特征，都是 20 岁左右大小的。反之，方差越大，则特征对模型的区分度越好。</p>
+<p>相关性是就是该特征和目标结果的相关性大小，常用皮尔逊相关系数来度量。</p>
+<h2 id="特征选择的方法及实现"><a href="#特征选择的方法及实现" class="headerlink" title="特征选择的方法及实现"></a><strong>特征选择的方法及实现</strong></h2><h2 id="1-移除低方差特征"><a href="#1-移除低方差特征" class="headerlink" title="1. 移除低方差特征"></a><strong>1. 移除低方差特征</strong></h2><p>移除低方差特征是指移除那些方差低于某个阈值，即特征值变动幅度小于某个范围的特征，这一部分特征的区分度较差，我们进行移除。<br>这里的这个阈值需要根据具体的业务场景进行设定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.feature_selection import VarianceThreshold</span><br><span class="line">X = [[0, 2, 1], [1, 1, 0], [2, 3, 0], [3, 6, 1], [4, 2, 0], [5, 1, 1]]</span><br><span class="line">print(X)</span><br><span class="line">print(&quot;---------------&quot;)</span><br><span class="line">sel = VarianceThreshold(threshold=1)</span><br><span class="line">sel.fit_transform(X)</span><br><span class="line">print(sel.fit_transform(X))</span><br></pre></td></tr></table></figure>
+<h2 id="2-单变量特征选择"><a href="#2-单变量特征选择" class="headerlink" title="2. 单变量特征选择"></a><strong>2. 单变量特征选择</strong></h2><p>单变量特征是基于单一变量和目标 y 之间的关系，通过计算某个能够度量特征重要性的指标，然后选出重要性 Top 的 K 个特征。但是这种方式有一个缺点就是忽略了特征组合的情况，有的时候单一特征可能表现不是很好，但是与其他特征组合以后，效果就很不错，这样就会造成特征被误删，所以这种特征选择方式不常用。该特征选择方式可以通过<code>SelectKBest(score_func=&lt;function f_classif at 0x6404aa0&gt;, k=10)</code>实现，其中 score_func 是用来指定特征重要性的计算公式，k 是特征保留维度。下面是一些 score_func 函数及其解释：</p>
+<blockquote>
+<p><strong>f_classif</strong>(相关性度量):<br>ANOVA F-value between label/feature for classification tasks.<br><strong>mutual_info_classif</strong>(互信息度量):<br>Mutual information for a discrete target.<br><strong>chi2</strong>(卡方检验):<br>Chi-squared stats of non-negative features for classification tasks.<br><strong>f_regression</strong>(用于回归的相关性度量):<br>F-value between label/feature for regression tasks.<br><strong>mutual_info_regression</strong>(用于回归的互信息度量):<br>Mutual information for a continuous target.<br><strong>SelectPercentile</strong>:<br>Select features based on percentile of the highest scores.<br><strong>SelectFpr</strong>:<br>Select features based on a false positive rate test.<br><strong>SelectFdr</strong>:<br>Select features based on an estimated false discovery rate.<br><strong>SelectFwe</strong>:<br>Select features based on family-wise error rate.<br><strong>GenericUnivariateSelect</strong>:<br>Univariate feature selector with configurable mode.</p>
+</blockquote>
+<h2 id="递归式消除特征"><a href="#递归式消除特征" class="headerlink" title="递归式消除特征"></a><strong>递归式消除特征</strong></h2><p>递归式消除特征 (RFE) 是指，将全部特征都丢到给定的模型里面，模型会输出<strong>每个特征的重要性</strong>，然后删除那些不太重要的特征；把剩下的特征再次丢到模型里面，又会输出各个特征的重要性，再次删除；如此循环，直至最后剩下目标维度的特征值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.datasets import make_friedman1</span><br><span class="line">from sklearn.feature_selection import RFE</span><br><span class="line">from sklearn.svm import SVR</span><br><span class="line">X, y = make_friedman1(n_samples=50, n_features=10, random_state=0)</span><br><span class="line">estimator = SVR(kernel=&quot;linear&quot;)</span><br><span class="line">##5个特征被选中，每次迭代去除1个特征。</span><br><span class="line">selector = RFE(estimator, 5, step=1)</span><br><span class="line">selector = selector.fit(X, y)</span><br><span class="line">print(selector.support_) ##所选特征的掩码</span><br><span class="line">##特征排名，使得rank_ [i]对应于第i个特征的排名位置。</span><br><span class="line">##所选择的（重要性最高的）特征被分配为等级1，被删除的特征显示其原始的位置。</span><br><span class="line">selector.ranking_</span><br><span class="line">print(selector.fit(X,y))</span><br></pre></td></tr></table></figure>
+<p>因为该方法每次都需要把特征从新丢到模型里面进行计算，计算量较为复杂；因该方法需要模型输出特征重要性，所以需要选用可以输出特征重要性的模型，比如 LR 的 coef_。</p>
+<h2 id="使用-SelectFromModel-选取特征"><a href="#使用-SelectFromModel-选取特征" class="headerlink" title="使用 SelectFromModel 选取特征"></a><strong>使用 SelectFromModel 选取特征</strong></h2><p>SelectFromModel 可以用来处理任何带有 coef<em>或者 feature_importances</em> 属性的训练之后的模型。 如果相关的<code>coef_</code> 或者 <code>feature_importances</code> 属性值低于预先设置的阈值，这些特征将会被认为不重要并且移除掉。除了指定数值上的阈值之外，还可以通过给定字符串参数来使用内置的启发式方法找到一个合适的阈值。可以使用的启发式方法有 mean 、 median 以及使用浮点数乘以这些（例如，0.1*mean ）</p>
+<p>SelectFromModel 和递归式消除特征不同的是，该方法不需要重复训练模型，只需要训练一次即可；二是该方法是指定权重的阈值，不是指定特征的维度。</p>
+<h2 id="1-基于-L1-正则化的特征提取"><a href="#1-基于-L1-正则化的特征提取" class="headerlink" title="1. 基于 L1 正则化的特征提取"></a><strong>1. 基于 L1 正则化的特征提取</strong></h2><p>使用 L1 正则化的线性模型会得到一个<strong>稀疏权值矩阵</strong>，即生成一个稀疏模型：该模型的大多数系数为 0，即特征重要性为 0，这个时候可以利用 SelectFromModel 方法选择非零系数所对应的特征，<strong>正则化的过程就可以看作是特征选择的一部分</strong>。可以用于此目的的稀疏评估器有用于回归的 linear_model.Lasso, 以及用于分类以及用于分类的 linear_model.LogisticRegression 和 svm.LinearSVC。实现方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.svm import LinearSVC</span><br><span class="line">from sklearn.datasets import load_iris</span><br><span class="line">from sklearn.feature_selection import SelectFromModel</span><br><span class="line">iris = load_iris()</span><br><span class="line">X, y = iris.data, iris.target</span><br><span class="line">lsvc = LinearSVC(C=0.01, penalty=&quot;l1&quot;, dual=False).fit(X, y)</span><br><span class="line">model = SelectFromModel(lsvc, prefit=True)</span><br><span class="line">X_new = model.transform(X)</span><br><span class="line">X_new.shape</span><br></pre></td></tr></table></figure>
+<h2 id="2-基于-Tree（树）模型的特征选取"><a href="#2-基于-Tree（树）模型的特征选取" class="headerlink" title="2. 基于 Tree（树）模型的特征选取"></a><strong>2. 基于 Tree（树）模型的特征选取</strong></h2><p>我们知道树模型的建立过程就是一个特征选择的过程，他会根据信息增益的准则来选择信息增益最大的特征来进行建模，输出各个特征的<code>feature_importances_</code>，然后传入 SelectFromModel 进行特征选择。具体实现方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.ensemble import ExtraTreesClassifier</span><br><span class="line">from sklearn.datasets import load_iris</span><br><span class="line">from sklearn.feature_selection import SelectFromModel</span><br><span class="line">iris = load_iris()</span><br><span class="line">X, y = iris.data, iris.target</span><br><span class="line">clf = ExtraTreesClassifier()</span><br><span class="line">clf = clf.fit(X, y)</span><br><span class="line">clf.feature_importances_</span><br><span class="line">model = SelectFromModel(clf, prefit=True)</span><br><span class="line">X_new = model.transform(X)</span><br><span class="line">X_new.shape</span><br></pre></td></tr></table></figure>
+<p>写下你的评论…</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/19/机器学习中的特征选择/" title="机器学习中的特征选择">https://ailab-aida.github.io/2019/11/19/机器学习中的特征选择/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/19/在 Python 中使用 XGBoost 的特征重要性和特征选择/" rel="next" title="在 Python 中使用 XGBoost 的特征重要性和特征选择">
+                  <i class="fa fa-chevron-left"></i> 在 Python 中使用 XGBoost 的特征重要性和特征选择
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#特征选择是什么"><span class="nav-number">1.</span> <span class="nav-text">特征选择是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要做特征选择"><span class="nav-number">2.</span> <span class="nav-text">为什么要做特征选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特征选择的基本原则"><span class="nav-number">3.</span> <span class="nav-text">特征选择的基本原则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特征选择的方法及实现"><span class="nav-number">4.</span> <span class="nav-text">特征选择的方法及实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-移除低方差特征"><span class="nav-number">5.</span> <span class="nav-text">1. 移除低方差特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-单变量特征选择"><span class="nav-number">6.</span> <span class="nav-text">2. 单变量特征选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#递归式消除特征"><span class="nav-number">7.</span> <span class="nav-text">递归式消除特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-SelectFromModel-选取特征"><span class="nav-number">8.</span> <span class="nav-text">使用 SelectFromModel 选取特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-基于-L1-正则化的特征提取"><span class="nav-number">9.</span> <span class="nav-text">1. 基于 L1 正则化的特征提取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-基于-Tree（树）模型的特征选取"><span class="nav-number">10.</span> <span class="nav-text">2. 基于 Tree（树）模型的特征选取</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '8b626853975c47f38ebbbdf58ae21fa5',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

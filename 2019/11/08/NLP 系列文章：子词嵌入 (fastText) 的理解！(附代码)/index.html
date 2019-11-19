@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是 fastText 英语单词通常有其内部结构和形成⽅式。例如，我们可以从 “dog”“dogs” 和“dogcatcher”的字⾯上推测它们的关系。这些词都有同⼀个词根“dog”，但使⽤不同的后缀来改变词的含义。而且，这个关联可以推⼴⾄其他词汇。在 word2vec 中，我们并没有直接利⽤构词学中的信息。⽆论是在跳字模型还是连续词袋模型中，我们都将形态不同的单词⽤不同的向量来表⽰。例如，“">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是 fastText 英语单词通常有其内部结构和形成⽅式。例如，我们可以从 “dog”“dogs” 和“dogcatcher”的字⾯上推测它们的关系。这些词都有同⼀个词根“dog”，但使⽤不同的后缀来改变词的含义。而且，这个关联可以推⼴⾄其他词汇。在 word2vec 中，我们并没有直接利⽤构词学中的信息。⽆论是在跳字模型还是连续词袋模型中，我们都将形态不同的单词⽤不同的向量来表⽰。例如，“">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/23/16cbbf18ffb7c66c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:33:40.165Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)">
+<meta name="twitter:description" content="什么是 fastText 英语单词通常有其内部结构和形成⽅式。例如，我们可以从 “dog”“dogs” 和“dogcatcher”的字⾯上推测它们的关系。这些词都有同⼀个词根“dog”，但使⽤不同的后缀来改变词的含义。而且，这个关联可以推⼴⾄其他词汇。在 word2vec 中，我们并没有直接利⽤构词学中的信息。⽆论是在跳字模型还是连续词袋模型中，我们都将形态不同的单词⽤不同的向量来表⽰。例如，“">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2019/8/23/16cbbf18ffb7c66c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码) | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:37:22" itemprop="dateCreated datePublished" datetime="2019-11-08T11:37:22+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:33:40" itemprop="dateModified" datetime="2019-11-19T11:33:40+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是 fastText</li>
+</ol><hr><p>英语单词通常有其内部结构和形成⽅式。例如，我们可以从 “dog”“dogs” 和“dogcatcher”的字⾯上推测它们的关系。这些词都有同⼀个词根“dog”，但使⽤不同的后缀来改变词的含义。而且，这个关联可以推⼴⾄其他词汇。</p><p>在 word2vec 中，我们并没有直接利⽤构词学中的信息。⽆论是在跳字模型还是连续词袋模型中，我们都将形态不同的单词⽤不同的向量来表⽰。例如，<strong>“dog”和 “dogs” 分别⽤两个不同的向量表⽰，而模型中并未直接表达这两个向量之间的关系。鉴于此，fastText 提出了⼦词嵌⼊ (subword embedding) 的⽅法，从而试图将构词信息引⼊ word2vec 中的 CBOW。</strong></p><a id="more"></a>
+
+
+
+<p>这里有一点需要特别注意，一般情况下，使用 fastText 进行文本分类的同时也会产生词的 embedding，即 embedding 是 fastText 分类的产物。除非你决定使用预训练的 embedding 来训练 fastText 分类模型，这另当别论。</p>
+<ol>
+<li>n-gram 表示单词</li>
+</ol>
+<hr>
+<p>word2vec 把语料库中的每个单词当成原子的，它会为每个单词生成一个向量。这忽略了单词内部的形态特征，比如：“book” 和 “books”，“阿里巴巴” 和“阿里”，这两个例子中，两个单词都有较多公共字符，即它们的内部形态类似，但是在传统的 word2vec 中，这种单词内部形态信息因为它们被转换成不同的 id 丢失了。</p>
+<p><strong> 为了克服这个问题，fastText 使用了字符级别的 n-grams 来表示一个单词。</strong> 对于单词 “book”，假设 n 的取值为 3，则它的 trigram 有:</p>
+<p><strong>“<bo”, “boo”, “ook”, “ok>”</bo”,></strong></p>
+<p>其中，&lt;表示前缀，&gt;表示后缀。于是，我们可以用这些 trigram 来表示 “book” 这个单词，进一步，我们可以用这 4 个 trigram 的向量叠加来表示 “apple” 的词向量。</p>
+<p><strong>这带来两点好处</strong>：</p>
+<ol>
+<li>对于低频词生成的词向量效果会更好。因为它们的 n-gram 可以和其它词共享。</li>
+<li><p>对于训练词库之外的单词，仍然可以构建它们的词向量。我们可以叠加它们的字符级 n-gram 向量。</p>
+</li>
+<li><p>fastText 模型架构</p>
+</li>
+</ol>
+<hr>
+<p>之前提到过，fastText 模型架构和 word2vec 的 CBOW 模型架构非常相似。下面是 fastText 模型架构图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/23/16cbbf18ffb7c66c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p><strong>注意</strong>：此架构图没有展示词向量的训练过程。可以看到，和 CBOW 一样，fastText 模型也只有三层：输入层、隐含层、输出层（Hierarchical Softmax），输入都是多个经向量表示的单词，输出都是一个特定的 target，隐含层都是对多个词向量的叠加平均。</p>
+<p><strong>不同的是，</strong></p>
+<ul>
+<li>CBOW 的输入是目标单词的上下文，fastText 的输入是多个单词及其 n-gram 特征，这些特征用来表示单个文档；</li>
+<li>CBOW 的输入单词被 one-hot 编码过，fastText 的输入特征是被 embedding 过；</li>
+<li>CBOW 的输出是目标词汇，fastText 的输出是文档对应的类标。</li>
+</ul>
+<p><strong> 值得注意的是，fastText 在输入时，将单词的字符级别的 n-gram 向量作为额外的特征；在输出时，fastText 采用了分层 Softmax，大大降低了模型训练时间。</strong> 这两个知识点在前文中已经讲过，这里不再赘述。</p>
+<p>fastText 相关公式的推导和 CBOW 非常类似，这里也不展开了。</p>
+<ol>
+<li>fastText 核心思想</li>
+</ol>
+<hr>
+<p>现在抛开那些不是很讨人喜欢的公式推导，来想一想 fastText 文本分类的核心思想是什么？</p>
+<p>仔细观察模型的后半部分，即从隐含层输出到输出层输出，会发现它就是一个 softmax 线性多类别分类器，分类器的输入是一个用来表征当前文档的向量；</p>
+<p>模型的前半部分，即从输入层输入到隐含层输出部分，主要在做一件事情：生成用来表征文档的向量。那么它是如何做的呢？<strong> 叠加构成这篇文档的所有词及 n-gram 的词向量，然后取平均。</strong> 叠加词向量背后的思想就是传统的词袋法，即将文档看成一个由词构成的集合。</p>
+<p><strong> 于是 fastText 的核心思想就是：将整篇文档的词及 n-gram 向量叠加平均得到文档向量，然后使用文档向量做 softmax 多分类。</strong> 这中间涉及到两个技巧：字符级 n-gram 特征的引入以及分层 Softmax 分类。</p>
+<ol>
+<li>输出分类的效果</li>
+</ol>
+<hr>
+<p>还有个问题，就是为何 fastText 的分类效果常常不输于传统的非线性分类器？</p>
+<p><strong>假设我们有两段文本：</strong></p>
+<p>肚子 饿了 我 要 吃饭</p>
+<p>肚子 饿了 我 要 吃东西</p>
+<p>这两段文本意思几乎一模一样，如果要分类，肯定要分到同一个类中去。但在传统的分类器中，用来表征这两段文本的向量可能差距非常大。传统的文本分类中，你需要计算出每个词的权重，比如 TF-IDF 值， “吃饭” 和 “吃东西” 算出的 TF-IDF 值相差可能会比较大，其它词类似，于是，VSM（向量空间模型）中用来表征这两段文本的文本向量差别可能比较大。</p>
+<p><strong>但是 fastText 就不一样了，它是用单词的 embedding 叠加获得的文档向量，词向量的重要特点就是向量的距离可以用来衡量单词间的语义相似程度</strong>，于是，在 fastText 模型中，这两段文本的向量应该是非常相似的，于是，它们很大概率会被分到同一个类中。</p>
+<p>使用词 embedding 而非词本身作为特征，这是 fastText 效果好的一个原因；另一个原因就是字符级 n-gram 特征的引入对分类效果会有一些提升 。</p>
+<ol>
+<li>fastText 与 Word2Vec 的不同</li>
+</ol>
+<hr>
+<p>有意思的是，fastText 和 Word2Vec 的作者是同一个人。</p>
+<p><strong>相同点</strong>：</p>
+<ul>
+<li>图模型结构很像，都是采用 embedding 向量的形式，得到 word 的隐向量表达。</li>
+<li>都采用很多相似的优化方法，比如使用 Hierarchical softmax 优化训练和预测中的打分速度。</li>
+</ul>
+<p>之前一直不明白 fasttext 用层次 softmax 时叶子节点是啥，CBOW 很清楚，它的叶子节点是词和词频，后来看了源码才知道，其实 fasttext 叶子节点里是类标和类标的频数。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Word2Vec</th>
+<th>fastText</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>one-hot 形式的单词的向量</td>
+<td>embedding 过的单词的词向量和 n-gram 向量</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>对应的是每一个 term, 计算某 term 概率最大</td>
+<td>对应的是分类的标签。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>本质不同，体现在 softmax 的使用：</strong></p>
+<p>word2vec 的目的是得到词向量，该词向量最终是在输入层得到的，输出层对应的 h-softmax 也会生成一系列的向量，但是最终都被抛弃，不会使用。</p>
+<p>fastText 则充分利用了 h-softmax 的分类功能，遍历分类树的所有叶节点，找到概率最大的 label</p>
+<p><strong>fastText 优点</strong>：</p>
+<ol>
+<li><strong>适合大型数据 + 高效的训练速度</strong>：能够训练模型 “在使用标准多核 CPU 的情况下 10 分钟内处理超过 10 亿个词汇”</li>
+<li><strong>支持多语言表达</strong>：利用其语言形态结构，fastText 能够被设计用来支持包括英语、德语、西班牙语、法语以及捷克语等多种语言。FastText 的性能要比时下流行的 word2vec 工具明显好上不少，也比其他目前最先进的词态词汇表征要好。</li>
+<li><p><strong>专注于文本分类</strong>，在许多标准问题上实现当下最好的表现（例如文本倾向性分析或标签预测）。</p>
+</li>
+<li><p>代码实现</p>
+</li>
+</ol>
+<hr>
+<p>清华文本分类数据集下载：<a href="https://thunlp.oss-cn-qingdao.aliyuncs.com/THUCNews.zip" target="_blank" rel="noopener">thunlp.oss-cn-qingdao.aliyuncs.com/THUCNews.zi…</a></p>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/NLP/16.2%20fastText/fastText.ipynb" target="_blank" rel="noopener">新闻文本分类代码</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca41b0aa726c9c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<p><a href="http://www.52nlp.cn/fasttext" target="_blank" rel="noopener">fastText 原理及实践</a></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/18/16ca2a0efd6993aa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/" title="NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)">https://ailab-aida.github.io/2019/11/08/NLP 系列文章：子词嵌入 (fastText) 的理解！(附代码)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/自然语言处理 (NLP) 的一般处理流程！/" rel="next" title="自然语言处理 (NLP) 的一般处理流程！">
+                  <i class="fa fa-chevron-left"></i> 自然语言处理 (NLP) 的一般处理流程！
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/四步理解 GloVe！(附代码实现)/" rel="prev" title="四步理解 GloVe！(附代码实现)">
+                  四步理解 GloVe！(附代码实现) <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: 'a4c35ea2b8774bc3b1449938146d9cc9',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>

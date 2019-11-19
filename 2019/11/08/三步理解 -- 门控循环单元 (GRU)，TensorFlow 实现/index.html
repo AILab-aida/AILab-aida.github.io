@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="AILab-aida" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"mac"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: true,
+    mediumzoom: true,
+    lazyload: false,
+    pangu: true,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="什么是 GRU 在循环神经⽹络中的梯度计算⽅法中，我们发现，当时间步数较⼤或者时间步较小时， 循环神经⽹络的梯度较容易出现衰减或爆炸。虽然裁剪梯度可以应对梯度爆炸，但⽆法解决梯度衰减的问题。 通常由于这个原因，循环神经⽹络在实际中较难捕捉时间序列中时间步距离较⼤的依赖关系。 门控循环神经⽹络（gated recurrent neural network）的提出，正是为了更好地捕捉时间序列中时间步">
+<meta name="keywords" content="算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现">
+<meta property="og:url" content="https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/index.html">
+<meta property="og:site_name" content="AILab-aida">
+<meta property="og:description" content="什么是 GRU 在循环神经⽹络中的梯度计算⽅法中，我们发现，当时间步数较⼤或者时间步较小时， 循环神经⽹络的梯度较容易出现衰减或爆炸。虽然裁剪梯度可以应对梯度爆炸，但⽆法解决梯度衰减的问题。 通常由于这个原因，循环神经⽹络在实际中较难捕捉时间序列中时间步距离较⼤的依赖关系。 门控循环神经⽹络（gated recurrent neural network）的提出，正是为了更好地捕捉时间序列中时间步">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://juejin.im/equation?tex=X_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_%7Bt-1%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/16/16c99607aa2ebc54?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=X_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*d%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_%7Bt-1%7D%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=Z_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=R_t%3D%5Csigma(X_tW_%7Bxr%7D%2BH_%7Bt-1%7DW_%7Bhr%7D%2Bb_r">
+<meta property="og:image" content="https://juejin.im/equation?tex=Z_t%3D%5Csigma(X_tW_%7Bxz%7D%2BH_%7Bt-1%7DW_%7Bhz%7D%2Bb_z">
+<meta property="og:image" content="https://juejin.im/equation?tex=R_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=Z_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/16/16c99607aabd62f2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctilde%7BH%7D%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctilde%7BH%7D_t%3Dtanh(X_tW_%7Bxh%7D%2B(R_t%E2%8A%99H_%7Bt-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=Z_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_%7Bt-1%7D">
+<meta property="og:image" content="https://juejin.im/equation?tex=%5Ctilde%7BH%7D_t">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/16/16c99607ab0ffcfa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://juejin.im/equation?tex=t%5E%7B%E2%80%B2%7D%E5%88%B0t(t%5E%7B%E2%80%B2%7D%3Ct">
+<meta property="og:image" content="https://juejin.im/equation?tex=t%5E%7B%E2%80%B2%7D%E5%88%B0t">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_t">
+<meta property="og:image" content="https://juejin.im/equation?tex=H_%7Bt%5E%7B%E2%80%B2%7D-1%7D">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/11/16c7f691fdd76437?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/8/10/16c7c1fc298595c0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:updated_time" content="2019-11-19T03:43:47.114Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现">
+<meta name="twitter:description" content="什么是 GRU 在循环神经⽹络中的梯度计算⽅法中，我们发现，当时间步数较⼤或者时间步较小时， 循环神经⽹络的梯度较容易出现衰减或爆炸。虽然裁剪梯度可以应对梯度爆炸，但⽆法解决梯度衰减的问题。 通常由于这个原因，循环神经⽹络在实际中较难捕捉时间序列中时间步距离较⼤的依赖关系。 门控循环神经⽹络（gated recurrent neural network）的提出，正是为了更好地捕捉时间序列中时间步">
+<meta name="twitter:image" content="https://juejin.im/equation?tex=X_t">
+  <link rel="canonical" href="https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现 | AILab-aida</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AILab-aida</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">一个专注技术的组织</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-sitemap">
+      
+    
+
+    <a href="/atom.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/qq1074123922" class="github-corner" title="AILab-aida GitHub" aria-label="AILab-aida GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AILab-aida">
+      <meta itemprop="description" content="涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AILab-aida">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-08 11:36:20" itemprop="dateCreated datePublished" datetime="2019-11-08T11:36:20+08:00">2019-11-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-19 11:43:47" itemprop="dateModified" datetime="2019-11-19T11:43:47+08:00">2019-11-19</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/深度学习/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>什么是 GRU</li>
+</ol><hr><p>在循环神经⽹络中的梯度计算⽅法中，我们发现，当时间步数较⼤或者时间步较小时，<strong> 循环神经⽹络的梯度较容易出现衰减或爆炸。虽然裁剪梯度可以应对梯度爆炸，但⽆法解决梯度衰减的问题。</strong> 通常由于这个原因，循环神经⽹络在实际中较难捕捉时间序列中时间步距离较⼤的依赖关系。</p><p><strong> 门控循环神经⽹络（gated recurrent neural network）的提出，正是为了更好地捕捉时间序列中时间步距离较⼤的依赖关系。</strong> 它通过可以学习的⻔来控制信息的流动。其中，门控循环单元（gatedrecurrent unit，GRU）是⼀种常⽤的门控循环神经⽹络。</p><a id="more"></a>
+
+
+
+<ol>
+<li>⻔控循环单元</li>
+</ol>
+<hr>
+<h3 id="2-1-重置门和更新门"><a href="#2-1-重置门和更新门" class="headerlink" title="2.1 重置门和更新门"></a>2.1 重置门和更新门</h3><p>GRU 它引⼊了 <strong> 重置⻔（reset gate）和更新⻔（update gate）</strong> 的概念，从而修改了循环神经⽹络中隐藏状态的计算⽅式。</p>
+<p>门控循环单元中的重置⻔和更新⻔的输⼊均为当前时间步输⼊ <img src="https://juejin.im/equation?tex=X_t" alt> 与上⼀时间步隐藏状态<img src="https://juejin.im/equation?tex=H_%7Bt-1%7D" alt>，输出由激活函数为 sigmoid 函数的全连接层计算得到。 如下图所示：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/16/16c99607aa2ebc54?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>具体来说，假设隐藏单元个数为 h，给定时间步 t 的小批量输⼊ <img src="https://juejin.im/equation?tex=X_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*d%7D" alt>（样本数为 n，输⼊个数为 d）和上⼀时间步隐藏状态 <img src="https://juejin.im/equation?tex=H_%7Bt-1%7D%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D" alt>。重置⻔ <img src="https://juejin.im/equation?tex=H_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D" alt> 和更新⻔ <img src="https://juejin.im/equation?tex=Z_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D" alt> 的计算如下：</p>
+<p><img src="https://juejin.im/equation?tex=R_t%3D%5Csigma(X_tW_%7Bxr%7D%2BH_%7Bt-1%7DW_%7Bhr%7D%2Bb_r" alt>&gt;)<img src="https://juejin.im/equation?tex=Z_t%3D%5Csigma(X_tW_%7Bxz%7D%2BH_%7Bt-1%7DW_%7Bhz%7D%2Bb_z" alt>&gt;)</p>
+<p>sigmoid 函数可以将元素的值变换到 0 和 1 之间。因此，重置⻔ <img src="https://juejin.im/equation?tex=R_t" alt> 和更新⻔ <img src="https://juejin.im/equation?tex=Z_t" alt> 中每个元素的值域都是 [0<em>,</em> 1]。</p>
+<h3 id="2-2-候选隐藏状态"><a href="#2-2-候选隐藏状态" class="headerlink" title="2.2 候选隐藏状态"></a>2.2 候选隐藏状态</h3><p>接下来，⻔控循环单元将计算候选隐藏状态来辅助稍后的隐藏状态计算。我们将当前时间步重置⻔的输出与上⼀时间步隐藏状态做按元素乘法（符号为<em>⊙</em>）。如果重置⻔中元素值接近 0，那么意味着重置对应隐藏状态元素为 0，即丢弃上⼀时间步的隐藏状态。如果元素值接近 1，那么表⽰保留上⼀时间步的隐藏状态。然后，将按元素乘法的结果与当前时间步的输⼊连结，再通过含激活函数 tanh 的全连接层计算出候选隐藏状态，其所有元素的值域为 [-1,1]。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/16/16c99607aabd62f2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>具体来说，时间步 t 的候选隐藏状态 <img src="https://juejin.im/equation?tex=%5Ctilde%7BH%7D%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D" alt> 的计算为：</p>
+<p><img src="https://juejin.im/equation?tex=%5Ctilde%7BH%7D_t%3Dtanh(X_tW_%7Bxh%7D%2B(R_t%E2%8A%99H_%7Bt-1%7D" alt>W_%7Bhh%7D%2Bb_h)&gt;)</p>
+<p>从上⾯这个公式可以看出，重置⻔控制了上⼀时间步的隐藏状态如何流⼊当前时间步的候选隐藏状态。而上⼀时间步的隐藏状态可能包含了时间序列截⾄上⼀时间步的全部历史信息。因此，重置⻔可以⽤来丢弃与预测⽆关的历史信息。</p>
+<h3 id="2-3-隐藏状态"><a href="#2-3-隐藏状态" class="headerlink" title="2.3 隐藏状态"></a>2.3 隐藏状态</h3><p>最后，时间步 <em>t</em> 的隐藏状态 <img src="https://juejin.im/equation?tex=H_t%5Cin_%7B%7D%5Cmathbb%7BR%7D%5E%7Bn*h%7D" alt> 的计算使⽤当前时间步的更新⻔<img src="https://juejin.im/equation?tex=Z_t" alt>来对上⼀时间步的隐藏状态 <img src="https://juejin.im/equation?tex=H_%7Bt-1%7D" alt> 和当前时间步的候选隐藏状态 <img src="https://juejin.im/equation?tex=%5Ctilde%7BH%7D_t" alt> 做组合：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/16/16c99607ab0ffcfa?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<p>值得注意的是，<strong> 更新⻔可以控制隐藏状态应该如何被包含当前时间步信息的候选隐藏状态所更新，</strong> 如上图所⽰。假设更新⻔在时间步 <img src="https://juejin.im/equation?tex=t%5E%7B%E2%80%B2%7D%E5%88%B0t(t%5E%7B%E2%80%B2%7D%3Ct" alt>&gt;) 之间⼀直近似 1。那么，在时间步 <img src="https://juejin.im/equation?tex=t%5E%7B%E2%80%B2%7D%E5%88%B0t" alt> 间的输⼊信息⼏乎没有流⼊时间步 t 的隐藏状态<img src="https://juejin.im/equation?tex=H_t" alt>实际上，这可以看作是较早时刻的隐藏状态 <img src="https://juejin.im/equation?tex=H_%7Bt%5E%7B%E2%80%B2%7D-1%7D" alt> 直通过时间保存并传递⾄当前时间步 t。这个设计可以应对循环神经⽹络中的梯度衰减问题，并更好地捕捉时间序列中时间步距离较⼤的依赖关系。</p>
+<p>我们对⻔控循环单元的设计稍作总结：</p>
+<ul>
+<li>重置⻔有助于捕捉时间序列⾥短期的依赖关系；</li>
+<li>更新⻔有助于捕捉时间序列⾥⻓期的依赖关系。</li>
+</ul>
+<ol>
+<li>代码实现 GRU</li>
+</ol>
+<hr>
+<p><a href="https://github.com/NLP-LOVE/ML-NLP/blob/master/Deep%20Learning/12.1%20GRU/GRU.ipynb" target="_blank" rel="noopener">MNIST—GRU 实现</a></p>
+<p>【<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">机器学习通俗易懂系列文章</a>】</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/8/11/16c7f691fdd76437?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></p>
+<ol>
+<li>参考文献</li>
+</ol>
+<hr>
+<p><a href="http://zh.gluon.ai" target="_blank" rel="noopener">《动手学 — 深度学习》</a></p>
+<blockquote>
+<p>作者：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">@mantchs</a></p>
+<p>GitHub：<a href="https://github.com/NLP-LOVE/ML-NLP" target="_blank" rel="noopener">github.com/NLP-LOVE/ML…</a></p>
+<p>欢迎大家加入讨论！共同完善此项目！群号：【541954936】<a href="//shang.qq.com/wpa/qunwpa?idkey=863f915b9178560bd32ca07cd090a7d9e6f5f90fcff5667489697b1621cecdb3"><img src="https://user-gold-cdn.xitu.io/2019/8/10/16c7c1fc298595c0?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt></a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>AILab-aida</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/" title="三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现">https://ailab-aida.github.io/2019/11/08/三步理解 -- 门控循环单元 (GRU)，TensorFlow 实现/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/11/08/通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)/" rel="next" title="通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)">
+                  <i class="fa fa-chevron-left"></i> 通俗易懂 -- 循环神经网络 (RNN) 的网络结构！(TensorFlow 实现)
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/11/08/白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！/" rel="prev" title="白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！">
+                  白话 -- 长短期记忆 (LSTM) 的几个步骤，附代码！ <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-重置门和更新门"><span class="nav-number">1.</span> <span class="nav-text">2.1 重置门和更新门</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-候选隐藏状态"><span class="nav-number">2.</span> <span class="nav-text">2.2 候选隐藏状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-隐藏状态"><span class="nav-number">3.</span> <span class="nav-text">2.3 隐藏状态</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.png"
+      alt="AILab-aida">
+  <p class="site-author-name" itemprop="name">AILab-aida</p>
+  <div class="site-description" itemprop="description">涉猎的主要编程语言为 深度学习、机器学习、大数据、服务端、移动端、前端、爬虫(go、scala、Java、flutter、Python、react、Vue)等。</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/qq1074123922" title="GitHub &rarr; https://github.com/qq1074123922" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="/1074123922@qq.com" title="E-Mail &rarr; 1074123922@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AILab-aida</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+
+
+  <script src="/lib/anime.min.js?v=3.1.0"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  <script src="/lib/pjax/pjax.min.js?v=0.2.8"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[pjax], script#page-configurations, #pjax script').forEach(element => {
+    var id = element.id || '';
+    var src = element.src || '';
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (id !=='') {
+      script.id = element.id;
+    }
+    if (src !== '') {
+      script.src = src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="/js/local-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'a6d340a24e0f5044ffc3',
+      clientSecret: 'edff6432acd3e21caff2696cc123e15b3ca3461c',
+      repo: 'ailab-aida.github.io',
+      owner: 'AILab-aida',
+      admin: ['ailab'],
+      id: '3abe95b45dddcce396ef5f48320fb8eb',
+        language: 'zh-CN',
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+    </div>
+</body>
+</html>
